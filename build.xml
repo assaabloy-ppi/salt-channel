@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+Build file to build jar file and javadoc. 
+NOTE: compile with Java 7!
+(Java 8 does not work, mainly due to Android limitations)
+-->
+
+<project name="pot" default="build" basedir=".">
+
+<target name="compile" 
+    description="compiles files, copies resources, output to out/classes">
+    
+    <mkdir dir="out/classes"/>
+    
+    <path id="classpath">
+        <fileset dir="lib">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <javac srcdir="src" destdir="out/classes" source="1.7" target="1.7">
+        <classpath refid="classpath" />
+    </javac>
+    
+    <copy todir="out/classes">
+        <fileset dir="src">
+            <exclude name="**/*.java"/>
+            <exclude name="**/package.html"/>
+        </fileset>
+    </copy>
+</target>
+	
+<target name="clean" description="">
+    <delete includeemptydirs="true" quiet="true">
+        <fileset dir="out" includes="**/*"/>
+    </delete>
+</target>
+
+<target name="jar" description="creates jar file, includes libs in it">
+	<delete file="out/pot.jar"/>
+	
+	<jar destfile="out/pot.jar">
+	    <fileset dir="out/classes"/>    <!-- This should be first to allow replacing classes in libs. -->
+	    <zipgroupfileset dir="lib" includes="*.jar" />
+	    <manifest>
+	        <attribute name="Main-Class" value="pot.Help" />
+	    </manifest>
+	</jar>
+</target>
+
+<target name="javadoc" description="Creates javadoc.">
+    <mkdir dir="out/javadoc"/>
+    <javadoc destdir="out/javadoc"
+            doctitle="Protocol of Things ${release}"
+            windowtitle="PoT ${release} API"
+            encoding="utf-8"
+	        classpath="lib/*:out">
+    	
+        <packageset dir="src" defaultexcludes="yes">
+            <include name="pot/**"/>
+        </packageset>
+    </javadoc>	
+</target>
+
+<target name="build" depends="clean, compile, jar" description="cleans, compiles and builds pot.jar">
+</target>
+
+</project>

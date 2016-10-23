@@ -1,3 +1,13 @@
+---------------------
+NOTE 2016-10-23, Frans Lundberg:
+
+We plan to release this with the MIT License once we can.
+We currently use a GPL v2 dependency, the library
+https://github.com/ianopolous/tweetnacl-java, so currently
+the license is GPL v2.
+
+---------------------
+
 MIT License
 
 Copyright (c) 2016 ASSA ABLOY AB.
