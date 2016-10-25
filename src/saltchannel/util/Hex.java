@@ -1,4 +1,4 @@
-package saltchannel;
+package saltchannel.util;
 
 import java.util.Locale;
 

@@ -1,7 +1,9 @@
-package saltchannel;
+package saltchannel.util;
 
 /**
  * Public static methods with functions working on byte arrays.
+ * 
+ * @author Frans Lundberg
  */
 public class ByteArrays {
     

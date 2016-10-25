@@ -1,4 +1,4 @@
-package saltchannel.cut;
+package saltchannel.util;
 
 import java.io.UnsupportedEncodingException;
 

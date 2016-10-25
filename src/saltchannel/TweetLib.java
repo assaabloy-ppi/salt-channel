@@ -3,6 +3,9 @@ package saltchannel;
 import java.security.SecureRandom;
 import java.util.Random;
 
+import saltchannel.util.ByteArrays;
+import saltchannel.util.Hex;
+
 /**
  * Thin layer on top of TweetNaCl.
  * Random byte generator can be injected. 

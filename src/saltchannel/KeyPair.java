@@ -1,5 +1,7 @@
 package saltchannel;
 
+import saltchannel.util.Hex;
+
 /**
  * Simple key pair class. Stores two byte array keys of any size.
  * 

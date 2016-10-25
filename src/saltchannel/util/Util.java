@@ -1,4 +1,4 @@
-package saltchannel;
+package saltchannel.util;
 
 import java.io.EOFException;
 import java.io.IOException;

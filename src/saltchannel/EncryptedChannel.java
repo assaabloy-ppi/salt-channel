@@ -1,6 +1,6 @@
 package saltchannel;
 
-import saltchannel.cut.Bytes;
+import saltchannel.util.Bytes;
 
 /**
  * Provides an encrypted channel that uses a shared symmetric session key.
