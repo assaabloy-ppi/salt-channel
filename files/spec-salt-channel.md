@@ -1,7 +1,7 @@
 spec-salt-channel.md
 ====================
 
-*Version*: 2016-10-19.
+*Version*: 2016-10-25.
 
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
@@ -31,7 +31,7 @@ the sequence of messages passed between Client
 and Server in a Salt Channel session.
 
 
-    CLIENT                                                 SERVER                                                       
+    CLIENT                                           SERVER                                                       
     
     ClientEncKey           
     ProtocolVersion
@@ -325,9 +325,10 @@ Possible specification changes and amendments for a future version.
   Just fixed offsets or something? Reduce code? Slightly less overhead.
   
 * **Change encrypted messages**. Currently, the encrypted messages
-  are a Binson message. This change is about removing the Binson use
+  are a Binson message. This change is to remove the Binson use
   for encrypted messages (the b-field) and send encrypted bytes 
-  directly.
+  directly. There seems to be little or no use of Binson for the
+  symmetric encryption.
   
 * **M3, M4 field names**. The order of signature and public key in 
 M3, and M4 is different. Proposal: use "s" for signature and "k" for
@@ -338,8 +339,8 @@ the "e" field. It is used for both ClientEncKey and ServerEncKey.
 * **Improve spec 1**. Specify "virtual hosting" and "NoSuchHost" error
 message. 
 
-* **Improve spec 2**. Specify how a peer should handle a peer that does not
-follow the protocol.
+* **Improve spec 2**. Specify how a peer should handle a peer that 
+does not follow the protocol.
 
 
 

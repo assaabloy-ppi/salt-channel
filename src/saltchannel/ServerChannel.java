@@ -46,17 +46,12 @@ public class ServerChannel implements ByteChannel {
         byte[] m1 = clearChannel.read();
         BinsonLight.Parser m1Parser = new BinsonLight.Parser(m1);
         
-        byte[] eField = parseM1E(m1Parser);
-        String pField = parseM1P(m1Parser);
-        parseM1S(m1Parser);
+        byte[] eField = parseM1e(m1Parser);
+        String pField = parseM1p(m1Parser);
+        parseM1s(m1Parser);
         
-        if (!pField.equals("S1")) {
-            throw new ComException("protocol (p=" + pField + ") not supported");
-        }
-        
-        if (eField.length != TweetNaCl.BOX_PUBLIC_KEY_BYTES) {
-            throw new BadPeer("client encryption key of bad length, " + eField.length);
-        }
+        checkM1P(pField);
+        checkM1E(eField);
         
         if (encKeyPair == null) {
             encKeyPair = tweet.createEncKeys();  
@@ -75,7 +70,16 @@ public class ServerChannel implements ByteChannel {
         clearChannel.write(m2, m3encrypted);
         
         byte[] m4 = encryptedChannel.read();
-        byte[] cField = handleM4(m4, eField);
+        BinsonLight.Parser m4Parser = new BinsonLight.Parser(m4);
+        
+        byte[] cField = parseM4c(m4Parser);
+        byte[] gField = parseM4g(m4Parser);
+        
+        try {
+            tweet.checkSaltChannelSignature(cField, encKeyPair.pub(), eField, gField);
+        } catch (ComException e) {
+            throw new ComException("invalid handskake signature from client");
+        }
         
         this.peerId = cField;
     }
@@ -98,85 +102,87 @@ public class ServerChannel implements ByteChannel {
         encryptedChannel.write(messages);
     }
     
-    private byte[] parseM1E(Parser parser) {
+    private byte[] parseM1e(Parser p) {
         try {
-            parser.field("e");
+            p.field("e");
         } catch (BinsonLight.FormatException e) {
-            throw new ComException("missing field M1:e");
+            throw new BadPeer("missing field M1:e");
         }
         
-        if (parser.getBytes() == null) {
-            throw new ComException("bad type of field M1:e");
+        if (p.getType() != BinsonLight.ValueType.BYTES) {
+            throw new BadPeer("bad type of field M1:e");
         }
         
-        return parser.getBytes().toByteArray();
+        return p.getBytes().toByteArray();
     }
     
-    private String parseM1P(Parser parser) {
-        try {
-            parser.field("p");
-        } catch (BinsonLight.FormatException e) {
-            throw new ComException("missing field M1:p");
+    private void checkM1E(byte[] eField) {
+        if (eField.length != TweetNaCl.BOX_PUBLIC_KEY_BYTES) {
+            throw new BadPeer("client encryption key of bad length, " + eField.length);
         }
-        
-        if (parser.getString() == null) {
-            throw new ComException("bad type of field M1:p");
-        }
-        
-        return parser.getString().toString();
     }
     
-    private byte[] parseM1S(Parser parser) {
+    private String parseM1p(Parser p) {
         try {
-            parser.field("s");
+            p.field("p");
+        } catch (BinsonLight.FormatException e) {
+            throw new BadPeer("missing field M1:p");
+        }
+        
+        if (p.getType() != BinsonLight.ValueType.STRING) {
+            throw new BadPeer("bad type of field M1:p");
+        }
+        
+        return p.getString().toString();
+    }
+
+    private void checkM1P(String pField) {
+        if (!pField.equals("S1")) {
+            throw new ComException("protocol (p=" + pField + ") not supported");
+        }
+    }
+    
+    private byte[] parseM1s(Parser p) {
+        try {
+            p.field("s");
         } catch (BinsonLight.FormatException e) {
             // Fine, this field is optional.
             return null;
         }
         
-        if (parser.getBytes() == null) {
-            throw new ComException("bad type of field M1:s");
+        if (p.getType() != BinsonLight.ValueType.BYTES) {
+            throw new BadPeer("bad type of field M1:s");
         }
         
-        return parser.getBytes().toByteArray();
+        return p.getBytes().toByteArray();
     }
     
-    private byte[] handleM4(byte[] m4Bytes, byte[] peerE) {
-        byte[] cField;
-        byte[] gField;
-        BinsonLight.Parser p = new BinsonLight.Parser(m4Bytes);
-        
+    private byte[] parseM4c(BinsonLight.Parser p) {
         try {
             p.field("c");
         } catch (BinsonLight.FormatException e) {
-            throw new ComException("bad message from client, missing c-field");
+            throw new BadPeer("bad M4 message from client, missing c-field");
         }
         
-        if (p.getBytes() == null) {
-            throw new ComException("bad message from client, bad type of c-field");
+        if (p.getType() != BinsonLight.ValueType.BYTES) {
+            throw new BadPeer("bad M4 message from client, bad type of c-field");
         }
         
-        cField = p.getBytes().toByteArray();
-        
+        return p.getBytes().toByteArray();
+    }
+    
+    private byte[] parseM4g(BinsonLight.Parser p) {
         try {
             p.field("g");
         } catch (BinsonLight.FormatException e) {
-            throw new ComException("bad message from client, missing g-field");
+            throw new BadPeer("bad M4 message from client, missing g-field");
         }
         
-        if (p.getBytes() == null) {
-            throw new ComException("bad message from client, bad type of g-field");
+        if (p.getType() != BinsonLight.ValueType.BYTES) {
+            throw new BadPeer("bad M4 message from client, bad type of g-field");
         }
         
-        gField = p.getBytes().toByteArray();
-        
-        try {
-            tweet.checkSaltChannelSignature(cField, encKeyPair.pub(), peerE, gField);
-        } catch (ComException e) {
-            throw new ComException("invalid handshake signature from client");
-        }
-        
-        return cField;
+        return p.getBytes().toByteArray();
     }
     
     private byte[] createM2(byte[] eField) {
