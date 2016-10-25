@@ -127,7 +127,7 @@ public class EncryptedChannelTest {
         EncryptedChannel e2 = new EncryptedChannel(tunnel.ch2(), key, EncryptedChannel.Role.SERVER);
         
         byte[] m3raw = Hex.toBytes("401401671840fad9747882a3d6e9bf4d6bf709f20da72694f839962038fa1b9fc02342733bc01d27847bd131b09355aa055a2c7f554ef1cd5bf7e12c62f77f1d18ace5ca0300140173182007e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b41");
-        byte[] expected = Hex.toBytes("c11a5740752f9ef562f7552123819a0085d9da0ea02ed4a1be9fd079eaab69d5e5b528668fdfae7bf4e9656c5c70ef9d151d5442c67932720146f779bf2089e7313840b9f153a83541ed446626de2d185b7aeffeefa70520ede8b68f96cb30b1566684efdcd28c962d1bfee1ee2a8367db31eab1d313dcb9d65853cb");
+        byte[] expected = Hex.toBytes("40140162187cc11a5740752f9ef562f7552123819a0085d9da0ea02ed4a1be9fd079eaab69d5e5b528668fdfae7bf4e9656c5c70ef9d151d5442c67932720146f779bf2089e7313840b9f153a83541ed446626de2d185b7aeffeefa70520ede8b68f96cb30b1566684efdcd28c962d1bfee1ee2a8367db31eab1d313dcb9d65853cb41");
         
         e2.write(m3raw);
         byte[] actual = tunnel.ch1().read();
@@ -144,7 +144,7 @@ public class EncryptedChannelTest {
         EncryptedChannel e1 = new EncryptedChannel(tunnel.ch1(), key, EncryptedChannel.Role.CLIENT);
         
         byte[] m4raw = Hex.toBytes("4014016318205529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b1401671840d2383c7eb5e49eac2056feed24b54525507d91594190493b7d4389f27c0ee11152db278248bfa4a3d7b4b15e1b8fb56192f1364f32af658eadf7bd799c814f0741");
-        byte[] expected = Hex.toBytes("dae551bde10f0b543bbc591125c6e646f73bfc662578a54bdcc8eef60a47d0bf53057418b6054eb260cca4d827c068edff9efb48f0eb7ed71646480906c138b023aac5262616246da2481b0944ab80f41c3db20568bc40b100d72c90f75b7ec411f1d23ad620d89da9a35e3a01685041280219cd05c40e4e60ffb265");
+        byte[] expected = Hex.toBytes("40140162187cdae551bde10f0b543bbc591125c6e646f73bfc662578a54bdcc8eef60a47d0bf53057418b6054eb260cca4d827c068edff9efb48f0eb7ed71646480906c138b023aac5262616246da2481b0944ab80f41c3db20568bc40b100d72c90f75b7ec411f1d23ad620d89da9a35e3a01685041280219cd05c40e4e60ffb26541");
         
         e1.write(m4raw);
         byte[] actual = tunnel.ch2().read();

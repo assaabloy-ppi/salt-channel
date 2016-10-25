@@ -1,5 +1,8 @@
 package saltchannel;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import saltchannel.util.BinsonLight;
 import saltchannel.util.Bytes;
 
 /**
@@ -58,6 +61,8 @@ public class EncryptedChannel implements ByteChannel {
         byte[] clear;
         byte[] encrypted = channel.read();
         
+        encrypted = unwrap(encrypted);
+        
         try {
             clear = TweetNaCl.secretbox_open(encrypted, readNonceBytes, key);
         } catch (IllegalStateException e) {
@@ -74,11 +79,20 @@ public class EncryptedChannel implements ByteChannel {
         byte[][] toWrite = new byte[messages.length][];
         
         for (int i = 0; i < messages.length; i++) {
-            toWrite[i] = encrypt(messages[i]);
+            toWrite[i] = wrap(encrypt(messages[i]));
             increaseWriteNonce();
         }
         
         channel.write(toWrite);
+    }
+    
+    /**
+     * Needed by ServerChannel.
+     */
+    byte[] encryptAndIncreaseWriteNonce(byte[] bytes) {
+        byte[] encrypted = wrap(encrypt(bytes));
+        increaseWriteNonce();
+        return encrypted;
     }
     
     private byte[] encrypt(byte[] clear) {
@@ -113,5 +127,39 @@ public class EncryptedChannel implements ByteChannel {
     
     private void updateWriteNonceBytes() {
         Bytes.longToBytesLE(writeNonceInteger, writeNonceBytes, 0);
+    }
+    
+    /**
+     * Wrap encrypted bytes in a Binson object.
+     */
+    private byte[] wrap(byte[] bytes) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        BinsonLight.Writer w = new BinsonLight.Writer(out);
+        try {
+            w.begin()
+                .name("b").bytes(bytes)
+            .end().flush();
+        } catch (IOException e) {
+            throw new Error("never happens");
+        }
+        
+        return out.toByteArray();
+    }
+    
+    private byte[] unwrap(byte[] binsonBytes) {
+        BinsonLight.Parser p = new BinsonLight.Parser(binsonBytes);
+        
+        try {
+            p.field("b");
+        } catch (BinsonLight.FormatException e) {
+            throw new ComException("bad format, no b-field");
+        }
+        
+        BinsonLight.BytesValue bytesValue = p.getBytes();
+        if (bytesValue == null) {
+            throw new ComException("bad format of encrypted message, bad b-field");
+        }
+        
+        return bytesValue.toByteArray();
     }
 }

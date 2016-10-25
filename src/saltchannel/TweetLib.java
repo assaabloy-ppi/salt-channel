@@ -62,7 +62,7 @@ public class TweetLib {
      * Creates a fast lib, has an insecure random number generator; so
      * to not use it to create secure keys.
      */
-    public static TweetLib createFast() {
+    public static TweetLib createFastAndInsecure() {
         return new TweetLib(createRandFast());
     }
     

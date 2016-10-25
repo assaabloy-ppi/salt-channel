@@ -321,8 +321,13 @@ Possible specification changes and amendments for a future version.
   other Binson formats and to have the protocol type in the very 
   fixed offset from the beginning of the message.
   
-* **Serialization**. Other serialization, independent of Binson?
-  Just fixed offsets or something?
+* **Remove Binson**. Other serialization, independent of Binson?
+  Just fixed offsets or something? Reduce code? Slightly less overhead.
+  
+* **Change encrypted messages**. Currently, the encrypted messages
+  are a Binson message. This change is about removing the Binson use
+  for encrypted messages (the b-field) and send encrypted bytes 
+  directly.
   
 * **M3, M4 field names**. The order of signature and public key in 
 M3, and M4 is different. Proposal: use "s" for signature and "k" for
