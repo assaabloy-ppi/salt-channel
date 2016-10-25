@@ -10,8 +10,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author Frans Lundberg
  */
 public class Tunnel {
-    private ByteChannel ch1;
-    private ByteChannel ch2;
+    private ByteChannel channel1;
+    private ByteChannel channel2;
     private LinkedBlockingQueue<byte[]> q1;
     private LinkedBlockingQueue<byte[]> q2;
     
@@ -19,7 +19,7 @@ public class Tunnel {
         q1 = new LinkedBlockingQueue<byte[]>();
         q2 = new LinkedBlockingQueue<byte[]>();
         
-        ch1 = new ByteChannel() {
+        channel1 = new ByteChannel() {
             public byte[] read() throws ComException {
                 try {
                     byte[] result = q1.take();
@@ -37,7 +37,7 @@ public class Tunnel {
             }
         };
         
-        ch2 = new ByteChannel() {
+        channel2 = new ByteChannel() {
             public byte[] read() throws ComException {
                 try {
                     return q2.take();
@@ -53,14 +53,13 @@ public class Tunnel {
                 }
             }
         };
-
     }
     
-    public ByteChannel ch1() {
-        return ch1;
+    public ByteChannel channel1() {
+        return channel1;
     }
     
-    public ByteChannel ch2() {
-        return ch2;
+    public ByteChannel channel2() {
+        return channel2;
     }
 }

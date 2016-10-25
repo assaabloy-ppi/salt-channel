@@ -1,9 +1,7 @@
-package saltchannel;
-
-import saltchannel.util.Hex;
+package saltchannel.util;
 
 /**
- * Simple key pair class. Stores two byte array keys of any size.
+ * Simple key pair class. Stores secret-public key pair in the format of byte arrays.
  * 
  * @author Frans Lundberg
  */
@@ -44,6 +42,10 @@ public class KeyPair {
     }
     
     public String toString() {
-        return "sec:xx, pub:" + Hex.create(pub);
+        return "sec:x, pub:" + Hex.create(pub);
+    }
+    
+    public String toStringIncludingPrivateKey() {
+        return "sec:" + Hex.create(sec) + ", pub:" + Hex.create(pub);
     }
 }

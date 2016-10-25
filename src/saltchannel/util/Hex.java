@@ -1,3 +1,6 @@
+// Copyright Frans Lundberg, Stockholm, 2016.
+// Public domain code copied from https://github.com/franslundberg/java-cut/.
+
 package saltchannel.util;
 
 import java.util.Locale;
@@ -24,7 +27,6 @@ public class Hex {
         }
         return create(bytes, 0, bytes.length);
     }
-    
     
     /**
      * Returns a hex string (two lowercase hex chars per byte) given a byte array.

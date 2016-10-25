@@ -1,15 +1,19 @@
-package saltchannel;
 //
-// Frans: 
+// NOTE
+// By Frans Lundberg, 2016-10-25. 
+//
 // Downloaded from https://github.com/ianopolous/tweetnacl-java 2015-09-25.
-// NOTE, TweetNaCl is GPL 2.
+// Note, TweetNaCl is GPL 2.
 //
-// CHANGES
-// See "CHANGE" markers.
+// Changes made:
+// See "CHANGE" markers in the code.
+// Summary of changes:
 // * Package renamed.
-// * getStrongCSPRNG() throws Error, must not be used
-// * randombytes() throws Error, must not be used
+// * getStrongCSPRNG() throws Error, must not be used.
+// * randombytes() throws Error, must not be used.
 //
+
+package saltchannel;
 
 import java.security.*;
 import java.util.Arrays;
@@ -65,7 +69,7 @@ public class TweetNaCl {
     }
 
     // CHANGE Frans
-    public static void crypto_sign_keypair_frans(byte[] pk, byte[] sk, TweetLib.Rand rand)
+    public static void crypto_sign_keypair_frans(byte[] pk, byte[] sk, ChannelCryptoLib.Rand rand)
     {
         byte[] d = new byte[64];
         long[][] /*gf*/ p = new long[4][GF_LEN];
@@ -94,7 +98,7 @@ public class TweetNaCl {
     }
     
     // CHANGE added function
-    public static int crypto_box_keypair_frans(byte[] y,byte[] x, TweetLib.Rand rand)
+    public static int crypto_box_keypair_frans(byte[] y,byte[] x, ChannelCryptoLib.Rand rand)
     {
         rand.randomBytes(x);
         return crypto_scalarmult_base(y,x);

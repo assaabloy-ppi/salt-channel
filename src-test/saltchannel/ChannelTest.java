@@ -3,6 +3,8 @@ package saltchannel;
 import org.junit.Assert;
 import org.junit.Test;
 
+import saltchannel.util.KeyPair;
+
 /**
  * Tests full channel usage.
  * 
@@ -15,12 +17,12 @@ public class ChannelTest {
         // Test with random key pairs.
         // App message to server that echos first message received back to client.
         
-        final TweetLib lib = TweetLib.createFastAndInsecure();
+        final ChannelCryptoLib lib = ChannelCryptoLib.createInsecureAndFast();
         final KeyPair clientKeyPair = lib.createSigKeys();
         final KeyPair serverKeyPair = lib.createSigKeys();
         final Tunnel tunnel = new Tunnel();
-        final ServerChannel serverChannel = new ServerChannel(lib, tunnel.ch2());
-        final ClientChannel clientChannel = new ClientChannel(lib, tunnel.ch1());
+        final ServerChannel serverChannel = new ServerChannel(lib, tunnel.channel2());
+        final ClientChannel clientChannel = new ClientChannel(lib, tunnel.channel1());
         
         Thread thread = new Thread(new Runnable() {
             public void run() {

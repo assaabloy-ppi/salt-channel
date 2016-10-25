@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 /**
- * A thin wrapper around a Socket to adapt it to a Channel.
+ * A ByteChannel implementation based on a Socket.
  * 
  * @author Frans Lundberg
  */

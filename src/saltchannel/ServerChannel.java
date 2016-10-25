@@ -3,21 +3,22 @@ package saltchannel;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import saltchannel.util.BinsonLight;
+import saltchannel.util.KeyPair;
 import saltchannel.util.BinsonLight.Parser;
 
 /**
- * Server implementation of Salt Channel channel.
+ * Server-side implementation of Salt Channel.
  * 
  * @author Frans Lundberg
  */
 public class ServerChannel implements ByteChannel {
     private ByteChannel clearChannel;
     private EncryptedChannel encryptedChannel;
-    private TweetLib tweet;
+    private ChannelCryptoLib tweet;
     private byte[] peerId;
     private KeyPair encKeyPair;
     
-    public ServerChannel(TweetLib tweet, ByteChannel clearChannel) {
+    public ServerChannel(ChannelCryptoLib tweet, ByteChannel clearChannel) {
         this.tweet = tweet;
         this.clearChannel = clearChannel;
         this.encKeyPair = null;

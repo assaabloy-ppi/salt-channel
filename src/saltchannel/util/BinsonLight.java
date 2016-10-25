@@ -1,5 +1,6 @@
 // Copyright Frans Lundberg, Stockholm, 2016.
 // This code is public domain. Use it as you please.
+// Source was copied from https://github.com/franslundberg/binson-java-light, October 2016.
 
 package saltchannel.util;
 

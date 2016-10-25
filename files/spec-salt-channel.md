@@ -29,9 +29,8 @@ The peer that initiates the communication is called Client.
 The other is called Server. Figure 1 shows an overview of 
 the sequence of messages passed between Client 
 and Server in a Salt Channel session.
-
-
-    CLIENT                                           SERVER                                                       
+    
+    CLIENT                                                 SERVER
     
     ClientEncKey           
     ProtocolVersion
@@ -48,7 +47,6 @@ and Server in a Salt Channel session.
     ApplicationData                <------->      ApplicationData
     
                   Figure 1: Salt Channel messages.
-        
         
 Each peer holds a long-term signing key pair known. The public signing
 key is assumed to the known to the other peer a priori. 

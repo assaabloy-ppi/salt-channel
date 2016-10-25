@@ -1,7 +1,8 @@
 package saltchannel;
 
 /**
- * Communication exception.
+ * Communication exception, typically a wrapped IOException.
+ * If data was successfully received, but not following spec, use BadPeer instead.
  * 
  * @author Frans Lundberg
  */

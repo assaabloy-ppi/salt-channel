@@ -1,3 +1,7 @@
+// Copyright Frans Lundberg, Stockholm 2016.
+// Public domain code copied from https://github.com/franslundberg/java-cut/ 
+// October 2016.
+
 package saltchannel.util;
 
 import java.io.UnsupportedEncodingException;

@@ -5,22 +5,23 @@ import java.io.IOException;
 import java.util.Arrays;
 import saltchannel.util.BinsonLight;
 import saltchannel.util.Hex;
+import saltchannel.util.KeyPair;
 import saltchannel.util.BinsonLight.Parser;
 
 /**
- * The client-side of a secure channel ("Salt Channel").
+ * The client-side of a Salt Channel.
  * 
  * @author Frans Lundberg
  */
 public class ClientChannel implements ByteChannel {
-    private final TweetLib tweet;
+    private final ChannelCryptoLib tweet;
     private ByteChannel clearChannel;
     private EncryptedChannel encryptedChannel;
     private volatile byte[] m4Buffered = null;
     private byte[] actualServerKey;
     private KeyPair encKeyPair;
     
-    public ClientChannel(TweetLib tweet, ByteChannel clearChannel) {
+    public ClientChannel(ChannelCryptoLib tweet, ByteChannel clearChannel) {
         this.tweet = tweet;
         this.clearChannel = clearChannel;
     }

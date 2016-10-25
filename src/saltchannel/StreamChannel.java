@@ -1,13 +1,17 @@
 package saltchannel;
 
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import saltchannel.util.Bytes;
-import saltchannel.util.Util;
 
+/**
+ * A ByteChannel implementation based on a pair of streams.
+ * 
+ * @author Frans Lundberg
+ */
 public class StreamChannel implements ByteChannel {
     private final InputStream in;
     private final OutputStream out;
@@ -39,7 +43,7 @@ public class StreamChannel implements ByteChannel {
     
     private byte[] innerRead() throws IOException {
         byte[] bytes = new byte[4];
-        Util.readFully(in, bytes, 0, 4);
+        readFully(in, bytes, 0, 4);
         
         int length = Bytes.bytesToIntLE(bytes, 0);
         
@@ -52,7 +56,7 @@ public class StreamChannel implements ByteChannel {
         }
         
         byte[] data = new byte[length];
-        Util.readFully(in, data, 0, data.length);
+        readFully(in, data, 0, data.length);
         
         listener.messageRead(data);
         
@@ -90,5 +94,23 @@ public class StreamChannel implements ByteChannel {
         public void messagesWritten(byte[][] messages);
         
         public void messageRead(byte[] message);
+    }
+    
+    private static void readFully(InputStream in, byte[] dest, int offset, final int length) 
+            throws IOException {
+        int len = length;
+        
+        while (true) {
+            int count = in.read(dest, offset, len);
+            if (count == -1) {
+                throw new EOFException("EOF reached");
+            }
+            
+            offset += count;
+            len -= count;
+            if (len == 0) {
+                break;
+            }
+        }
     }
 }

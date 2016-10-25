@@ -3,7 +3,7 @@ package saltchannel;
 /**
  * Thrown to indicate that the server with the given pubkey is
  * not available.
- * 
+ *
  * @author Frans Lundberg
  */
 public class NoSuchServerException extends ComException {

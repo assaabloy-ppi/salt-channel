@@ -6,7 +6,8 @@ import saltchannel.util.BinsonLight;
 import saltchannel.util.Bytes;
 
 /**
- * Provides an encrypted channel that uses a shared symmetric session key.
+ * An implementation of an encrypted channel using a shared symmetric 
+ * session key.
  * 
  * @author Frans Lundberg
  */

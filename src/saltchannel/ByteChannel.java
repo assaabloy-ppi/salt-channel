@@ -2,7 +2,8 @@ package saltchannel;
 
 /**
  * A two-way, reliable communication channel.
- * Byte arrays can be read and written. This is a blocking implementation.
+ * Byte arrays can be read and written. 
+ * This is a blocking model.
  * 
  * @author Frans Lundberg
  */
