@@ -465,3 +465,15 @@ the first application message can be sent together with m4 and the handshake
 will have a one round-trip overhead.
 
 The total amount of data sent is 46 + 39 + 131 + 131 + 4*4 = 363 bytes.
+
+        CLIENT     SERVER
+       
+        50 -------------> 
+        <------------ 178
+        135 ------------>
+    
+        Figure: Amount of data exchanged in a Salt Channel handshake, the
+        total is 363 bytes.
+
+The figure above shows the amount of data exchanged in the handshake example.
+The four-byte size header of each message is included.

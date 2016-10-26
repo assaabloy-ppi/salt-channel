@@ -2,10 +2,10 @@
 <!-- 
 Build file to build jar file and javadoc. 
 NOTE: compile with Java 7!
-(Java 8 does not work, mainly due to Android limitations)
+Do not use Java, mainly due to Android limitations.
 -->
 
-<project name="pot" default="build" basedir=".">
+<project name="salt-channel" default="build" basedir=".">
 
 <target name="compile" 
     description="compiles files, copies resources, output to out/classes">
@@ -37,27 +37,24 @@ NOTE: compile with Java 7!
 </target>
 
 <target name="jar" description="creates jar file, includes libs in it">
-	<delete file="out/pot.jar"/>
+	<delete file="out/salt-channel.jar"/>
 	
-	<jar destfile="out/pot.jar">
+	<jar destfile="out/salt-channel.jar">
 	    <fileset dir="out/classes"/>    <!-- This should be first to allow replacing classes in libs. -->
 	    <zipgroupfileset dir="lib" includes="*.jar" />
-	    <manifest>
-	        <attribute name="Main-Class" value="pot.Help" />
-	    </manifest>
 	</jar>
 </target>
 
 <target name="javadoc" description="Creates javadoc.">
     <mkdir dir="out/javadoc"/>
     <javadoc destdir="out/javadoc"
-            doctitle="Protocol of Things ${release}"
-            windowtitle="PoT ${release} API"
+            doctitle="Salt Channel"
+            windowtitle="Salt Channel API"
             encoding="utf-8"
 	        classpath="lib/*:out">
     	
         <packageset dir="src" defaultexcludes="yes">
-            <include name="pot/**"/>
+            <include name="**"/>
         </packageset>
     </javadoc>	
 </target>
