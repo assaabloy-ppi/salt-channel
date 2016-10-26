@@ -36,7 +36,7 @@ Do not use Java, mainly due to Android limitations.
     </delete>
 </target>
 
-<target name="jar" description="creates jar file, includes libs in it">
+<target name="jar" description="creates jar file, includes libs in it" depends="compile">
 	<delete file="out/salt-channel.jar"/>
 	
 	<jar destfile="out/salt-channel.jar">

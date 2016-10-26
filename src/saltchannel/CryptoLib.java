@@ -7,19 +7,22 @@ import saltchannel.util.KeyPair;
 
 /**
  * Salt Channel crypto lib, a thin layer on top of TweetNaCl.
- * The random byte generator can be injected. 
- * Provides some channel-related utility features.
- * The random generator must be replaceable; needed for faster tests
- * and for Android use.
+ * Note: implementation is moving from stateful object to a set of functions (static).
  * 
  * @author Frans Lundberg
  */
 public class CryptoLib {
     public static final int SIGN_PUBLIC_KEY_BYTES = TweetNaCl.SIGN_PUBLIC_KEY_BYTES;
+    public static final int SIGNATURE_SIZE_BYTES = TweetNaCl.SIGNATURE_SIZE_BYTES;
+    
     private Rand rand;
     
     private CryptoLib(Rand rand) {
         this.rand = rand;
+    }
+    
+    public Rand getRand() {
+        return rand;
     }
 
     /**
@@ -53,7 +56,36 @@ public class CryptoLib {
         return new CryptoLib(rand);
     }
     
-    public KeyPair createEncKeys() {
+    public static Rand createSecureRand() {
+        // Note, for Java 1.7 (currently supported by this code), "new SecureRandom()"
+        // is good. Once 1.8 is allowed, use code like: "SecureRandom.getInstanceStrong()"
+        // instead.
+        
+        final Random random = new SecureRandom();
+        
+        Rand rand = new Rand() {
+            @Override
+            public void randomBytes(byte[] b) {
+                random.nextBytes(b);
+            }
+        };
+        
+        return rand;
+    }
+
+    public static Rand createInsecureAndFastRand() {
+        final Random random = new Random();
+        
+        Rand rand = new Rand() {
+            public void randomBytes(byte[] b) {
+                random.nextBytes(b);
+            }
+        };
+        
+        return rand;
+    }
+    
+    public static KeyPair createEncKeys(Rand rand) {
         byte[] sec = new byte[TweetNaCl.BOX_SECRET_KEY_BYTES];
         byte[] pub = new byte[TweetNaCl.BOX_PUBLIC_KEY_BYTES];
         rand.randomBytes(sec);
@@ -62,7 +94,22 @@ public class CryptoLib {
         return new KeyPair(sec, pub);
     }
     
-    public KeyPair createSigKeys() {
+    /**
+     * @deprecated Use function instead.
+     */
+    public KeyPair createEncKeys() {
+        byte[] sec = new byte[TweetNaCl.BOX_SECRET_KEY_BYTES];
+        byte[] pub = new byte[TweetNaCl.BOX_PUBLIC_KEY_BYTES];
+        this.rand.randomBytes(sec);
+        boolean isSeeded = true;
+        TweetNaCl.crypto_box_keypair(pub, sec, isSeeded);
+        return new KeyPair(sec, pub);
+    }
+    
+    /**
+     * Creates a random signing KeyPair.
+     */
+    public static KeyPair createSigKeys(Rand rand) {
         byte[] sec = new byte[TweetNaCl.SIGN_SECRET_KEY_BYTES];
         byte[] pub = new byte[TweetNaCl.SIGN_PUBLIC_KEY_BYTES];
         rand.randomBytes(sec);
@@ -70,8 +117,37 @@ public class CryptoLib {
         TweetNaCl.crypto_sign_keypair(pub, sec, isSeeded);
         return new KeyPair(sec, pub);
     }
+    
+    /**
+     * @deprecated Use static function instead.
+     */
+    public KeyPair createSigKeys() {
+        byte[] sec = new byte[TweetNaCl.SIGN_SECRET_KEY_BYTES];
+        byte[] pub = new byte[TweetNaCl.SIGN_PUBLIC_KEY_BYTES];
+        this.rand.randomBytes(sec);
+        boolean isSeeded = true;
+        TweetNaCl.crypto_sign_keypair(pub, sec, isSeeded);
+        return new KeyPair(sec, pub);
+    }
+    
+    /**
+     * Creates a deterministic signing KeyPair given the secret key.
+     */
+    public static KeyPair createSigKeysFromSec(byte[] sec) {
+        byte[] pub = new byte[TweetNaCl.SIGN_PUBLIC_KEY_BYTES];
+        boolean isSeeded = true;
+        TweetNaCl.crypto_sign_keypair(pub, sec, isSeeded);
+        return new KeyPair(sec, pub);
+    }
+    
+    /**
+     * Signs a message using TweetNaCl signing.
+     */
+    public static byte[] sign(byte[] messageToSign, byte[] sigSecKey) {
+        return TweetNaCl.crypto_sign(messageToSign, sigSecKey);
+    }
 
-    public byte[] computeSharedKey(byte[] myPriv, byte[] peerPub) {
+    public static byte[] computeSharedKey(byte[] myPriv, byte[] peerPub) {
         if (myPriv.length != TweetNaCl.BOX_SECRET_KEY_BYTES) {
             throw new IllegalArgumentException("bad length of myPriv, " + myPriv.length);
         }
@@ -85,7 +161,7 @@ public class CryptoLib {
         return sharedKey;
     }
     
-    public byte[] createSaltChannelSignature(KeyPair sigKeyPair, byte[] myEk, byte[] peerEk) {
+    public static byte[] createSaltChannelSignature(KeyPair sigKeyPair, byte[] myEk, byte[] peerEk) {
         byte[] secretSigningKey = sigKeyPair.sec();
         
         if (secretSigningKey.length != TweetNaCl.SIGN_SECRET_KEY_BYTES) {
@@ -108,7 +184,7 @@ public class CryptoLib {
      * 
      * @throws ComException if signature not valid.
      */
-    public void checkSaltChannelSignature(byte[] peerSigPubKey, byte[] myEk,
+    public static void checkSaltChannelSignature(byte[] peerSigPubKey, byte[] myEk,
             byte[] peerEk, byte[] signature) {
         // To use NaCl's crypto_sign_open, we create 
         // a signed message: signature+message concatenated.
@@ -151,21 +227,5 @@ public class CryptoLib {
             super(message);
         }
     };
-    
-    private static Rand createSecureRand() {
-        // Note, for Java 1.7 (currently supported by this code), "new SecureRandom()"
-        // is good. Once 1.8 is allowed, use code like: "SecureRandom.getInstanceStrong()"
-        // instead.
-        
-        final Random random = new SecureRandom();
-        
-        Rand rand = new Rand() {
-            @Override
-            public void randomBytes(byte[] b) {
-                random.nextBytes(b);
-            }
-        };
-        
-        return rand;
-    }
+
 }

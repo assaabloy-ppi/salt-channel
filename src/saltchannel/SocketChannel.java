@@ -10,8 +10,9 @@ import java.net.Socket;
  * @author Frans Lundberg
  */
 public class SocketChannel implements ByteChannel {
+    private final Socket socket;
     private final StreamChannel channel;
-    
+
     /**
      * Creates a StreamChannel from a socket. The input stream of the socket
      * is wrapped with a BufferedInputStream. The output stream is not wrapped.
@@ -21,8 +22,13 @@ public class SocketChannel implements ByteChannel {
      * @throws IOException
      */
     public SocketChannel(Socket socket) throws IOException {
+        this.socket = socket;
         BufferedInputStream b = new BufferedInputStream(socket.getInputStream());
         channel = new StreamChannel(b, socket.getOutputStream());
+    }
+    
+    public Socket getSocket() {
+        return socket;
     }
     
     public byte[] read() throws ComException {

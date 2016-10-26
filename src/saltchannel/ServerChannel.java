@@ -14,14 +14,21 @@ import saltchannel.util.BinsonLight.Parser;
 public class ServerChannel implements ByteChannel {
     private ByteChannel clearChannel;
     private EncryptedChannel encryptedChannel;
-    private CryptoLib tweet;
+    private CryptoLib.Rand rand;
     private byte[] peerId;
     private KeyPair encKeyPair;
     
-    public ServerChannel(CryptoLib tweet, ByteChannel clearChannel) {
-        this.tweet = tweet;
+    public ServerChannel(CryptoLib.Rand rand, ByteChannel clearChannel) {
+        this.rand = rand;
         this.clearChannel = clearChannel;
         this.encKeyPair = null;
+    }
+    
+    /**
+     * @deprecated
+     */
+    public ServerChannel(CryptoLib lib, ByteChannel clearChannel) {
+        this(lib.getRand(), clearChannel);
     }
     
     /**
@@ -55,11 +62,11 @@ public class ServerChannel implements ByteChannel {
         checkM1E(eField);
         
         if (encKeyPair == null) {
-            encKeyPair = tweet.createEncKeys();  
+            encKeyPair = CryptoLib.createEncKeys(rand);  
         }
         
-        byte[] sharedKey = tweet.computeSharedKey(encKeyPair.sec(), eField);
-        byte[] mySignature = tweet.createSaltChannelSignature(sigKeys, encKeyPair.pub(), eField);
+        byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), eField);
+        byte[] mySignature = CryptoLib.createSaltChannelSignature(sigKeys, encKeyPair.pub(), eField);
 
         encryptedChannel = new EncryptedChannel(clearChannel, sharedKey, EncryptedChannel.Role.SERVER);
         
@@ -77,7 +84,7 @@ public class ServerChannel implements ByteChannel {
         byte[] gField = parseM4g(m4Parser);
         
         try {
-            tweet.checkSaltChannelSignature(cField, encKeyPair.pub(), eField, gField);
+            CryptoLib.checkSaltChannelSignature(cField, encKeyPair.pub(), eField, gField);
         } catch (ComException e) {
             throw new ComException("invalid handskake signature from client");
         }

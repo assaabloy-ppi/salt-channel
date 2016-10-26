@@ -14,15 +14,15 @@ import saltchannel.util.BinsonLight.Parser;
  * @author Frans Lundberg
  */
 public class ClientChannel implements ByteChannel {
-    private final CryptoLib tweet;
+    private final CryptoLib.Rand rand;
     private ByteChannel clearChannel;
     private EncryptedChannel encryptedChannel;
     private volatile byte[] m4Buffered = null;
     private byte[] actualServerKey;
     private KeyPair encKeyPair;
     
-    public ClientChannel(CryptoLib tweet, ByteChannel clearChannel) {
-        this.tweet = tweet;
+    public ClientChannel(CryptoLib.Rand rand, ByteChannel clearChannel) {
+        this.rand = rand;
         this.clearChannel = clearChannel;
     }
     
@@ -79,7 +79,7 @@ public class ClientChannel implements ByteChannel {
         String tField = parseM2t(m2Parser);
         
         handleNoSuchServer(wantedServer, tField);
-        byte[] sharedKey = tweet.computeSharedKey(encKeyPair.sec(), eField);
+        byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), eField);
         encryptedChannel = new EncryptedChannel(clearChannel, sharedKey, EncryptedChannel.Role.CLIENT);
         
         byte[] m3 = encryptedChannel.read();
@@ -88,8 +88,8 @@ public class ClientChannel implements ByteChannel {
         byte[] actualServerKey = parseM3s(m3Parser);
         
         checkWantedServer(wantedServer, actualServerKey);        
-        tweet.checkSaltChannelSignature(actualServerKey, encKeyPair.pub(), eField, serverSignature);
-        byte[] mySignature = tweet.createSaltChannelSignature(sigKeys, encKeyPair.pub(), eField);
+        CryptoLib.checkSaltChannelSignature(actualServerKey, encKeyPair.pub(), eField, serverSignature);
+        byte[] mySignature = CryptoLib.createSaltChannelSignature(sigKeys, encKeyPair.pub(), eField);
         
         byte[] m4 = createM4(sigKeys.pub(), mySignature);
         writeOrBufferM4(flush, m4);
@@ -156,7 +156,7 @@ public class ClientChannel implements ByteChannel {
 
     private void createEncKeyPairIfNeeded() {
         if (this.encKeyPair == null) {
-            this.encKeyPair = tweet.createEncKeys();
+            this.encKeyPair = CryptoLib.createEncKeys(rand);
         }
     }
     

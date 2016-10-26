@@ -17,12 +17,12 @@ public class ChannelTest {
         // Test with random key pairs.
         // App message to server that echos first message received back to client.
         
-        final CryptoLib lib = CryptoLib.createInsecureAndFast();
-        final KeyPair clientKeyPair = lib.createSigKeys();
-        final KeyPair serverKeyPair = lib.createSigKeys();
+        CryptoLib.Rand rand = CryptoLib.createInsecureAndFastRand();
+        final KeyPair clientKeyPair = CryptoLib.createSigKeys(rand);
+        final KeyPair serverKeyPair = CryptoLib.createSigKeys(rand);
         final Tunnel tunnel = new Tunnel();
-        final ServerChannel serverChannel = new ServerChannel(lib, tunnel.channel2());
-        final ClientChannel clientChannel = new ClientChannel(lib, tunnel.channel1());
+        final ServerChannel serverChannel = new ServerChannel(rand, tunnel.channel2());
+        final ClientChannel clientChannel = new ClientChannel(rand, tunnel.channel1());
         
         Thread thread = new Thread(new Runnable() {
             public void run() {
