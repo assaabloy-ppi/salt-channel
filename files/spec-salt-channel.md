@@ -11,8 +11,9 @@ Introduction
 ============
 
 Salt Channel is a secure channel protocol on top of the TweetNaCl 
-("tweet salt") cryptography library by Daniel Bernstein [TWEET-1, TWEET-2] et al.
-Like TweetNaCl itself, Salt Channel is simple and light-weight.
+("tweet salt") cryptography library by Daniel Bernstein et al 
+[TWEET-1, TWEET-2]. Like TweetNaCl itself, Salt Channel is simple and 
+light-weight.
 
 The protocol is essentially an implementation of the station-to-station [STS] protocol.
 It relies on an underlying reliable communication channel between the two 
@@ -48,25 +49,25 @@ and Server in a Salt Channel session.
     
                   Figure 1: Salt Channel messages.
         
-Each peer holds a long-term signing key pair known. The public signing
-key is assumed to the known to the other peer a priori. 
-Also, each peer generates an ephemeral encryption 
-key pair for use exclusively for this one session.
+Each peer holds a long-term signing key pair. The public signing
+of the other peer is assumed to be known a priori. 
+In addition to the signing key pair, each peer generates an 
+ephemeral encryption key pair for use exclusively for one 
+Salt Channel session.
 
 The handshake begins with Client sending his ephemeral public 
-encryption key (ClientEncKey) to the server and the server responds
-with sending his ephemeral public encryption key (ServerEncKey) back
-to Client. The first message, m1, also contains ProtocolVersion
+encryption key (ClientEncKey) to the server and the server responding
+with his ephemeral public encryption key (ServerEncKey).
+The first message, M1, also contains ProtocolVersion
 and optionally the Server's public signature key. More on that later.
 
 So, in the first part of the handshake (M1, M2), Client and Server
 exchanges their ephemeral public keys in cleartext. After that,
 the peers can create a common secret using Diffie-Hellman 
 key agreement. This secret is used to encrypt all of the following
-messages (m3, m4, ApplicationData).
-At this stage the peers can communicate confidentially. However,
-they have not authenticated to each other so they do not know
-who they communicate with yet.
+messages (M3, M4, ApplicationData). At this stage the peers can 
+communicate confidentially. However, they have not authenticated to 
+each other so they do not know who they communicate with yet.
 
 Messages M3, M4 achieve mutual authentication. In message M3, 
 Server sends his public signature key together with the signature of 
@@ -75,7 +76,7 @@ Client responds with his public signature key and the signature
 of ClientEncKey + ServerEncKey (Signature2).
 
 Once Client has verified Signature1, he knows that he is communicating
-with Server.. More precisely, Client knows he communicates with someone
+with Server. More precisely, Client knows he communicates with someone
 holding the private key corresponding to ServerSigKey.
 
 Once Server has verified Signature2, he knows that he is communicating
@@ -88,10 +89,9 @@ not be able to determine the identity of Server (ServerSigKey) either.
 
 Note that if the application protocol starts with a message from Client
 (a common case) this message can be sent together with Message M4. 
-This results in a secure channel handshake that has a one round-trip 
-overhead instead of two. Implementation should allow the application to
-chose to send a first application message together with M4.
-
+This results in a handshake that only has a one round-trip overhead.
+Implementations should allow the application to send a first application
+message together with M4.
 
 
 
