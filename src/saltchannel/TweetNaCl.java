@@ -11,6 +11,7 @@
 // * Package renamed.
 // * getStrongCSPRNG() throws Error, must not be used.
 // * randombytes() throws Error, must not be used.
+// In general, we want deterministic functions.
 //
 
 package saltchannel;
@@ -68,39 +69,11 @@ public class TweetNaCl {
         for (i=0;i < 32;++i)sk[32 + i] = pk[i];
     }
 
-    // CHANGE Frans
-    public static void crypto_sign_keypair_frans(byte[] pk, byte[] sk, ChannelCryptoLib.Rand rand)
-    {
-        byte[] d = new byte[64];
-        long[][] /*gf*/ p = new long[4][GF_LEN];
-        int i;
-
-        rand.randomBytes(sk);
-        
-        crypto_hash(d, sk, 32);
-        d[0] &= 248;
-        d[31] &= 127;
-        d[31] |= 64;
-
-        scalarbase(p,d, 0);
-        pack(pk,p);
-
-        for (i=0;i < 32;++i)sk[32 + i] = pk[i];
-    }
-
-
     public static int crypto_box_keypair(byte[] y,byte[] x, boolean isSeeded)
     {
         if (!isSeeded) {
             randombytes(x,32);
         }
-        return crypto_scalarmult_base(y,x);
-    }
-    
-    // CHANGE added function
-    public static int crypto_box_keypair_frans(byte[] y,byte[] x, ChannelCryptoLib.Rand rand)
-    {
-        rand.randomBytes(x);
         return crypto_scalarmult_base(y,x);
     }
 

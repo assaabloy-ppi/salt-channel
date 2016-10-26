@@ -14,11 +14,11 @@ import saltchannel.util.KeyPair;
  * 
  * @author Frans Lundberg
  */
-public class ChannelCryptoLib {
+public class CryptoLib {
     public static final int SIGN_PUBLIC_KEY_BYTES = TweetNaCl.SIGN_PUBLIC_KEY_BYTES;
     private Rand rand;
     
-    private ChannelCryptoLib(Rand rand) {
+    private CryptoLib(Rand rand) {
         this.rand = rand;
     }
 
@@ -26,15 +26,15 @@ public class ChannelCryptoLib {
      * Creates an instance of the crypto lib with a 
      * secure random source.
      */
-    public static ChannelCryptoLib createSecure() {
-        return new ChannelCryptoLib(createSecureRand());
+    public static CryptoLib createSecure() {
+        return new CryptoLib(createSecureRand());
     }
     
     /**
      * Creates a crypto lib instance with an insecure random number generator; so
      * do not use for other things than testing.
      */
-    public static ChannelCryptoLib createInsecureAndFast() {
+    public static CryptoLib createInsecureAndFast() {
         final Random random = new Random();
         
         Rand rand = new Rand() {
@@ -43,27 +43,31 @@ public class ChannelCryptoLib {
             }
         };
         
-        return new ChannelCryptoLib(rand);
+        return new CryptoLib(rand);
     }
 
     /**
      * Creates a crypto lib instance from the given source of randomness.
      */
-    public static ChannelCryptoLib create(Rand rand) {
-        return new ChannelCryptoLib(rand);
+    public static CryptoLib create(Rand rand) {
+        return new CryptoLib(rand);
     }
     
     public KeyPair createEncKeys() {
         byte[] sec = new byte[TweetNaCl.BOX_SECRET_KEY_BYTES];
         byte[] pub = new byte[TweetNaCl.BOX_PUBLIC_KEY_BYTES];
-        TweetNaCl.crypto_box_keypair_frans(pub, sec, rand);
+        rand.randomBytes(sec);
+        boolean isSeeded = true;
+        TweetNaCl.crypto_box_keypair(pub, sec, isSeeded);
         return new KeyPair(sec, pub);
     }
     
     public KeyPair createSigKeys() {
         byte[] sec = new byte[TweetNaCl.SIGN_SECRET_KEY_BYTES];
         byte[] pub = new byte[TweetNaCl.SIGN_PUBLIC_KEY_BYTES];
-        TweetNaCl.crypto_sign_keypair_frans(pub, sec, rand);
+        rand.randomBytes(sec);
+        boolean isSeeded = true;
+        TweetNaCl.crypto_sign_keypair(pub, sec, isSeeded);
         return new KeyPair(sec, pub);
     }
 

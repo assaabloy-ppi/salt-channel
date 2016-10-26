@@ -17,7 +17,7 @@ public class ChannelTest {
         // Test with random key pairs.
         // App message to server that echos first message received back to client.
         
-        final ChannelCryptoLib lib = ChannelCryptoLib.createInsecureAndFast();
+        final CryptoLib lib = CryptoLib.createInsecureAndFast();
         final KeyPair clientKeyPair = lib.createSigKeys();
         final KeyPair serverKeyPair = lib.createSigKeys();
         final Tunnel tunnel = new Tunnel();

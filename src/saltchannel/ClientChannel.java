@@ -14,14 +14,14 @@ import saltchannel.util.BinsonLight.Parser;
  * @author Frans Lundberg
  */
 public class ClientChannel implements ByteChannel {
-    private final ChannelCryptoLib tweet;
+    private final CryptoLib tweet;
     private ByteChannel clearChannel;
     private EncryptedChannel encryptedChannel;
     private volatile byte[] m4Buffered = null;
     private byte[] actualServerKey;
     private KeyPair encKeyPair;
     
-    public ClientChannel(ChannelCryptoLib tweet, ByteChannel clearChannel) {
+    public ClientChannel(CryptoLib tweet, ByteChannel clearChannel) {
         this.tweet = tweet;
         this.clearChannel = clearChannel;
     }
