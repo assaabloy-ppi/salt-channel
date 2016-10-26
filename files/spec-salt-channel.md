@@ -59,7 +59,7 @@ The handshake begins with Client sending his ephemeral public
 encryption key (ClientEncKey) to the server and the server responding
 with his ephemeral public encryption key (ServerEncKey).
 The first message, M1, also contains ProtocolVersion
-and optionally the Server's public signature key. More on that later.
+and optionally the Server's public signing key. More on that later.
 
 So, in the first part of the handshake (M1, M2), Client and Server
 exchanges their ephemeral public keys in cleartext. After that,
