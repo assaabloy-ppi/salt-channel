@@ -5,6 +5,14 @@ A Java implementation of Salt Channel - a simple,
 light-weight secure channel protocol based on TweetNaCl by Bernstein.
 
 
+Log 2016-10-26
+==============
+
+Frans Lundberg:
+First verison of full implementation. Ready for protocol audit. 
+Spec included in repo.
+
+
 Log 2016-10-23
 ==============
 

@@ -10,65 +10,91 @@ import saltchannel.util.BinsonLight.Parser;
 
 /**
  * The client-side of a Salt Channel.
+ * Usage: use constructor, then setX methods, then handshake(), then 
+ * read/write methods. Do not reuse an instance of this class for more 
+ * than one Salt Channel session.
  * 
  * @author Frans Lundberg
  */
 public class ClientChannel implements ByteChannel {
-    private final CryptoLib.Rand rand;
     private ByteChannel clearChannel;
     private EncryptedChannel encryptedChannel;
     private volatile byte[] m4Buffered = null;
     private byte[] actualServerKey;
-    private KeyPair encKeyPair;
+    private boolean bufferM4 = true;
+    private byte[] wantedServer;
     
-    public ClientChannel(CryptoLib.Rand rand, ByteChannel clearChannel) {
-        this.rand = rand;
+    /**
+     * Creates a new instance of the class that uses the provided
+     * underlying communication channel.
+     * 
+     * @param clearChannel
+     *          Cleartext communication channel. 
+     */
+    public ClientChannel(ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
     }
     
     /**
-     * Sets the ephemeral encryption key pair to use for the handshake.
-     * This method is normally *not* used. It is suitable for deterministic 
-     * testing. The ephemeral key pair is normally created during the handshake.
+     * Sets the wanted server. This is useful to allow multiple servers
+     * to share a common endpoint.
+     * 
+     * @param wantedServer
+     *          Public signing key of the server the client wants to 
+     *          communicate with. Can be null to connect to the default
+     *          server at the endpoint.
+     *          Default value is null.
      */
-    public void initEphemeralKeyPair(KeyPair encKeyPair) {
-        this.encKeyPair = encKeyPair;
+    public void setWantedServer(byte[] wantedServer) {
+        this.wantedServer = wantedServer;
+    }
+    
+    /**
+     * If true, the M4 message of the handshake will not immediately be
+     * sent in the handshake method. Instead it is buffered and will be
+     * sent with the first application message from the client.
+     * 
+     * @param bufferIt  True to buffer. Default value: true.
+     */
+    public void setBufferM4(boolean bufferIt) {
+        this.bufferM4 = bufferIt;
     }
     
     /**
      * Performs handshake with any server independent of the server's 
      * public key.
      * 
-     * @param sigKeys
+     * @param sigKeyPair
      *      The long-term signing key pair, sigKeys.sec() is highly confidential.
-     */
-    public void handshake(KeyPair sigKeys) {
-        handshake(sigKeys, null, false);
-    }
-    
-    /**
-     * @param sigKeys
-     *      The long-term signing key pair, sigKeys.sec() is highly confidential.
-     * @param serverSigPub
-     *      Expected public signing key of server, "server ID".
-     */
-    public void handshake(KeyPair sigKeys, byte[] serverSigPub) {
-        handshake(sigKeys, serverSigPub, false);
-    }
-    
-    /**
-     * @param flush  If true, the third-way message (m4) from client to server 
-     *      will be flushed and sent immediately instead of with the first application message.
-     *      No flushing may save a round-trip to the server.
+     * @param rand
+     *      Source of secure random data for creating the ephemeral key pair.
      * @throws BadPeer
      * @throws ComException
      * @throws NoSuchHostException  
      *      If there is no active host at the endpoint with the given public key.
      */
-    public void handshake(KeyPair sigKeys, byte[] wantedServer, boolean flush) {
-        checkSigKeyPairParam(sigKeys);        
+    public void handshake(KeyPair sigKeyPair, CryptoLib.Rand rand) {
+        KeyPair ephemeralKeyPair = CryptoLib.createEncKeys(rand);
+        handshake(sigKeyPair, ephemeralKeyPair);
+    }
+        
+    
+    /**
+     * Performs handshake with any server independent of the server's 
+     * public key.
+     * 
+     * @param sigKeyPair
+     *      The long-term signing key pair, sigKeys.sec() is highly confidential.
+     * @param encKeyPair
+     *      Ephemeral key pair, must only be used for this session.
+     * @throws BadPeer
+     * @throws ComException
+     * @throws NoSuchHostException  
+     *      If there is no active host at the endpoint with the given public key.
+     */
+    public void handshake(KeyPair sigKeyPair, KeyPair encKeyPair) {
+        checkSigKeyPairParam(sigKeyPair);        
         checkWantedServerParam(wantedServer);
-        createEncKeyPairIfNeeded();
         
         byte[] m1 = createM1(encKeyPair.pub(), wantedServer);
         clearChannel.write(m1);
@@ -89,18 +115,10 @@ public class ClientChannel implements ByteChannel {
         
         checkWantedServer(wantedServer, actualServerKey);        
         CryptoLib.checkSaltChannelSignature(actualServerKey, encKeyPair.pub(), eField, serverSignature);
-        byte[] mySignature = CryptoLib.createSaltChannelSignature(sigKeys, encKeyPair.pub(), eField);
+        byte[] mySignature = CryptoLib.createSaltChannelSignature(sigKeyPair, encKeyPair.pub(), eField);
         
-        byte[] m4 = createM4(sigKeys.pub(), mySignature);
-        writeOrBufferM4(flush, m4);
-    }
-
-    private void writeOrBufferM4(boolean flush, byte[] m4) {
-        if (flush) {
-            encryptedChannel.write(m4);
-        } else {
-            this.m4Buffered = m4;
-        }
+        byte[] m4 = createM4(sigKeyPair.pub(), mySignature);
+        writeOrBufferM4(m4);
     }
     
     /**
@@ -153,20 +171,17 @@ public class ClientChannel implements ByteChannel {
             throw new IllegalArgumentException("bad length of wantedServer parameter");
         }
     }
-
-    private void createEncKeyPairIfNeeded() {
-        if (this.encKeyPair == null) {
-            this.encKeyPair = CryptoLib.createEncKeys(rand);
-        }
-    }
     
-    private byte[] createM1(byte[] pub, byte[] wantedServer) {
+    /**
+     * Creates M1, wantedServer may be null.
+     */
+    private byte[] createM1(byte[] encPubKey, byte[] wantedServer) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         BinsonLight.Writer w = new BinsonLight.Writer(out);
         
         try {
             w.begin();
-            w.name("e").bytes(pub);
+            w.name("e").bytes(encPubKey);
             w.name("p").string("S1");
             
             if (wantedServer != null) {
@@ -286,5 +301,13 @@ public class ClientChannel implements ByteChannel {
         }
         
         return out.toByteArray();
+    }
+
+    private void writeOrBufferM4(byte[] m4) {
+        if (this.bufferM4) {
+            this.m4Buffered = m4;
+        } else {
+            encryptedChannel.write(m4);
+        }
     }
 }

@@ -30,16 +30,14 @@ public class ClientChannelTest {
         byte[] m3 = Hex.toBytes("40140162187cc11a5740752f9ef562f7552123819a0085d9da0ea02ed4a1be9fd079eaab69d5e5b528668fdfae7bf4e9656c5c70ef9d151d5442c67932720146f779bf2089e7313840b9f153a83541ed446626de2d185b7aeffeefa70520ede8b68f96cb30b1566684efdcd28c962d1bfee1ee2a8367db31eab1d313dcb9d65853cb41");
         byte[] m4Expected = Hex.toBytes("40140162187cdae551bde10f0b543bbc591125c6e646f73bfc662578a54bdcc8eef60a47d0bf53057418b6054eb260cca4d827c068edff9efb48f0eb7ed71646480906c138b023aac5262616246da2481b0944ab80f41c3db20568bc40b100d72c90f75b7ec411f1d23ad620d89da9a35e3a01685041280219cd05c40e4e60ffb26541");
         
-        CryptoLib lib = CryptoLib.createInsecureAndFast();
         Tunnel tunnel = new Tunnel();
         ByteChannel serverChannel = tunnel.channel2();
-        
-        final ClientChannel clientChannel = new ClientChannel(lib.getRand(), tunnel.channel1());
-        clientChannel.initEphemeralKeyPair(clientEncKeyPair);
+        final ClientChannel clientChannel = new ClientChannel(tunnel.channel1());
+        clientChannel.setBufferM4(false);
         
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                clientChannel.handshake(clientSigKeyPair, null, true);
+                clientChannel.handshake(clientSigKeyPair, clientEncKeyPair);
             }
         });
         thread.start();

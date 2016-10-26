@@ -34,14 +34,13 @@ public class ServerChannelTest {
         Tunnel tunnel = new Tunnel();
         ByteChannel client = tunnel.channel1();
         
-        final ServerChannel serverChannel = new ServerChannel(rand, tunnel.channel2());
-        serverChannel.initEphemeralKeyPair(serverEphemeralKeyPair);
+        final ServerChannel serverChannel = new ServerChannel(tunnel.channel2());
         
         client.write(m1);
         
         Thread serverThread = new Thread(new Runnable() {
             public void run() {
-                serverChannel.handshake(serverKeyPair);
+                serverChannel.handshake(serverKeyPair, serverEphemeralKeyPair);
             }
         });
         serverThread.start();

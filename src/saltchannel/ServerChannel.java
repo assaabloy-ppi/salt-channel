@@ -8,38 +8,18 @@ import saltchannel.util.BinsonLight.Parser;
 
 /**
  * Server-side implementation of Salt Channel.
+ * Usage: create object, call handshake(), call read()/write() methods.
+ * Do not reuse the object for more than one Salt Channel session.
  * 
  * @author Frans Lundberg
  */
 public class ServerChannel implements ByteChannel {
-    private ByteChannel clearChannel;
+    private final ByteChannel clearChannel;
     private EncryptedChannel encryptedChannel;
-    private CryptoLib.Rand rand;
     private byte[] peerId;
-    private KeyPair encKeyPair;
     
-    public ServerChannel(CryptoLib.Rand rand, ByteChannel clearChannel) {
-        this.rand = rand;
+    public ServerChannel(ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
-        this.encKeyPair = null;
-    }
-    
-    /**
-     * @deprecated
-     */
-    public ServerChannel(CryptoLib lib, ByteChannel clearChannel) {
-        this(lib.getRand(), clearChannel);
-    }
-    
-    /**
-     * Sets the ephemeral encryption key pair to use for the handshake.
-     * The method is suitable for deterministic testing and when there is
-     * a need to precompute the ephemeral key pair.
-     * Otherwise, the ephemeral key pair is created during the handshake and
-     * this method does not need to be used.
-     */
-    public void initEphemeralKeyPair(KeyPair encKeyPair) {
-        this.encKeyPair = encKeyPair;
     }
     
     /**
@@ -47,10 +27,25 @@ public class ServerChannel implements ByteChannel {
      * Note, there is currently no support for handling s-field
      * (virtual servers).
      * 
-     * @param sigKeys  The server's long-term signing key pair.
+     * @param sigKeyPair  The server's long-term signing key pair.
+     * @param encKeyPair  Ephemeral encryption key pair, for this session only.
      * @throws ComException
      */
-    public void handshake(KeyPair sigKeys) {
+    public void handshake(KeyPair sigKeyPair, CryptoLib.Rand rand) {
+        KeyPair ephemeralKeyPair = CryptoLib.createEncKeys(rand);
+        handshake(sigKeyPair, ephemeralKeyPair);
+    }
+    
+    /**
+     * Performs the Salt Channel handshake.
+     * Note, there is currently no support for handling s-field
+     * (virtual servers).
+     * 
+     * @param sigKeyPair  The server's long-term signing key pair.
+     * @param encKeyPair  Ephemeral encryption key pair, for this session only.
+     * @throws ComException
+     */
+    public void handshake(KeyPair sigKeyPair, KeyPair encKeyPair) {
         byte[] m1 = clearChannel.read();
         BinsonLight.Parser m1Parser = new BinsonLight.Parser(m1);
         
@@ -61,18 +56,14 @@ public class ServerChannel implements ByteChannel {
         checkM1P(pField);
         checkM1E(eField);
         
-        if (encKeyPair == null) {
-            encKeyPair = CryptoLib.createEncKeys(rand);  
-        }
-        
         byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), eField);
-        byte[] mySignature = CryptoLib.createSaltChannelSignature(sigKeys, encKeyPair.pub(), eField);
+        byte[] mySignature = CryptoLib.createSaltChannelSignature(sigKeyPair, encKeyPair.pub(), eField);
 
         encryptedChannel = new EncryptedChannel(clearChannel, sharedKey, EncryptedChannel.Role.SERVER);
         
         byte[] m2 = createM2(encKeyPair.pub());
         
-        byte[] m3 = createM3(mySignature, sigKeys.pub());
+        byte[] m3 = createM3(mySignature, sigKeyPair.pub());
         byte[] m3encrypted = encryptedChannel.encryptAndIncreaseWriteNonce(m3);
 
         clearChannel.write(m2, m3encrypted);
