@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import saltchannel.util.KeyPair;
+import saltchannel.util.Rand;
 
 /**
  * Tests full channel usage.
@@ -17,7 +18,7 @@ public class ChannelTest {
         // Test with random key pairs.
         // App message to server that echos first message received back to client.
         
-        final CryptoLib.Rand rand = CryptoLib.createInsecureAndFastRand();
+        final Rand rand = CryptoLib.createInsecureAndFastRand();
         final KeyPair clientKeyPair = CryptoLib.createSigKeys(rand);
         final KeyPair serverKeyPair = CryptoLib.createSigKeys(rand);
         final Tunnel tunnel = new Tunnel();

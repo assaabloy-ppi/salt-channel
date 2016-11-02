@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.util.Random;
 import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
+import saltchannel.util.Rand;
 
 /**
  * Salt Channel crypto lib, a thin layer on top of TweetNaCl.
@@ -119,18 +120,6 @@ public class CryptoLib {
     }
     
     /**
-     * @deprecated Use static function instead.
-     */
-    public KeyPair createSigKeys() {
-        byte[] sec = new byte[TweetNaCl.SIGN_SECRET_KEY_BYTES];
-        byte[] pub = new byte[TweetNaCl.SIGN_PUBLIC_KEY_BYTES];
-        this.rand.randomBytes(sec);
-        boolean isSeeded = true;
-        TweetNaCl.crypto_sign_keypair(pub, sec, isSeeded);
-        return new KeyPair(sec, pub);
-    }
-    
-    /**
      * Creates a deterministic signing KeyPair given the secret key.
      */
     public static KeyPair createSigKeysFromSec(byte[] sec) {
@@ -208,16 +197,6 @@ public class CryptoLib {
             throw new InvalidSignature("invalid peer signature while doing handshake, "
                     + "peer's pub sig key=" + Hex.create(peerSigPubKey) + ", sm=" + Hex.create(signedMessage));
         }
-    }
-    
-    /**
-     * Interface for random number source.
-     */
-    public static interface Rand {
-        /**
-         * Sets the bytes in the array to random bytes.
-         */
-        public void randomBytes(byte[] b);
     }
     
     public static class InvalidSignature extends ComException {

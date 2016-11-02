@@ -6,6 +6,7 @@ import java.util.Arrays;
 import saltchannel.util.BinsonLight;
 import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
+import saltchannel.util.Rand;
 import saltchannel.util.BinsonLight.Parser;
 
 /**
@@ -73,7 +74,7 @@ public class ClientChannel implements ByteChannel {
      * @throws NoSuchHostException  
      *      If there is no active host at the endpoint with the given public key.
      */
-    public void handshake(KeyPair sigKeyPair, CryptoLib.Rand rand) {
+    public void handshake(KeyPair sigKeyPair, Rand rand) {
         KeyPair ephemeralKeyPair = CryptoLib.createEncKeys(rand);
         handshake(sigKeyPair, ephemeralKeyPair);
     }

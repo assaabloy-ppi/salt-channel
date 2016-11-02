@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import saltchannel.util.BinsonLight;
 import saltchannel.util.KeyPair;
+import saltchannel.util.Rand;
 import saltchannel.util.BinsonLight.Parser;
 
 /**
@@ -31,7 +32,7 @@ public class ServerChannel implements ByteChannel {
      * @param encKeyPair  Ephemeral encryption key pair, for this session only.
      * @throws ComException
      */
-    public void handshake(KeyPair sigKeyPair, CryptoLib.Rand rand) {
+    public void handshake(KeyPair sigKeyPair, Rand rand) {
         KeyPair ephemeralKeyPair = CryptoLib.createEncKeys(rand);
         handshake(sigKeyPair, ephemeralKeyPair);
     }
