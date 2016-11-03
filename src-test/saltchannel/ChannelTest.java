@@ -42,4 +42,29 @@ public class ChannelTest {
         
         Assert.assertArrayEquals(app1, response);
     }
+    
+    @Test
+    public void testThatServerPubKeyIsAvailable() {
+        final Rand rand = CryptoLib.createInsecureAndFastRand();
+        final KeyPair clientKeyPair = CryptoLib.createSigKeys(rand);
+        final KeyPair serverKeyPair = CryptoLib.createSigKeys(rand);
+        final Tunnel tunnel = new Tunnel();
+        final ServerChannel serverChannel = new ServerChannel(tunnel.channel2());
+        final ClientChannel clientChannel = new ClientChannel(tunnel.channel1());
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                serverChannel.handshake(serverKeyPair, rand);
+                byte[] app1s = serverChannel.read();
+                serverChannel.write(app1s);
+            }
+        });
+        thread.start();
+        
+        clientChannel.handshake(clientKeyPair, rand);
+        
+        byte[] serversPubKey = clientChannel.getServerKey();
+        Assert.assertTrue("asserts-that-pubkey-is-not-null", serversPubKey != null);
+        Assert.assertEquals(32, serversPubKey.length);
+    }
 }

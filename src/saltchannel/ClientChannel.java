@@ -112,7 +112,7 @@ public class ClientChannel implements ByteChannel {
         byte[] m3 = encryptedChannel.read();
         BinsonLight.Parser m3Parser = new BinsonLight.Parser(m3);
         byte[] serverSignature = parseM3g(m3Parser);
-        byte[] actualServerKey = parseM3s(m3Parser);
+        actualServerKey = parseM3s(m3Parser);
         
         checkWantedServer(wantedServer, actualServerKey);        
         CryptoLib.checkSaltChannelSignature(actualServerKey, encKeyPair.pub(), eField, serverSignature);
