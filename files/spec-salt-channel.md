@@ -21,6 +21,7 @@ peers. TCP is an important example of such a channel, but Salt Channel is in
 no way restricted to TCP. In fact, Salt Channel has been successfully implemented
 over Bluetooth, Bluetooth Low Energy, and RS485.
 
+Salt Channel is "Powered by Curve25519".
 
 
 Protocol overview
