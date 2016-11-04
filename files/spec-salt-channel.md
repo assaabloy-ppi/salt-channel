@@ -1,10 +1,11 @@
 spec-salt-channel.md
 ====================
 
-*Version*: 2016-10-25.
+*Version*: 2016-11-04.
 
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
+
 
 
 Introduction
@@ -16,10 +17,10 @@ Salt Channel is a secure channel protocol on top of the TweetNaCl
 light-weight.
 
 The protocol is essentially an implementation of the station-to-station [STS] protocol.
-It relies on an underlying reliable communication channel between the two 
+It relies on an underlying reliable communication channel between two 
 peers. TCP is an important example of such a channel, but Salt Channel is in
 no way restricted to TCP. In fact, Salt Channel has been successfully implemented
-over Bluetooth, Bluetooth Low Energy, and RS485.
+on top of WebSocket, RS232, Bluetooth, and Bluetooth Low Energy.
 
 Salt Channel is "Powered by Curve25519".
 
@@ -30,7 +31,7 @@ Protocol overview
 The peer that initiates the communication is called Client. 
 The other is called Server. Figure 1 shows an overview of 
 the sequence of messages passed between Client 
-and Server in a Salt Channel session.
+and Server during a Salt Channel session.
     
     CLIENT                                                 SERVER
     
@@ -50,17 +51,21 @@ and Server in a Salt Channel session.
     
                   Figure 1: Salt Channel messages.
         
-Each peer holds a long-term signing key pair. The public signing
-of the other peer is assumed to be known a priori. 
+Each peer holds a long-term signing key pair. The peers are assumed to know
+each other'r public signing key before the Salt Channel session is started.
 In addition to the signing key pair, each peer generates an 
-ephemeral encryption key pair for use exclusively for one 
-Salt Channel session.
+ephemeral encryption key pair for use exclusively for one Salt Channel session.
 
 The handshake begins with Client sending his ephemeral public 
 encryption key (ClientEncKey) to the server and the server responding
 with his ephemeral public encryption key (ServerEncKey).
 The first message, M1, also contains ProtocolVersion
-and optionally the Server's public signing key. More on that later.
+and optionally the Server's public signing key (ServerSigKey). 
+The ServerSigKey is needed in cases where multiple Salt Channel Servers
+are sharing the same communication endpoint. For example, it is possible for 
+multiple Salt Channel servers to share one TCP port on a computer.
+We call this feature *virtual hosting* since it it very similar to virtual 
+hosting in the context of the World Wide Web.
 
 So, in the first part of the handshake (M1, M2), Client and Server
 exchanges their ephemeral public keys in cleartext. After that,
@@ -120,8 +125,11 @@ C library functions by Bernstein. See [NACL].
     =============================
     
     First message sent by client. ServerSigKey is included only when Client
-    wants to chose one server among many available at the same end point.
-    This is similar to virtual hosting as used by web servers and browsers.
+    wants to chose one server among many available at the same end point
+    (virtual hosting).
+    
+    The tables that follow contains the following information for each field:
+    Binson field name, type, long name (used in this document), and a description.
     
     e  bytes  ClientEncKey
                 Client's ephemeral public key for encryption.
@@ -161,7 +169,9 @@ C library functions by Bernstein. See [NACL].
     Message M4: Client --> Server
     =============================
     
-    This message is encrypted.
+    This message is encrypted. Note that the order of the fields has no particular
+    meaning. In fact, the order of the fields is the alphabetic order based on 
+    the field name as required by Binson [BINSON].
     
     c  bytes  ClientSigKey
                 Client's long-term public signature key.
@@ -195,11 +205,14 @@ in the handshake messages.
 
 
 
-Symmetric encryption
-====================
+Authenticated encryption
+========================
 
-The shared secret is obtained using Diffie-Hellman key establishment based on 
-the two ephemeral asymmetric key pairs.
+A secret shared between the peers is obtained using Diffie-Hellman key agreement 
+based on the ephemeral key pairs. The crypto_box_beforenm() function [NACL] is
+then used to create a shared key from that shared secret. The key is used in 
+to encrypt and authenticate each message of the Salt Channel session except for
+message M1 and M2.
 
 Each encrypted message has the following format.
 
@@ -207,22 +220,25 @@ Each encrypted message has the following format.
     =================
     
     b  bytes  EncryptedMessage
-                Encrypted bytes, encrypted and authenticated with TweetNaCl's 
-                crypto_box() function. EncryptedMessage can be of arbitrary size.
-                Note, for messages M3, and M4, the EncryptedMessages is a 
-                Binson object. This is not a requirement of the application data
-                messages. They are arbitrary byte arrays.
+                Encrypted bytes, encrypted and authenticated with the  
+                crypto_box() function [NACL]. EncryptedMessage can be of arbitrary size.
+                Note, for messages M3, and M4, the EncryptedMessages is a Binson object. This is not 
+                a requirement of the application data messages. They are arbitrary byte arrays.
                 
                   Figure 3: Encrypted message format.
     
 The authenticated encryption algorithm from TweetNaCl [NACL, TWEET-1, TWEET-2] 
 is used. It is called "crypto_box". The corresponding function to decrypt 
 and verify is called "crypto_box_open". crypto_box() takes a 24-byte nonce.
+The first 16 bytes of the ciphertext is used to authenticate the message when
+it is decrypted. Encryption and authentication is done in one atomic function call
+and is described in the original NaCl paper [NACL].
 
 Both Client and Server use the first 8 bytes of the nonce to store 
 a signed 64-bit integer in little-endian byte order.
 This integer is 1, 3, 5, ... for Client; increasing by 2 for each message.
 This integer is 2, 4, 6, ... for Server; increasing by 2 for each message.
+The rest of the bytes of the nonce must be set to zero.
 
 
 
