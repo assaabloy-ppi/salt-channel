@@ -1,10 +1,20 @@
 spec-salt-channel.md
 ====================
 
-*Version*: 2016-11-04.
+About document
+--------------
+
+*Version*: 2016-11-11.
 
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
+
+
+Changes
+-------
+
+* 2016-11-11. Fixed spec error of field M4:g, "Signature2". Found by 
+  Simon Johanssson. Thank you!
 
 
 
@@ -35,9 +45,9 @@ and Server during a Salt Channel session.
     
     CLIENT                                                 SERVER
     
-    ClientEncKey           
+    ClientEncKey
     ProtocolVersion
-    [ServerSigKey]                 ---M1--->  
+    [ServerSigKey]                 ---M1--->
                 
                                    <--M2----         ServerEncKey
                                    
@@ -45,7 +55,7 @@ and Server during a Salt Channel session.
                                    <--M3----           Signature1
                                    
     ClientSigKey
-    Signature2                     ---M4--->           
+    Signature2                     ---M4--->
     
     ApplicationData                <------->      ApplicationData
     
@@ -178,7 +188,7 @@ C library functions by Bernstein. See [NACL].
                 32 bytes. The key is created with crypto_sign_keypair() [NACL].
                 
     g  bytes  Signature2
-                Signature of the concatenation of ServerEncKey + ClientEncKey.
+                Signature of the concatenation of ClientEncKey + ServerEncKey.
                 64 bytes. Only the signature itself is included.
                 The signature is created with crypto_sign() [NACL].
     
