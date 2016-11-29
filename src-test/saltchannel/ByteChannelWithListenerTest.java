@@ -20,10 +20,13 @@ public class ByteChannelWithListenerTest {
         };
         
         ByteChannelWithListener ch2 = new ByteChannelWithListener(ch1, new ByteChannelWithListener.Listener() {
-            public void onPostWrite(byte[][] byteArrays, long time) {}
-            public void onPostRead(byte[] byteArray, long time) {
+            public void onPostWrite(byte[][] byteArrays) {}
+            public void onPostRead(byte[] byteArray) {
                 System.arraycopy(byteArray, 0, array, 0, byteArray.length);
             }
+            
+            public void onPreRead() {}
+            public void onPreWrite(byte[][] byteArrays) {}
         });
         
         byte[] bytes = ch2.read();
@@ -45,11 +48,13 @@ public class ByteChannelWithListenerTest {
         };
         
         ByteChannel ch2 = new ByteChannelWithListener(ch1, new ByteChannelWithListener.Listener() {
-            public void onPostWrite(byte[][] byteArrays, long time) {
+            public void onPostWrite(byte[][] byteArrays) {
                 System.arraycopy(byteArrays[0], 0, array1, 0, byteArrays[0].length);
             }
             
-            public void onPostRead(byte[] byteArray, long time) {}
+            public void onPostRead(byte[] byteArray) {}
+            public void onPreRead() {}
+            public void onPreWrite(byte[][] byteArrays) {}
         });
         
         ch2.write(new byte[][]{new byte[]{2, 4, 6}});
