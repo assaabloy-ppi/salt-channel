@@ -1,8 +1,8 @@
 spec-salt-channel.md
 ====================
 
-About document
---------------
+About this document
+-------------------
 
 *Date*: 2017-01-04
 
@@ -13,8 +13,10 @@ frans.lundberg@assaabloy.com, phone: +46707601861.
 Changes
 -------
 
-* 2017-01-04. Clarifications based on audit by Assured AB.
-  Language updates.
+Significant changes of this document.
+
+* 2017-01-04. Clarifications based on audits by Assured AB and 
+  Fabrizio De Santis. Language updates.
 
 * 2016-11-11. Fixed spec error of field M4:g, "Signature2". Found by 
   Simon Johanssson. Thank you!
@@ -64,8 +66,8 @@ and Server during a Salt Channel session.
     
     ApplicationData                <--*---->      ApplicationData
     
-            Figure 1: Salt Channel messages. '*' is used to 
-            mark encrypted messages.
+            Figure 1: Salt Channel messages. An asterisk (*) is used to 
+            indicate that a message is encrypted.
     
     
 Each peer holds a long-term signing key pair. The peers are assumed to know
@@ -93,9 +95,9 @@ communicate confidentially. However, they have not authenticated to
 each other so they do not know for sure who they communicate with.
 
 Messages M3, M4 achieve mutual authentication. In message M3, 
-Server sends his public signature key together with the signature of 
+Server sends his public signing key together with the signature of 
 ServerEncKey + ClientEncKey (Signature1). 
-Client responds with his public signature key and the signature 
+Client responds with his public signing key and the signature 
 of ClientEncKey + ServerEncKey (Signature2).
 
 Once Client has verified Signature1, he knows that he is communicating
@@ -127,6 +129,11 @@ Message details
 
 This section provides the details of the protocol messages.
 
+Note that each message is of know size. How this size if specified depends on 
+the underlying transport layer. When Salt Channel is used on top 
+of a byte stream (TCP for example) a 4-byte size header is prepended.
+See section "Salt Channel over a stream".
+
 The messages are serialized to bytes using Binson. See [Binson]. 
 Field names and types refer to Binson field names and their types.
 Binson is an exceptionally light-weight serialization format with 
@@ -136,7 +143,9 @@ Message details are presented below. Each message is a Binson object.
 Each field is a Binson field. The first column is the Binson field 
 name, the second is the Binson type of the field. The third column 
 contains the field name as used in this specification text and a 
-description of the field. Encrypted messages are marked with an asterisk (*).
+description of the field. Messages that are encrypted and authenticated 
+are marked with an asterisk (*). See section "Authenticated encryption"
+for details about the message encryption.
 
 Note that the order of the fields has no particular meaning. In fact, the 
 order of the fields is the alphabetic order based on the field name as 
@@ -189,7 +198,7 @@ C library functions by Bernstein. See [NACL].
                 The signature is created with crypto_sign() [NACL].
     
     s  bytes  ServerSigKey
-                Server's long-term public signature key.
+                Server's long-term public signing key.
                 32 bytes. The key is created with crypto_sign_keypair() [NACL].
                 
                 
@@ -199,7 +208,7 @@ C library functions by Bernstein. See [NACL].
     This message is encrypted.
     
     c  bytes  ClientSigKey
-                Client's long-term public signature key.
+                Client's long-term public signing key.
                 32 bytes. The key is created with crypto_sign_keypair() [NACL].
                 
     g  bytes  Signature2
@@ -258,26 +267,29 @@ Each encrypted message has the following format.
                 
             Figure 3: Encrypted message format.
     
-The authenticated encryption algorithm from TweetNaCl [NACL, TWEET-1, TWEET-2],
-function crypto_box() is used. The corresponding function to decrypt 
-and verify is called crypto_box_open(). crypto_box() and crypto_box_open() 
-take a 24-byte nonce as one parameter. 
+The authenticated encryption algorithm of the crypto_box() function 
+of TweetNaCl [NACL, TWEET-1, TWEET-2] is used. The corresponding function to 
+decrypt and verify is called crypto_box_open(). Note, in practice, 
+implementations will use the functions crypto_box_beforenm(), 
+crypto_box_afternm(), and crypto_box_open_afternm(). See [NACLBOX].
 
 The first 16 bytes of the ciphertext is used to authenticate the message when
-it is decrypted. Encryption and authentication is done in one atomic function 
-call (crypto_box()) and is described in the original NaCl paper [NACL].
+it is decrypted. Encryption and authentication are done in one atomic function 
+call and is described in the original NaCl paper [NACL].
 
+The crypto_box_x() functions take a 24-byte nonce as a parameter.
 Both Client and Server use the first 8 bytes of the nonce to store 
 a signed 64-bit integer in little-endian byte order.
 This integer is 1, 3, 5, ... for messages sent by Client; increasing by 2 for 
 each message it sends. This integer is 2, 4, 6, ... for messages send by Server;
 increasing by 2 for each message it sends.
 The rest of the bytes of the nonce must be set to zero.
+The nonce counters are reset for every Salt Channel session.
 Note, no assumption is made on the order in which the peers send
 application messages. For example, Server may send all application messages.
 The nonce values used by Client and those used by Server are disjoint sets.
 Note also that the nonce values used are *not* send over the communication 
-channel since this is not necessary; they can easily be computed.
+channel. This is not necessary; they can easily be computed.
 
 
 
@@ -287,12 +299,12 @@ Salt Channel over a stream
 When Salt Channel is implemented on top of a stream, such as TCP, the following
 format is used:
 
-    Stream = (Size BinsonObject)+
+    Stream = (Size Message)+
     
 Size is a signed 32-bit integer (range: 0 to 2^31-1) with the byte size of 
-the following BinsonObject. Little-endian-first byte order is used.
-BinsonObject is the bytes of a Binson object. The format of those Binson objects
-is defined in this document.
+the following Message. Little-endian-first byte order is used.
+Message is the raw bytes. The format of those Message:s is defined in
+this document.
 
 
 
@@ -387,7 +399,7 @@ Possible specification changes and amendments for a future version.
   
 * **M3, M4 field names**. The order of signature and public key in 
 M3, and M4 is different. Proposal: use "s" for signature and "k" for
-the public signature key in both messages. There is little need to 
+the public signing key in both messages. There is little need to 
 differentiate between Server and Client. Also, this is not done with
 the "e" field. It is used for both ClientEncKey and ServerEncKey.
 
