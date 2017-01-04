@@ -4,7 +4,7 @@ spec-salt-channel.md
 About document
 --------------
 
-*Version*: 2016-11-11.
+*Date*: 2017-01-04
 
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
@@ -12,6 +12,9 @@ frans.lundberg@assaabloy.com, phone: +46707601861.
 
 Changes
 -------
+
+* 2017-01-04. Clarifications based on audit by Assured AB.
+  Language updates.
 
 * 2016-11-11. Fixed spec error of field M4:g, "Signature2". Found by 
   Simon Johanssson. Thank you!
@@ -21,25 +24,27 @@ Changes
 Introduction
 ============
 
-Salt Channel is a secure channel protocol on top of the TweetNaCl 
+Salt Channel is a secure channel protocol based on the TweetNaCl 
 ("tweet salt") cryptography library by Daniel Bernstein et al 
 [TWEET-1, TWEET-2]. Like TweetNaCl itself, Salt Channel is simple and 
 light-weight.
 
-The protocol is essentially an implementation of the station-to-station [STS] protocol.
+The protocol is essentially an implementation of the station-to-station [STS] 
+protocol using the crypto primitives of TweetNaCl.
 It relies on an underlying reliable communication channel between two 
 peers. TCP is an important example of such a channel, but Salt Channel is in
-no way restricted to TCP. In fact, Salt Channel has been successfully implemented
-on top of WebSocket, RS232, Bluetooth, and Bluetooth Low Energy.
+no way restricted to TCP. In fact, Salt Channel has been successfully 
+implemented on top of WebSocket, RS232, Bluetooth, and Bluetooth Low Energy.
 
 Salt Channel is "Powered by Curve25519".
+
 
 
 Protocol overview
 =================
 
 The peer that initiates the communication is called Client. 
-The other is called Server. Figure 1 shows an overview of 
+The other peer is called Server. Figure 1 shows an overview of 
 the sequence of messages passed between Client 
 and Server during a Salt Channel session.
     
@@ -52,17 +57,19 @@ and Server during a Salt Channel session.
                                    <--M2----         ServerEncKey
                                    
                                                      ServerSigKey
-                                   <--M3----           Signature1
+                                   <--M3*---           Signature1
                                    
     ClientSigKey
-    Signature2                     ---M4--->
+    Signature2                     ---M4*-->
     
-    ApplicationData                <------->      ApplicationData
+    ApplicationData                <--*---->      ApplicationData
     
-                  Figure 1: Salt Channel messages.
-        
+            Figure 1: Salt Channel messages. '*' is used to 
+            mark encrypted messages.
+    
+    
 Each peer holds a long-term signing key pair. The peers are assumed to know
-each other'r public signing key before the Salt Channel session is started.
+each other's public signing key before the Salt Channel session is started.
 In addition to the signing key pair, each peer generates an 
 ephemeral encryption key pair for use exclusively for one Salt Channel session.
 
@@ -71,19 +78,19 @@ encryption key (ClientEncKey) to the server and the server responding
 with his ephemeral public encryption key (ServerEncKey).
 The first message, M1, also contains ProtocolVersion
 and optionally the Server's public signing key (ServerSigKey). 
-The ServerSigKey is needed in cases where multiple Salt Channel Servers
+ServerSigKey is needed in cases where multiple Salt Channel servers
 are sharing the same communication endpoint. For example, it is possible for 
-multiple Salt Channel servers to share one TCP port on a computer.
-We call this feature *virtual hosting* since it it very similar to virtual 
-hosting in the context of the World Wide Web.
+multiple Salt Channel servers to share a single TCP port on a computer.
+We call this feature *virtual hosting* due to its similarity with 
+virtual hosting [VIRTUAL] in the context of the World Wide Web.
 
 So, in the first part of the handshake (M1, M2), Client and Server
-exchanges their ephemeral public keys in cleartext. After that,
+exchange their ephemeral public keys in cleartext. After that,
 the peers can create a common secret using Diffie-Hellman 
 key agreement. This secret is used to encrypt all of the following
 messages (M3, M4, ApplicationData). At this stage the peers can 
 communicate confidentially. However, they have not authenticated to 
-each other so they do not know who they communicate with yet.
+each other so they do not know for sure who they communicate with.
 
 Messages M3, M4 achieve mutual authentication. In message M3, 
 Server sends his public signature key together with the signature of 
@@ -103,11 +110,15 @@ Note that an attacker will not be able to determine the identity
 of Client (ClientSigKey). A passive attacker (eavesdropping only), will
 not be able to determine the identity of Server (ServerSigKey) either.
 
-Note that if the application protocol starts with a message from Client
-(a common case) this message can be sent together with Message M4. 
-This results in a handshake that only has a one round-trip overhead.
-Implementations should allow the application to send a first application
-message together with M4.
+Note also that if the application protocol starts with a message from 
+Client to Server (a common case) this first application message can be 
+send together with M4 in one IO "write" operation without waiting for 
+M4 to reach Server. This results in a handshake that only has a one 
+round-trip overhead. Implementations should allow the application to 
+send a first application message together with M4.
+
+If M4 is invalid (in particular if the signature is invalid), any 
+application message that follows must be discarded by Server.
 
 
 
@@ -125,7 +136,11 @@ Message details are presented below. Each message is a Binson object.
 Each field is a Binson field. The first column is the Binson field 
 name, the second is the Binson type of the field. The third column 
 contains the field name as used in this specification text and a 
-description of the field.
+description of the field. Encrypted messages are marked with an asterisk (*).
+
+Note that the order of the fields has no particular meaning. In fact, the 
+order of the fields is the alphabetic order based on the field name as 
+required by Binson [BINSON].
 
 References to function names are the names of the NaCl (and TweetNaCl) 
 C library functions by Bernstein. See [NACL].
@@ -134,19 +149,21 @@ C library functions by Bernstein. See [NACL].
     Message M1: Client --> Server
     =============================
     
-    First message sent by client. ServerSigKey is included only when Client
+    First message sent by Client. ServerSigKey is included only when Client
     wants to chose one server among many available at the same end point
     (virtual hosting).
     
-    The tables that follow contains the following information for each field:
-    Binson field name, type, long name (used in this document), and a description.
+    The tables below contain the following information of each field:
+    Binson field name, type, long name (used in this document), and 
+    a description.
     
     e  bytes  ClientEncKey
                 Client's ephemeral public key for encryption.
                 32 bytes. The key is created with crypto_box_keypair() [NACL].
                 
     p  string ProtocolVersion
-                Always "S1", the protocol version.
+                Protocol identifier and version. Currently it always has
+                the value "S1".
                   
     s  bytes  ServerSigKey
                 OPTIONAL field. Server's public signing key. 
@@ -161,8 +178,8 @@ C library functions by Bernstein. See [NACL].
                 32 bytes. The key is created with crypto_box_keypair() [NACL].
                
     
-    Message M3: Client <-- Server
-    =============================
+    Message M3*: Client <-- Server
+    ==============================
     
     This message is encrypted.
     
@@ -176,12 +193,10 @@ C library functions by Bernstein. See [NACL].
                 32 bytes. The key is created with crypto_sign_keypair() [NACL].
                 
                 
-    Message M4: Client --> Server
-    =============================
+    Message M4*: Client --> Server
+    ==============================
     
-    This message is encrypted. Note that the order of the fields has no particular
-    meaning. In fact, the order of the fields is the alphabetic order based on 
-    the field name as required by Binson [BINSON].
+    This message is encrypted.
     
     c  bytes  ClientSigKey
                 Client's long-term public signature key.
@@ -193,25 +208,30 @@ C library functions by Bernstein. See [NACL].
                 The signature is created with crypto_sign() [NACL].
     
     
-    ApplicationData
-    ===============
+    ApplicationData*
+    ================
     
-    After M4, arbitrary messages passing between the peers take place. 
-    This is entirely up to the application protocol. Each application message 
-    (byte array) is encrypted that same way as M3 and M4.
+    After M4, arbitrary application encrypted messages are passed between the 
+    peers. This is entirely up to the application protocol. Each application
+    message (byte array) is encrypted that same way as M3 and M4.
     
-                  Figure 2: Messages details.
+            Figure 2: Messages details.
     
-
+    
 A peer should immediately terminate the communication session if it 
-receives invalid data from the other peer. Data is considered invalid 
-if it does not follow this specification or if a signature is invalid.
+receives invalid data from the other peer. 
+Data is considered invalid if it does not follow this specification.
+In particular, a signature that does not verify is considered invalid data.
 
-Implementations must ignore Binson fields sent in addition to the
-fields defined here. This allows backwards-compatible additions to the
-protocol and it allows the application layer to send additional data
-in the handshake messages.
-
+Implementations must ignore Binson fields in addition to the
+fields defined here. That is, additional fields not befined here are allowed
+and should not categorize the message as "invalid data".
+The fields defined here must exist and must follow the specification.
+Allowing additional fields like this allows backwards-compatible additions to 
+the protocol and it allows the application layer to send additional 
+data in the handshake messages. Such additional application-specific fields
+do not, of course, have the security guarantees that the general 
+application messages that follow after Message M4 have.
 
 
 
@@ -220,9 +240,9 @@ Authenticated encryption
 
 A secret shared between the peers is obtained using Diffie-Hellman key agreement 
 based on the ephemeral key pairs. The crypto_box_beforenm() function [NACL] is
-then used to create a shared key from that shared secret. The key is used in 
-to encrypt and authenticate each message of the Salt Channel session except for
-message M1 and M2.
+then used to create a shared symmetric key from that shared secret. 
+The symmetric key is used in to encrypt and authenticate each message of 
+the Salt Channel session except for messages M1 and M2.
 
 Each encrypted message has the following format.
 
@@ -231,24 +251,33 @@ Each encrypted message has the following format.
     
     b  bytes  EncryptedMessage
                 Encrypted bytes, encrypted and authenticated with the  
-                crypto_box() function [NACL]. EncryptedMessage can be of arbitrary size.
-                Note, for messages M3, and M4, the EncryptedMessages is a Binson object. This is not 
-                a requirement of the application data messages. They are arbitrary byte arrays.
+                crypto_box() function [NACL]. EncryptedMessage can be of 
+                arbitrary size. Note, for messages M3, and M4, EncryptedMessage
+                is a Binson object. This is not a requirement of the application
+                data messages. They are arbitrary byte arrays.
                 
-                  Figure 3: Encrypted message format.
+            Figure 3: Encrypted message format.
     
-The authenticated encryption algorithm from TweetNaCl [NACL, TWEET-1, TWEET-2] 
-is used. It is called "crypto_box". The corresponding function to decrypt 
-and verify is called "crypto_box_open". crypto_box() takes a 24-byte nonce.
+The authenticated encryption algorithm from TweetNaCl [NACL, TWEET-1, TWEET-2],
+function crypto_box() is used. The corresponding function to decrypt 
+and verify is called crypto_box_open(). crypto_box() and crypto_box_open() 
+take a 24-byte nonce as one parameter. 
+
 The first 16 bytes of the ciphertext is used to authenticate the message when
-it is decrypted. Encryption and authentication is done in one atomic function call
-and is described in the original NaCl paper [NACL].
+it is decrypted. Encryption and authentication is done in one atomic function 
+call (crypto_box()) and is described in the original NaCl paper [NACL].
 
 Both Client and Server use the first 8 bytes of the nonce to store 
 a signed 64-bit integer in little-endian byte order.
-This integer is 1, 3, 5, ... for Client; increasing by 2 for each message.
-This integer is 2, 4, 6, ... for Server; increasing by 2 for each message.
+This integer is 1, 3, 5, ... for messages sent by Client; increasing by 2 for 
+each message it sends. This integer is 2, 4, 6, ... for messages send by Server;
+increasing by 2 for each message it sends.
 The rest of the bytes of the nonce must be set to zero.
+Note, no assumption is made on the order in which the peers send
+application messages. For example, Server may send all application messages.
+The nonce values used by Client and those used by Server are disjoint sets.
+Note also that the nonce values used are *not* send over the communication 
+channel since this is not necessary; they can easily be computed.
 
 
 
@@ -300,7 +329,7 @@ The following priorities were used when designing the protocol.
 2. The second priority is to achieve a low network overhead; 
    that is, few round-trips and a small data overhead.
    
-3. The third priority is low code complexity and low CPU and memory 
+3. The third priority is to allow low code complexity and low CPU and memory 
    requirements of the communicating peers. Low complexity is always 
    important to achieve high security.
 
@@ -316,15 +345,16 @@ The following are the main goals and limitations of the protocol.
 * Forward secrecy.
 
 * Client cannot be identified.
-    An attacker cannot tell whether the same client key pair (long-term signing key pair)
-    is used in two sessions.
+    An attacker cannot tell whether the same client key pair (long-term signing
+    key pair) is used in two sessions.
     
 * Simple protocol.
-    Should be possible to implement in few lines of code. Should be auditable just
-    like TweetNaCl.
+    Should be possible to implement in few lines of code. Should be auditable 
+    just like TweetNaCl.
 
 * Compact protocol (few bytes).
-    Designed for Bluetooth low energy, for example. Low bandwith, in the order of 1 kB/s.
+    Designed for Bluetooth low energy, for example. Low bandwith, in the order
+    of 1 kB/s.
     
 * It is a goal of Salt Channel to work well together with TCP Fast Open.
 
@@ -361,6 +391,11 @@ the public signature key in both messages. There is little need to
 differentiate between Server and Client. Also, this is not done with
 the "e" field. It is used for both ClientEncKey and ServerEncKey.
 
+* **Remove the possibility of additional fields**. Remove the allowance
+of "added fields". Fields not specified are allowed in this version 
+of the protocol. This feature should be removed. The complexity is not
+worth that possible benefits.
+
 * **Improve spec 1**. Specify "virtual hosting" and "NoSuchHost" error
 message. 
 
@@ -372,7 +407,8 @@ does not follow the protocol.
 References
 ==========
 
-* **TWEET-1**, *TweetNaCl: a crypto library in 100 tweets*. Progress in Cryptology - LATINCRYPT 2014,
+* **TWEET-1**, *TweetNaCl: a crypto library in 100 tweets*. 
+    Progress in Cryptology - LATINCRYPT 2014,
     Volume 8895 of the series Lecture Notes in Computer Science pp 64-83.
 
 * **TWEET-2**, web: https://tweetnacl.cr.yp.to/.
@@ -384,6 +420,9 @@ References
 * **STS**, *Authentication and authenticated key exchanges*, 
   Diffie, W., Van Oorschot, P.C. & Wiener, M.J. Des Codes Crypt (1992) 2: 107. 
   doi:10.1007/BF00124891.
+
+* **VIRTUAL**, *Virtual hosting* at Wikipedia, 2017-01-04, 
+  https://en.wikipedia.org/wiki/Virtual_hosting.
   
 * **WS**, RFC 7936, *The WebSocket Protocol*. December 2011.
 
