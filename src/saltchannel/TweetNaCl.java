@@ -11,6 +11,7 @@
 // * Package renamed.
 // * getStrongCSPRNG() throws Error, must not be used.
 // * randombytes() throws Error, must not be used.
+// * Some methods/fields changes to "public".
 // In general, we want deterministic functions.
 //
 
@@ -40,7 +41,8 @@ public class TweetNaCl {
     public static final int SECRETBOX_NONCE_BYTES = 24;
     public static final int SECRETBOX_OVERHEAD_BYTES = 16;
     public static final int HASH_SIZE_BYTES = 64; // SHA-512
-    private static final int SECRETBOX_INTERNAL_OVERHEAD_BYTES = 32;
+    // CHANGE, changes to public
+    public static final int SECRETBOX_INTERNAL_OVERHEAD_BYTES = 32;
 
     public static class InvalidSignatureException extends RuntimeException {
         private static final long serialVersionUID = 1L;
@@ -586,12 +588,14 @@ public class TweetNaCl {
         return crypto_core_hsalsa20(k,_0,s,sigma);
     }
 
-    private static int crypto_box_afternm(byte[] c,byte[] m,long d,byte[] n,byte[] k)
+    // CHANGE - changed to public
+    public static int crypto_box_afternm(byte[] c,byte[] m,long d,byte[] n,byte[] k)
     {
         return crypto_secretbox(c, m, d, n, k);
     }
 
-    private static int crypto_box_open_afternm(byte[] m,byte[] c,long d,byte[] n,byte[] k)
+    // CHANGE - changed to public
+    public static int crypto_box_open_afternm(byte[] m,byte[] c,long d,byte[] n,byte[] k)
     {
         return crypto_secretbox_open(m, c, d, n, k);
     }

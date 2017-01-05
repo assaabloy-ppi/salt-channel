@@ -2,6 +2,8 @@ package saltchannel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
+
 import saltchannel.util.BinsonLight;
 import saltchannel.util.Bytes;
 
@@ -59,19 +61,10 @@ public class EncryptedChannel implements ByteChannel {
 
     @Override
     public byte[] read() throws ComException {
-        byte[] clear;
         byte[] encrypted = channel.read();
-        
         encrypted = unwrap(encrypted);
-        
-        try {
-            clear = TweetNaCl.secretbox_open(encrypted, readNonceBytes, key);
-        } catch (IllegalStateException e) {
-            throw new ComException("invalid encrypted data");
-        }
-        
+        byte[] clear = decrypt(encrypted);
         increaseReadNonce();
-        
         return clear;
     }
 
@@ -80,11 +73,32 @@ public class EncryptedChannel implements ByteChannel {
         byte[][] toWrite = new byte[messages.length][];
         
         for (int i = 0; i < messages.length; i++) {
-            toWrite[i] = wrap(encrypt(messages[i]));
+            byte[] encrypted = encrypt(messages[i]);
+            toWrite[i] = wrap(encrypted);
             increaseWriteNonce();
         }
         
         channel.write(toWrite);
+    }
+    
+    /**
+     * @throws ComException
+     */
+    private byte[] decrypt(byte[] encrypted) {
+        byte[] clear;
+        byte[] c = new byte[TweetNaCl.SECRETBOX_OVERHEAD_BYTES + encrypted.length];
+        byte[] m = new byte[c.length];
+        System.arraycopy(encrypted, 0, c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, encrypted.length);
+        if (c.length < 32) {
+            throw new ComException("ciphertext too small");
+        }
+        
+        if (TweetNaCl.crypto_box_open_afternm(m, c, c.length, readNonceBytes, key) != 0) {
+            throw new ComException("invalid encryption");
+        }
+        
+        clear = Arrays.copyOfRange(m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, m.length);
+        return clear;
     }
     
     /**
@@ -97,8 +111,11 @@ public class EncryptedChannel implements ByteChannel {
     }
     
     private byte[] encrypt(byte[] clear) {
-        byte[] encrypted = TweetNaCl.secretbox(clear, writeNonceBytes, key);
-        return encrypted;
+        byte[] m = new byte[TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES + clear.length];
+        byte[] c = new byte[m.length];
+        System.arraycopy(clear, 0, m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, clear.length);
+        TweetNaCl.crypto_box_afternm(c, m, m.length, writeNonceBytes, key);
+        return Arrays.copyOfRange(c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, c.length);
     }
     
     private void setWriteNonce(long nonceInteger) {
