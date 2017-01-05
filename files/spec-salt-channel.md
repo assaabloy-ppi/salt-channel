@@ -4,7 +4,7 @@ spec-salt-channel.md
 About this document
 -------------------
 
-*Date*: 2017-01-04
+*Date*: 2017-01-05
 
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
@@ -249,9 +249,9 @@ Authenticated encryption
 
 A secret shared between the peers is obtained using Diffie-Hellman key agreement 
 based on the ephemeral key pairs. The crypto_box_beforenm() function [NACL] is
-then used to create a shared symmetric key from that shared secret. 
-The symmetric key is used in to encrypt and authenticate each message of 
-the Salt Channel session except for messages M1 and M2.
+used to achieve this and the result is a shared symmetric key that is used to
+encrypt and authenticate each Salt Channel message except for messages M1 and 
+M2.
 
 Each encrypted message has the following format.
 
@@ -260,18 +260,19 @@ Each encrypted message has the following format.
     
     b  bytes  EncryptedMessage
                 Encrypted bytes, encrypted and authenticated with the  
-                crypto_box() function [NACL]. EncryptedMessage can be of 
+                crypto_box_afternm() function [NACL]. EncryptedMessage can be of 
                 arbitrary size. Note, for messages M3, and M4, EncryptedMessage
                 is a Binson object. This is not a requirement of the application
                 data messages. They are arbitrary byte arrays.
                 
             Figure 3: Encrypted message format.
     
-The authenticated encryption algorithm of the crypto_box() function 
+    
+Conceptually, the authenticated encryption algorithm of the crypto_box() function 
 of TweetNaCl [NACL, TWEET-1, TWEET-2] is used. The corresponding function to 
-decrypt and verify is called crypto_box_open(). Note, in practice, 
-implementations will use the functions crypto_box_beforenm(), 
-crypto_box_afternm(), and crypto_box_open_afternm(). See [NACLBOX].
+decrypt is crypto_box_open(). However, in practice, implementations will use 
+the functions crypto_box_beforenm(), crypto_box_afternm(), 
+and crypto_box_open_afternm(). See [NACLBOX].
 
 The first 16 bytes of the ciphertext is used to authenticate the message when
 it is decrypted. Encryption and authentication are done in one atomic function 
