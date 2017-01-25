@@ -10,7 +10,7 @@ import saltchannel.util.Bytes;
  * @author Frans Lundberg
  */
 public class ResumeHandler {
-    private final BigBitField bits;
+    private final TicketIndexes bits;
     
     /**
      * Creates a new instance with a given wanted capacity.
@@ -18,20 +18,12 @@ public class ResumeHandler {
      * be handled. The memory consumption is wantedSize / 8 bytes 
      * plus overhead.
      */
-    public ResumeHandler(long firstTicketIndex, int wantedSize) {
-        if (wantedSize < 0) {
+    public ResumeHandler(long firstTicketIndex, int wantedBitSize) {
+        if (wantedBitSize < 0) {
             throw new IllegalArgumentException("negative wantedSize not allowed");
         }
         
-        this.bits = new BigBitField(firstTicketIndex, wantedSize);
-    }
-    
-    /**
-     * Returns true if the ticket with the given index is valid.
-     * If is considered valid of the bit is set to 1.
-     */
-    public boolean isValid(long ticketIndex) {
-        return bits.get(ticketIndex);
+        this.bits = new TicketIndexes(firstTicketIndex, wantedBitSize);
     }
 
     /**
@@ -50,11 +42,13 @@ public class ResumeHandler {
         
         long ticketIndex = Bytes.bytesToLongLE(hostData, 2);
         
-        if (!isValid(ticketIndex)) {
+        // TODO A. decrypt here, make sure decrypt works before clearing bit.
+        
+        
+        if (!bits.checkIsValidAndClear(ticketIndex)) {
             throw new BadTicket("ticket index not valid");
         }
         
-        // TODO decrypt, check it, clear bit, return session info.
         return null;
     }
     

@@ -41,6 +41,6 @@ public class ResumeTicket {
     }
     
     public void toBytes(byte[] dest, int destOffset) {
-        // TODO implement
+        // TODO B. implement
     }
 }

@@ -340,7 +340,7 @@ public class BinsonLight {
         }
         
         private void parseString(byte typeByte, StringValue s) {
-            // TODO Consider setting for max length of strings and bytes.
+            // TODO D. Consider setting for max length of strings and bytes.
             // To avoid OutOfMemoryError if attacher specifies a huge length.
             
             long longLen = parseInteger(typeByte);
@@ -358,7 +358,7 @@ public class BinsonLight {
         }
         
         private void parseBytes(byte typeByte) {
-            // TODO Consider setting for max length of strings and bytes.
+            // TODO D. Consider setting for max length of strings and bytes.
             // To avoid OutOfMemoryError if attacher specifies a huge length.
             
             long longLen = parseInteger(typeByte);
