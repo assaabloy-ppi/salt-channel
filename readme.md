@@ -7,5 +7,3 @@ Java reference implementation of
 [TweetNaCl](http://tweetnacl.cr.yp.to/) by Bernstein et al.
 
 Salt Channel is "Powered by Curve25519".
-
-

@@ -1,9 +1,14 @@
+Log 2017-01-25
+==============
+
+Work on Salt Channel v2.
+
 
 Log 2016-10-26
 ==============
 
 Frans Lundberg:
-First verison of full implementation. Ready for protocol audit. 
+First version of full implementation. Ready for protocol audit. 
 Spec included in repo.
 
 
