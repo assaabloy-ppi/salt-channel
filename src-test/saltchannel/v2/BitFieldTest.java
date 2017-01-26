@@ -38,16 +38,4 @@ public class BitFieldTest {
             Assert.assertEquals(false, f.get(i));
         }
     }
-    
-    @Test
-    public void testGetAndClear() {
-        BitField f = new BitField(10);
-        f.set(3, true);
-        Assert.assertEquals(true, f.get(3));
-        
-        boolean value = f.getAndClear(3);
-        Assert.assertEquals(true, value);
-        Assert.assertEquals(false, f.get(3));
-        Assert.assertEquals(false, f.getAndClear(3));
-    }
 }

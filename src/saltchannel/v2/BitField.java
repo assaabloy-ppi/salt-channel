@@ -24,46 +24,34 @@ public class BitField {
     }
     
     public boolean get(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index " + index);
-        }
-        
-        int longIndex = index / 64;
-        int bitIndex = index - longIndex * 64;
-        long mask = 1 << bitIndex;
-        
-        return (field[longIndex] & mask) != 0;
-    }
-    
-    public synchronized boolean getAndClear(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index " + index);
-        }
-        
-        int longIndex = index / 64;
-        int bitIndex = index - longIndex * 64;
-        long mask = 1 << bitIndex;
-        
-        boolean result = (field[longIndex] & mask) != 0;
-        if (result) {
-            field[longIndex] = field[longIndex] & ~mask;
-        }
-        return result;
+        checkIndex(index);
+        return (field[longIndex(index)] & mask(index)) != 0;
     }
     
     public void set(int index, boolean value) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index " + index);
-        }
-        
-        int longIndex = index / 64;
-        int bitIndex = index - longIndex * 64;
-        long mask = 1 << bitIndex;
+        checkIndex(index);
+        int longIndex = longIndex(index);
+        long mask = mask(index);
         
         if (value == true) {
             field[longIndex] = field[longIndex] | mask;
         } else {
             field[longIndex] = field[longIndex] & ~mask;
         }
+    }
+    
+    private final void checkIndex(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("index " + index);
+        }
+    }
+    
+    private final int longIndex(int index) {
+        return index / 64;
+    }
+    
+    private final long mask(int index) {
+        int bitIndex = index - longIndex(index) * 64;
+        return 1 << bitIndex;
     }
 }
