@@ -1,10 +1,10 @@
-Frans Lundberg, 2017-01-10
+Frans Lundberg, 2017-01-31
 
 
 v2-notes.md
 ===========
 
-Some notes on Salt Channel v2 -- a possible new version of the protocol.
+Some notes on Salt Channel v2 -- a proposed new version of the protocol.
 
 
 Protocol
@@ -25,7 +25,7 @@ Message details
     **** M1 ****
     
     2   Protocol. 
-        Always 0x8350 (ASCII 'S2') for Salt Channel v2.
+        Always 0x8350 (ASCII "S2") for Salt Channel v2.
 
     2   Header1.
 

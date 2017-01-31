@@ -1,7 +1,9 @@
-package saltchannel.v2;
+package saltchannel.v2.server;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import saltchannel.v2.server.BitField;
 
 public class BitFieldTest {
 

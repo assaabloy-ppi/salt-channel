@@ -1,4 +1,4 @@
-package saltchannel.v2;
+package saltchannel.v2.server;
 
 import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
@@ -19,6 +19,8 @@ public class ServerChannelV2 {
     private KeyPair sigKeyPair;
     private KeyPair encKeyPair;
     private ResumeHandler resumeHandler;
+    private byte[] clientSigKey;
+    private byte[] symmetricKey;
     
     public ServerChannelV2(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -49,9 +51,22 @@ public class ServerChannelV2 {
             throw new IllegalStateException("encKeyPair must be set before calling handshake()");
         }
         
-        M1 m1 = M1.fromBytes(clearChannel.read());
+        M1Data m1 = M1Data.fromBytes(clearChannel.read());
+        
         if (m1.hasResumeTicket()) {
-            resumeHandler.checkTicket(m1.getResumeTicket());
+            TicketSessionData sessionData = null;
+            
+            try {
+                sessionData = resumeHandler.checkTicket(m1.getResumeTicket());
+                this.clientSigKey = sessionData.clientSigKey;
+                this.symmetricKey = sessionData.sessionKey;
+            } catch (ResumeHandler.InvalidTicket e) {
+                // empty
+            }
+        }
+        
+        if (symmetricKey != null) {
+            return;  // we are done, ticket worked.
         }
     }
 }

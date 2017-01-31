@@ -1,4 +1,4 @@
-package saltchannel.v2;
+package saltchannel.v2.server;
 
 /**
  * Simple bit field implementation, fixed size.

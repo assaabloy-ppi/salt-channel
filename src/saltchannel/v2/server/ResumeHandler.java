@@ -1,5 +1,6 @@
-package saltchannel.v2;
+package saltchannel.v2.server;
 
+import saltchannel.TweetNaCl;
 import saltchannel.util.Bytes;
 
 //
@@ -19,7 +20,7 @@ import saltchannel.util.Bytes;
  * @author Frans Lundberg
  */
 public class ResumeHandler {
-    public static final int KEY_SIZE = 16;
+    public static final int KEY_SIZE = 32;
     private final TicketBits ticketIndexes;
     private byte[] key;
     
@@ -50,38 +51,47 @@ public class ResumeHandler {
     /**
      * Checks ticket, decrypts, returns crypto session data.
      * 
-     * @throws BadTicket if the ticket is not valid.
+     * @throws InvalidTicket if the ticket is not valid.
      */
-    public synchronized TicketSessionData checkTicket(ResumeTicket resumeTicket) {
-        byte[] encrypted = resumeTicket.encryptedTicket;
+    public synchronized TicketSessionData checkTicket(EncryptedTicketData resumeTicket) {
+        byte[] encrypted = resumeTicket.encryptedBytes;
         byte[] hostData = resumeTicket.hostData;
         
         int firstTwoBytes = Bytes.unsigned(hostData[0]) + 256 * Bytes.unsigned(hostData[1]);
         if (firstTwoBytes != 0) {
-            throw new BadTicket("bad first two bytes of hostData");
+            throw new InvalidTicket("bad first two bytes of hostData");
         }
         
         long ticketIndex = Bytes.bytesToLongLE(hostData, 2);
         
-        
-        
-        
         boolean isValid = ticketIndexes.isValid(ticketIndex);
+        if (!isValid) {
+            throw new InvalidTicket("ticket bit not set or not in range");
+        }
         
+        byte[] clear = TweetNaCl.secretbox_open(encrypted, nonce(ticketIndex), key);
+        TicketData ticketData = TicketData.fromBytes(clear, 0);
+        
+        TicketSessionData result = new TicketSessionData();
+        result.ticketIndex = ticketIndex;
+        result.sessionKey = ticketData.sessionKey;
+        result.clientSigKey = ticketData.clientSigKey;
         
         return null;
     }
     
-    public static class BadTicket extends RuntimeException {
-        private static final long serialVersionUID = 1L;
-        
-        public BadTicket(String message) {
-            super(message);
-        }
+    private byte[] nonce(long ticketIndex) {
+        byte[] nonce = new byte[24];
+        nonce[0] = 10;
+        Bytes.longToBytesLE(ticketIndex, nonce, 1);
+        return nonce;
     }
     
-    public static class TicketSessionData {
-        public byte[] sessionKey;
-        public byte[] clientSigKey;
+    public static class InvalidTicket extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        
+        public InvalidTicket(String message) {
+            super(message);
+        }
     }
 }

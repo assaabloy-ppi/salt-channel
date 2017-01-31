@@ -1,4 +1,4 @@
-package saltchannel.v2;
+package saltchannel.v2.server;
 
 /**
  * A instance of this class keeps track of all issued tickets 

@@ -1,6 +1,8 @@
-package saltchannel.v2;
+package saltchannel.v2.server;
 
 import org.junit.Test;
+
+import saltchannel.v2.server.ResumeHandler;
 
 public class ResumeHandlerTest {
     
@@ -11,7 +13,8 @@ public class ResumeHandlerTest {
     }
 
     private static ResumeHandler r1() {
-        byte[] key = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+        byte[] key = new byte[32];
+        key[8] = 8;
         long first = 10;
         int size = 1000;
         return new ResumeHandler(key, first, size);
