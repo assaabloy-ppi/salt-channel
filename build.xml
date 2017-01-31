@@ -9,15 +9,14 @@ Do not use Java, mainly due to Android limitations.
 
 <target name="compile" 
     description="compiles files, copies resources, output to out/classes">
-        
+    
     <mkdir dir="out/classes"/>
-    <mkdir dir="lib"/>
-    <mkdir dir="lib-dev"/>
     
     <path id="classpath">
         <fileset dir="lib">
             <include name="**/*.jar" />
         </fileset>
+       
     </path>
 
     <javac srcdir="src" destdir="out/classes" source="1.7" target="1.7">
@@ -39,11 +38,13 @@ Do not use Java, mainly due to Android limitations.
 </target>
 
 <target name="jar" description="creates jar file, includes libs in it" depends="compile">
-	<delete file="out/salt-channel.jar"/>
-	
+	<delete file="out/salt-channel.jar"/>	
 	<jar destfile="out/salt-channel.jar">
 	    <fileset dir="out/classes"/>    <!-- This should be first to allow replacing classes in libs. -->
 	    <zipgroupfileset dir="lib" includes="*.jar" />
+            <fileset dir=".">
+              <include name="**/lib/**"/>
+           </fileset>
 	</jar>
 </target>
 
@@ -61,14 +62,29 @@ Do not use Java, mainly due to Android limitations.
     </javadoc>	
 </target>
 
-<target name="compileTest"  depends="compile" description="compiles files for tests">
+<target name="compileTest"  depends="compile" description="compiles files, copies resources, output to out/classes">
 
     <mkdir dir="out/classes-test"/>
+
     <path id="classpath-test">
         <fileset dir="lib-dev">
             <include name="**/*.jar" />
         </fileset>
         <pathelement path="out/classes"/>
+        <pathelement path="out/classes-test"/>
+        <!--<fileset dir="out/classes">
+            <include name="**/*.class" />
+        </fileset>
+        <fileset dir="out/classes-test">
+            <include name="**/*.class" />
+        </fileset>        
+
+        <fileset dir="lib">
+            <include name="**/*.jar" />
+        </fileset>
+        <fileset dir="bin">
+            <include name="**/*.class" />
+        </fileset> -->
     </path>
 
     <javac srcdir="src-test" destdir="out/classes-test" source="1.7" target="1.7">
@@ -83,9 +99,11 @@ Do not use Java, mainly due to Android limitations.
     </copy>
 </target>
 
+
 <target name="test" depends="compileTest">
-  <junit fork="yes" printsummary="on" haltonfailure="on">
-    <!--<sysproperty key="java.library.path" value="lib"/>-->
+  <property name="arch" value="x86_64" />
+  <junit fork="yes" printsummary="on" haltonerror="on" haltonfailure="on" showoutput="true">
+    <!--<sysproperty key="java.library.path" value="lib/${arch}:${java.library.path}"/>-->
     <classpath>
       <pathelement location="lib-dev/junit-4.12.jar"/>
       <pathelement location="lib-dev/hamcrest-core-1.3.jar"/>
@@ -99,7 +117,7 @@ Do not use Java, mainly due to Android limitations.
     </batchtest>
     <formatter type="plain" usefile="false"/>
   </junit>
-</target>  
+</target>   
 
 <target name="build" depends="clean, compile, jar" description="cleans, compiles and builds pot.jar">
 </target>

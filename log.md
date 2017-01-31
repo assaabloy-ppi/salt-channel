@@ -1,3 +1,11 @@
+Log 2017-01-31
+==============
+
+Alex Reshniuk:
+Quick and dirty integration of JNI-based libsodium library
+inside the TweetNaCl.java (to simplify integration).
+No Java encryption math is used in this version.
+
 Log 2017-01-27
 ==============
 
