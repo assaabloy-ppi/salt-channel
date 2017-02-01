@@ -1,3 +1,11 @@
+Log 2017-01-27
+==============
+
+Alex Reshniuk:
+Ready to run Junit4 tests with Ant.
+Usage: ant test
+
+
 Log 2017-01-25
 ==============
 
