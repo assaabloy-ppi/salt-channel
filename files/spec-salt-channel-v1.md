@@ -1,5 +1,5 @@
-spec-salt-channel.md
-====================
+spec-salt-channel-v1.md
+=======================
 
 About this document
 -------------------

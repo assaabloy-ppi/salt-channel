@@ -12,7 +12,7 @@ import saltchannel.util.Bytes;
 // when time is measured in microseconds.
 //
 
-/**
+/** 
  * Handles the resume-feature on the server-side.
  * Stores a bit map to avoid replay attacks.
  * All data is stored in memory. First implementation is very simple.
