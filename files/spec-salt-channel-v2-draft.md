@@ -270,7 +270,7 @@ session closed once M2 has been sent.
 
     64  Signature1
         The signature of ServerEncKey+ClientEncKey concatenated.
-
+b
 
     **** M3/Header ****
 
@@ -433,9 +433,9 @@ Ticket details
     
     **** Ticket/Header ****
 
-    4b  MessageType.
+    4b  PacketType.
         Four bits that encodes an integer in range 0-15.
-        The integer value is 6 for this message.
+        The integer value is 6 for this packet.
 
     4b  Zero.
         Bits set to 0.

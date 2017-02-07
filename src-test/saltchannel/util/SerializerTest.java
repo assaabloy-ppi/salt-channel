@@ -64,6 +64,21 @@ public class SerializerTest {
     }
     
     @Test
+    public void testMultipleWriteBytes() {
+        byte[] buffer = new byte[5];
+        Serializer s = new Serializer(buffer, 0);
+        s.writeBytes(new byte[]{1, 2});
+        s.writeBytes(new byte[]{3, 4});
+        
+        Assert.assertEquals(1, buffer[0]);
+        Assert.assertEquals(2, buffer[1]);
+        Assert.assertEquals(3, buffer[2]);
+        Assert.assertEquals(4, buffer[3]);
+        Assert.assertEquals(0, buffer[4]);
+    }
+    
+    
+    @Test
     public void testBit1() {
         byte[] buffer = new byte[2];
         Serializer s = new Serializer(buffer, 0);
@@ -150,5 +165,23 @@ public class SerializerTest {
         Deserializer d = new Deserializer(buffer, 0);
         Assert.assertEquals(-23456, d.readInt64());
         Assert.assertEquals(40*1000L*1000L*1000L, d.readInt64());
+    }
+    
+    @Test
+    public void testInt4() {
+        byte[] buffer = new byte[2];
+        Serializer s = new Serializer(buffer, 0);
+        s.writeUint4(13);
+        s.writeBit(0);
+        s.writeBit(1);
+        s.writeBit(1);
+        s.writeBit(0);
+        
+        Deserializer d = new Deserializer(buffer, 0);
+        Assert.assertEquals(13, d.readUint4());
+        Assert.assertEquals(0, d.readBitAsInt());
+        Assert.assertEquals(1, d.readBitAsInt());
+        Assert.assertEquals(1, d.readBitAsInt());
+        Assert.assertEquals(0, d.readBitAsInt());
     }
 }

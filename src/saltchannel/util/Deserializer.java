@@ -12,13 +12,11 @@ public class Deserializer {
     private int offset;
     private int bitOffset;
 
-    
     private static final int[] BITS = {
             1, 2, 4, 8, 16, 32, 64, 128
     };
     
-    private static final int POW16 = 65536;
-    
+    private static final int INT4_MASK = 1 + 2 + 4 + 8;
     
     public Deserializer(byte[] buffer, int offset) {
         this.buffer = buffer;
@@ -62,10 +60,12 @@ public class Deserializer {
         
         byte[] result = new byte[size];
         System.arraycopy(buffer, offset, result, 0, size);
+        offset += size;
+        
         return result;
     }
     
-    public boolean readBitAsBoolean() {
+    public boolean readBit() {
         int value = Bytes.unsigned(buffer[offset]);
         int mask = BITS[bitOffset];
         incrementBitOffset();
@@ -73,7 +73,19 @@ public class Deserializer {
     }
     
     public int readBitAsInt() {
-        return readBitAsBoolean() ? 1 : 0;
+        return readBit() ? 1 : 0;
+    }
+    
+    /**
+     * Reads a 4-bit unsigned integer, range 0-15, from the first 4 bits of the 
+     * current byte.
+     */
+    public int readUint4() {
+        checkBitOffsetZero();
+        
+        int result = Bytes.unsigned(buffer[offset]) & INT4_MASK;
+        bitOffset += 4;
+        return result;
     }
     
     public int readUint16() {

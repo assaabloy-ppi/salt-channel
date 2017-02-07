@@ -4,6 +4,7 @@ import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
+import saltchannel.v2.packets.M1Packet;
 
 /**
  * Server-side implementation of Salt Channel v2.
@@ -51,13 +52,13 @@ public class ServerChannelV2 {
             throw new IllegalStateException("encKeyPair must be set before calling handshake()");
         }
         
-        M1Data m1 = M1Data.fromBytes(clearChannel.read());
+        M1Packet m1 = M1Packet.fromBytes(clearChannel.read());
         
-        if (m1.hasResumeTicket()) {
+        if (m1.hasTicket()) {
             TicketSessionData sessionData = null;
             
             try {
-                sessionData = resumeHandler.checkTicket(m1.getResumeTicket());
+                sessionData = resumeHandler.checkTicket(m1.getTicket());
                 this.clientSigKey = sessionData.clientSigKey;
                 this.symmetricKey = sessionData.sessionKey;
             } catch (ResumeHandler.InvalidTicket e) {

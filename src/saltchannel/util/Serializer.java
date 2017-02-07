@@ -50,23 +50,7 @@ public class Serializer {
     public Serializer writeBytes(byte[] bytes) {
         checkBitOffsetZero();
         System.arraycopy(bytes, 0, this.buffer, offset, bytes.length);
-        return this;
-    }
-    
-    /**
-     * Writes a 4-bit unsigned integer, range 0-15, to the first 4 bits of the 
-     * current byte.
-     */
-    public Serializer writeUint4(int value) {
-        checkBitOffsetZero();
-        
-        if (value < 0 || value > 16) {
-            throw new IllegalArgumentException("out of bounds, " + value);
-        }
-        
-        buffer[offset] = (byte) value;
-        bitOffset += 4;
-        
+        offset += bytes.length;
         return this;
     }
     
@@ -99,6 +83,24 @@ public class Serializer {
         buffer[offset] = (byte) value;
         
         incrementBitOffset();
+        
+        return this;
+    }
+    
+    /**
+     * Writes a 4-bit unsigned integer, range 0-15, to the first 4 bits of the 
+     * current byte.
+     * Make sure to write remaining bits of byte too.
+     */
+    public Serializer writeUint4(int value) {
+        checkBitOffsetZero();
+        
+        if (value < 0 || value > 16) {
+            throw new IllegalArgumentException("out of bounds, " + value);
+        }
+        
+        buffer[offset] = (byte) value;
+        bitOffset += 4;
         
         return this;
     }

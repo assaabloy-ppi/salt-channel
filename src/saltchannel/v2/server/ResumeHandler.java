@@ -1,8 +1,5 @@
 package saltchannel.v2.server;
 
-import saltchannel.TweetNaCl;
-import saltchannel.util.Bytes;
-
 //
 // IDEA. Have step value. For example, increase ticketIndex by 1000 each time a 
 // ticket is issued. If last three digits are random this could provide some security 
@@ -21,7 +18,9 @@ import saltchannel.util.Bytes;
  */
 public class ResumeHandler {
     public static final int KEY_SIZE = 32;
+    @SuppressWarnings("unused")
     private final TicketBits ticketIndexes;
+    @SuppressWarnings("unused")
     private byte[] key;
     
     /**
@@ -53,38 +52,8 @@ public class ResumeHandler {
      * 
      * @throws InvalidTicket if the ticket is not valid.
      */
-    public synchronized TicketSessionData checkTicket(EncryptedTicketData resumeTicket) {
-        byte[] encrypted = resumeTicket.encryptedBytes;
-        byte[] hostData = resumeTicket.hostData;
-        
-        int firstTwoBytes = Bytes.unsigned(hostData[0]) + 256 * Bytes.unsigned(hostData[1]);
-        if (firstTwoBytes != 0) {
-            throw new InvalidTicket("bad first two bytes of hostData");
-        }
-        
-        long ticketIndex = Bytes.bytesToLongLE(hostData, 2);
-        
-        boolean isValid = ticketIndexes.isValid(ticketIndex);
-        if (!isValid) {
-            throw new InvalidTicket("ticket bit not set or not in range");
-        }
-        
-        byte[] clear = TweetNaCl.secretbox_open(encrypted, nonce(ticketIndex), key);
-        TicketData ticketData = TicketData.fromBytes(clear, 0);
-        
-        TicketSessionData result = new TicketSessionData();
-        result.ticketIndex = ticketIndex;
-        result.sessionKey = ticketData.sessionKey;
-        result.clientSigKey = ticketData.clientSigKey;
-        
-        return null;
-    }
-    
-    private byte[] nonce(long ticketIndex) {
-        byte[] nonce = new byte[24];
-        nonce[0] = 10;
-        Bytes.longToBytesLE(ticketIndex, nonce, 1);
-        return nonce;
+    public synchronized TicketSessionData checkTicket(byte[] ticket) {
+        throw new IllegalStateException("NOT implemented");    // TODO D. implement checkTicket
     }
     
     public static class InvalidTicket extends RuntimeException {
