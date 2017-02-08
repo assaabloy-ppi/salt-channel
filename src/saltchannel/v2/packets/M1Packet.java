@@ -31,7 +31,7 @@ public class M1Packet {
      * Returns the total byte size.
      */
     public int getSize() {
-        return 2 + 1 + 32
+        return 1 + 2 + 32
                 + (hasServerSigKey() ? 32 : 0)
                 + (hasTicket() ? (1 + ticket.length) : 0);
     }
@@ -40,13 +40,14 @@ public class M1Packet {
         byte[] result = new byte[getSize()];
         
         Serializer s = new Serializer(result, 0);
-        s.writeByte('S').writeByte('2');
         
         s.writeUint4(1);    // message type is 1
         s.writeBit(hasServerSigKey());
         s.writeBit(hasTicket());
         s.writeBit(ticketRequested);
         s.writeBit(0);
+        
+        s.writeByte('S').writeByte('2');
         
         s.writeBytes(clientEncKey);
         
@@ -77,13 +78,6 @@ public class M1Packet {
         
         Deserializer d = new Deserializer(bytes, 0);
         
-        int b0 = d.readUnsignedByte();
-        int b1 = d.readUnsignedByte();
-        
-        if (!(b0 == 'S' && b1 == '2')) {
-            throw new BadPeer("unexpected ProtocolIndicator");
-        }
-        
         int messageType = d.readUint4();
         if (messageType != 1) {
             throw new BadPeer("bad message type, " + messageType);
@@ -93,6 +87,13 @@ public class M1Packet {
         boolean ticketIncluded = d.readBit();
         data.ticketRequested = d.readBit();
         d.readBit();
+        
+        int b0 = d.readUnsignedByte();
+        int b1 = d.readUnsignedByte();
+        
+        if (!(b0 == 'S' && b1 == '2')) {
+            throw new BadPeer("unexpected ProtocolIndicator");
+        }
         
         data.clientEncKey = d.readBytes(32);
         
