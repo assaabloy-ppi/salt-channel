@@ -4,7 +4,7 @@ spec-salt-channel-v1.md
 About this document
 -------------------
 
-*Date*: 2017-02-07
+*Date*: 2017-02-08
 
 *Status*: WORK IN PROGRESS. Not a complete draft yet. Will change.
 
@@ -160,11 +160,11 @@ Details:
 
     **** M1 ****
 
-    2   ProtocolIndicator.
-        Always 0x8350 (ASCII 'S2') for Salt Channel v2.
-
     1   Header.
         Message type and flags.
+
+    2   ProtocolIndicator.
+        Always 0x5332 (ASCII 'S2') for Salt Channel v2.
 
     32  ClientEncKey.
         The public ephemeral encryption key of the client.
