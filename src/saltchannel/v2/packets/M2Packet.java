@@ -9,11 +9,13 @@ import saltchannel.util.Serializer;
  * 
  * @author Frans Lundberg
  */
-public class M2Packet {
+public class M2Packet implements Packet {
     public boolean resumeSupported;
     public boolean noSuchServer;
     public boolean badTicket;
     public byte[] serverEncKey;
+    
+    public static final int PACKET_TYPE = 2;
     
     public boolean hasServerEncKey() {
         return serverEncKey != null;
@@ -24,31 +26,28 @@ public class M2Packet {
                (hasServerEncKey() ? 32 : 0);
     }
     
-    public byte[] toBytes() {
+    public void toBytes(byte[] destination, int offset) {
         if (serverEncKey != null && serverEncKey.length != 32) {
             throw new IllegalStateException("bad serverEncKey length");
         }
         
-        byte[] result = new byte[getSize()];
-        Serializer s = new Serializer(result, 0);
+        Serializer s = new Serializer(destination, offset);
         
-        s.writeUint4(2);   // packet type 2
+        s.writeUint4(PACKET_TYPE);
         s.writeBit(hasServerEncKey());
         s.writeBit(resumeSupported);
         s.writeBit(noSuchServer);
         s.writeBit(badTicket);
         
         s.writeBytes(serverEncKey);
-        
-        return result;
     }
     
-    public static M2Packet fromBytes(byte[] bytes) {
+    public static M2Packet fromBytes(byte[] source, int offset) {
         M2Packet p = new M2Packet();
-        Deserializer d = new Deserializer(bytes, 0);
+        Deserializer d = new Deserializer(source, offset);
         
         int packetType = d.readUint4();
-        if (packetType != 2) {
+        if (packetType != PACKET_TYPE) {
             throw new BadPeer("unexpected packet type, " + packetType);
         }
         

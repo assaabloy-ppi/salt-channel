@@ -4,20 +4,23 @@ spec-salt-channel-v1.md
 About this document
 -------------------
 
-*Date*: 2017-02-08
+*Date*: 2017-02-09
 
-*Status*: WORK IN PROGRESS. Not a complete draft yet. Will change.
+*Status*: WORK IN PROGRESS. Not a complete draft yet.
 
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
+
+*Thanks*: 
+To Simon Johansson for valuable comments and discussions.
 
 
 Changes
 -------
 
-Significant changes of this document.
+Significant changes of this document since first non-draft version.
 
-* None, so far.
+* None.
 
 
 
@@ -56,7 +59,7 @@ two version of the protocol.
 The major changes are: 
 
 1. Binson dependency removed,
-2. resume feature.
+2. the resume feature.
 
 The Binson dependency is removed to make implementation more
 independent. Also, it means more fixed sizes/offsets which can 
@@ -100,25 +103,25 @@ Session
 =======
 
 The message order of an ordinary successful Salt Channel session is:
-
+ 
     Session = M1 M2 M3 M4 AppMessage*
 
-The M1, M4 messages are sent by the client and M2, M3 by the server.
+The M1, and M4 messages are sent by the client and M2, M3 by the server.
 So, we have a three-way handshake (M1 from client, M2+M3 from server, and 
 M4 from client). When the first application message is from the client, this
-message can be sent with M4 to achieve a two-way (one round-trip) 
-Salt Channel overhead.
-
-Application layer message (AppMessage*) are sent by either the client or the
-server in any order.
+message can be sent together with M4 to achieve a two-way (one round-trip) 
+Salt Channel overhead. Application layer message (AppMessage*) are sent by 
+either the client or the server in any order.
 
 The message order of a successful resumed Salt Channel session is:
 
-    Session = M1 AppMessage*
+    From client: M1 AppMessage*
+    From server: M2 AppMessage*
 
 When the first application message is from the client to the server
 (a common case), a resumed Salt Channel will have a zero-way overhead.
-The first application message can be sent together with M1.
+The first application message can be sent together with M1 before the M2
+response from the server.
 
 
 Message details
@@ -259,7 +262,8 @@ session closed once M2 has been sent.
 
     **** M3 ****
 
-    This message is encrypted.
+    This message is encrypted. The message is sent within the body of 
+    EncryptedMessage (EncryptedMessage/Body).
 
     1   Header.
         Message type and flags.
@@ -270,7 +274,7 @@ session closed once M2 has been sent.
 
     64  Signature1
         The signature of ServerEncKey+ClientEncKey concatenated.
-b
+
 
     **** M3/Header ****
 
@@ -295,7 +299,8 @@ message from the client to the server.
 
     **** M4 ****
 
-    This message is encrypted.
+    This message is encrypted. The message is sent within the body of 
+    EncryptedMessage (EncryptedMessage/Body).
 
     1   Header.
         Message type and flags.
@@ -317,6 +322,35 @@ message from the client to the server.
         Bits set to 0.
 
 
+EncryptedMessage
+================
+
+Messages M3, M4, and the application messages are encrypted. They are included
+in the field EncryptedMessage/Body.
+
+    **** EncryptedMessage ****
+    
+    1   Header.
+        Message type and flags.
+        
+    x   Body.
+        This is the ciphertext of the cleartext message encrypted with 
+        [TODO insert here]. The message authentication prefix (16 bytes) is included.
+        So, this field is at least 16 bytes long.
+
+
+    **** EncryptedMessage/Header ****
+
+    4b  MessageType.
+        Four bits that encodes an integer in range 0-15.
+        The integer value is 6 for this message.
+
+    1b  CloseFlag.
+        Set to 1 for the last message sent by the peer.
+
+    3b  Zero.
+        Bits set to 0.
+        
 
 Application messages
 ====================
@@ -332,8 +366,8 @@ and the server in any order.
         The header includes a close bit. If MUST be set for in the last
         AppMessage sent by Client and in the last AppMessage sent by Server.
 
-    x   AppData.
-        Encrypted application layer message.
+    x   EncryptedMessage.
+        Encrypted application message.
 
 
     **** AppMessage/Header ****

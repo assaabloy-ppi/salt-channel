@@ -4,7 +4,7 @@ import saltchannel.BadPeer;
 import saltchannel.util.Deserializer;
 import saltchannel.util.Serializer;
 
-public class M3Packet {
+public class M3Packet implements Packet {
     public byte[] serverSigKey;
     public byte[] signature1;
     
@@ -18,7 +18,7 @@ public class M3Packet {
         return serverSigKey != null;
     }
     
-    public byte[] toBytes() {
+    public void toBytes(byte[] destination, int offset) {
         if (signature1 == null || signature1.length != 64) {
             throw new IllegalStateException("bad signature1");
         }
@@ -27,8 +27,7 @@ public class M3Packet {
             throw new IllegalStateException("bad serverSigKey size");
         }
         
-        byte[] result = new byte[getSize()];
-        Serializer s = new Serializer(result, 0);
+        Serializer s = new Serializer(destination, offset);
         
         s.writeUint4(3);    // packet type == 3
         s.writeBit(hasServerSigKey());
@@ -41,13 +40,11 @@ public class M3Packet {
         }
         
         s.writeBytes(signature1);
-        
-        return result;
     }
     
-    public static M3Packet fromBytes(byte[] bytes) {
+    public static M3Packet fromBytes(byte[] source, int offset) {
         M3Packet p = new M3Packet();
-        Deserializer d = new Deserializer(bytes, 0);
+        Deserializer d = new Deserializer(source, 0);
         
         int packetType = d.readUint4();
         if (packetType != 3) {

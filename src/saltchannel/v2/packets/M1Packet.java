@@ -9,7 +9,7 @@ import saltchannel.util.Serializer;
  * 
  * @author Frans Lundberg
  */
-public class M1Packet {
+public class M1Packet implements Packet {
     public boolean ticketRequested = false;
     public byte[] clientEncKey;
     public byte[] serverSigKey;
@@ -36,10 +36,10 @@ public class M1Packet {
                 + (hasTicket() ? (1 + ticket.length) : 0);
     }
     
-    public byte[] toBytes() {
+    public void toBytes(byte[] destination, int offset) {
         byte[] result = new byte[getSize()];
         
-        Serializer s = new Serializer(result, 0);
+        Serializer s = new Serializer(destination, offset);
         
         s.writeUint4(1);    // message type is 1
         s.writeBit(hasServerSigKey());
@@ -69,14 +69,12 @@ public class M1Packet {
         if (s.getOffset() != result.length) {
             throw new IllegalStateException("unexpected, " + s.getOffset() + ", " + result.length);
         }
-        
-        return result;
     }
     
-    public static M1Packet fromBytes(byte[] bytes) {
+    public static M1Packet fromBytes(byte[] source, int offset) {
         M1Packet data = new M1Packet();
         
-        Deserializer d = new Deserializer(bytes, 0);
+        Deserializer d = new Deserializer(source, offset);
         
         int messageType = d.readUint4();
         if (messageType != 1) {

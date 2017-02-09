@@ -12,9 +12,15 @@ public class M2PacketTest {
         p.noSuchServer = false;
         p.resumeSupported = false;
         p.serverEncKey = new byte[32];
+
+        byte[] bytes1 = new byte[p.getSize()];
+        p.toBytes(bytes1, 0);
         
-        byte[] bytes1 = p.toBytes();
-        byte[] bytes2 = M2Packet.fromBytes(bytes1).toBytes();
+        M2Packet p2 = M2Packet.fromBytes(bytes1, 0);
+        
+        byte[] bytes2 = new byte[bytes1.length];
+        p2.toBytes(bytes2, 0);
+        
         Assert.assertArrayEquals(bytes1, bytes2);
     }
 }

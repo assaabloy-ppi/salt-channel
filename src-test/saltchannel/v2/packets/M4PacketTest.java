@@ -15,8 +15,11 @@ public class M4PacketTest {
         p.signature2 = new byte[64];
         p.signature2[63] = 63;
         
-        byte[] bytes1 = p.toBytes();
-        byte[] bytes2 = M4Packet.fromBytes(bytes1).toBytes();
+        byte[] bytes1 = new byte[p.getSize()];
+        p.toBytes(bytes1, 0);
+        
+        byte[] bytes2 = new byte[p.getSize()];
+        M4Packet.fromBytes(bytes1, 0).toBytes(bytes2, 0);
         
         Assert.assertArrayEquals(bytes1, bytes2);
     }

@@ -52,7 +52,7 @@ public class ServerChannelV2 {
             throw new IllegalStateException("encKeyPair must be set before calling handshake()");
         }
         
-        M1Packet m1 = M1Packet.fromBytes(clearChannel.read());
+        M1Packet m1 = M1Packet.fromBytes(clearChannel.read(), 0);
         
         if (m1.hasTicket()) {
             TicketSessionData sessionData = null;

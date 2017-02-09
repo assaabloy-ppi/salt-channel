@@ -13,9 +13,10 @@ public class M3PacketTest {
         p1.signature1 = new byte[64];
         p1.signature1[0] = 55;
         
-        byte[] bytes1 = p1.toBytes();
+        byte[] bytes1 = new byte[p1.getSize()];
+        p1.toBytes(bytes1, 0);
         
-        M3Packet p2 = M3Packet.fromBytes(bytes1);
+        M3Packet p2 = M3Packet.fromBytes(bytes1, 0);
         
         Assert.assertEquals(p1.hasServerSigKey(), p2.hasServerSigKey());
         Assert.assertArrayEquals(p1.serverSigKey, p2.serverSigKey);
@@ -30,8 +31,10 @@ public class M3PacketTest {
         p1.signature1 = new byte[64];
         p1.signature1[0] = 55;
         
-        byte[] bytes1 = p1.toBytes();
-        byte[] bytes2 = M3Packet.fromBytes(bytes1).toBytes();
+        byte[] bytes1 = new byte[p1.getSize()];
+        p1.toBytes(bytes1, 0);
+        byte[] bytes2 = new byte[bytes1.length];
+        M3Packet.fromBytes(bytes1, 0).toBytes(bytes2, 0);
         
         Assert.assertArrayEquals(bytes1, bytes2);
     }

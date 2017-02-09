@@ -9,7 +9,7 @@ import saltchannel.util.Serializer;
  * 
  * @author Frans Lundberg
  */
-public class M4Packet {
+public class M4Packet implements Packet {
     public byte[] clientSigKey;
     public byte[] signature2;
     
@@ -17,7 +17,7 @@ public class M4Packet {
         return 1 + 32 + 64;
     }
     
-    public byte[] toBytes() {
+    public void toBytes(byte[] destination, int offset) {
         if (clientSigKey == null || clientSigKey.length != 32) {
             throw new IllegalStateException("bad clientSigKey");
         }
@@ -26,8 +26,7 @@ public class M4Packet {
             throw new IllegalStateException("bad signature2");
         }
         
-        byte[] result = new byte[getSize()];
-        Serializer s = new Serializer(result, 0);
+        Serializer s = new Serializer(destination, offset);
         
         s.writeUint4(4);     // packet type == 4
         s.writeBit(0);
@@ -37,13 +36,11 @@ public class M4Packet {
         
         s.writeBytes(clientSigKey);
         s.writeBytes(signature2);
-        
-        return result;
     }
     
-    public static M4Packet fromBytes(byte[] bytes) {
+    public static M4Packet fromBytes(byte[] source, int offset) {
         M4Packet p = new M4Packet();
-        Deserializer d = new Deserializer(bytes, 0);
+        Deserializer d = new Deserializer(source, offset);
         
         int packetType = d.readUint4();
         if (packetType != 4) {
