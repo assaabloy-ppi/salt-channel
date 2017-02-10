@@ -76,6 +76,14 @@ Temporary notes
 
 Not in final spec, of course.
 
+* NOTE. We need to consider attacker-delayed messages.
+    Discussed, phone call, Simon-Frans, 2017-02-09.
+    For example, the protocol is used to communicate between a digital key
+    and a door lock with an attacker that is man-in-the-middle.
+    The attacker could delay an "unlock" message, wait until the real
+    user walks away, then send the valid message to the door lock. It will then
+    unlock for the attacker!
+
 * Independent message parsing. 
     Each packet should be possible to parse *independently*.
     Independently of the previous communication and any state.
@@ -97,6 +105,66 @@ Not in final spec, of course.
 
 * CloseFlag.
     Is it needed? Should it be used?
+
+
+
+Protocol design
+===============
+
+This section is informative.
+
+
+Priorities
+----------
+
+The following priorities were used when designing the protocol.
+
+1. The first priority is to achieve high security. 
+
+2. The second priority is to achieve a low network overhead; 
+   that is, few round-trips and a small data overhead.
+   
+3. The third priority is to allow for low code complexity, low CPU requirements, 
+   and low memory requirements of the communicating peers.
+
+ Low complexity is always important to achieve high security.
+
+
+Goals
+-----
+
+The following are the main goals and limitations of the protocol.
+
+* 128-bit security. 
+    The best attack should be a 2^128 brute force attack. 
+    No attack should be possible until there are (if there ever will be) 
+    large-enough quantum computers.
+
+* Forward secrecy.
+
+* Client ID hidden.
+    An attacker cannot tell whether the same client key pair (long-term signing
+    key pair) is used in two sessions.
+    
+* Simple protocol.
+    Should be possible to implement in few lines of code. Should be auditable 
+    just like TweetNaCl.
+
+* Compact protocol (few bytes).
+    Designed for Bluetooth low energy, for example. Low bandwith, in the order
+    of 1 kB/s.
+    
+* It is a goal of Salt Channel to work well together with TCP Fast Open.
+
+* Limitation: No certificates.
+    Simplicity and compactness are preferred.
+    
+* Limitation: the protocol is not intended to be secure for an 
+    attacker with a large quantum computer. This is a limitation of 
+    the underlying TweetNaCl library.
+    
+* Limitation: no attempt is made to hide the length, sequence, or timing
+  of the communicated messages.
 
 
 Session
@@ -222,8 +290,8 @@ MAY send the M2 message before Signature1 is computed and M3 sent.
 In cases when computation time is long compared to communication time, 
 this can decrease total handshake time significantly.
 
-Note, the server must read M1 before sending M2. M2 depends on the contents
-of M1.
+Note, the server must read M1 before sending M2 since M2 depends on the 
+contents of M1.
 
     **** M2 ****
     
@@ -231,7 +299,7 @@ of M1.
         Message type and flags.
     
     32  ServerEncKey, OPT.
-        The public ephemeral encryption key of the client.
+        The public ephemeral encryption key of the server.
     
     
     **** M2/Header ****
@@ -252,7 +320,7 @@ of M1.
 
     1b  BadTicket.
         Set to 1 if Ticket was included in M1 but the ticket is not valid
-        for some reason (bad format, experied, already used).
+        for some reason (bad format, expired, already used).
     
 
 If the NoSuchServer condition occurs, ServerEncKey MUST NOT be included in 
@@ -262,8 +330,8 @@ session closed once M2 has been sent.
 
     **** M3 ****
 
-    This message is encrypted. The message is sent within the body of 
-    EncryptedMessage (EncryptedMessage/Body).
+    This message is encrypted. It is sent within the body of EncryptedMessage 
+    (EncryptedMessage/Body).
 
     1   Header.
         Message type and flags.
