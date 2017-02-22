@@ -31,14 +31,12 @@ public class M1Packet implements Packet {
      * Returns the total byte size.
      */
     public int getSize() {
-        return 1 + 2 + 32
+        return 1 + 3 + 32
                 + (hasServerSigKey() ? 32 : 0)
                 + (hasTicket() ? (1 + ticket.length) : 0);
     }
     
     public void toBytes(byte[] destination, int offset) {
-        byte[] result = new byte[getSize()];
-        
         Serializer s = new Serializer(destination, offset);
         
         s.writeUint4(1);    // message type is 1
@@ -47,11 +45,11 @@ public class M1Packet implements Packet {
         s.writeBit(ticketRequested);
         s.writeBit(0);
         
-        s.writeByte('S').writeByte('2');
+        s.writeString("SC2");
         
         s.writeBytes(clientEncKey);
         
-        assert s.getOffset() == 3 + 32 : "unexpected offset, " + s.getOffset();
+        assert s.getOffset() == 1 + 3 + 32 : "unexpected offset, " + s.getOffset();
         
         if (hasServerSigKey()) {
             s.writeBytes(serverSigKey);
@@ -66,8 +64,8 @@ public class M1Packet implements Packet {
             s.writeBytes(ticket);
         }
         
-        if (s.getOffset() != result.length) {
-            throw new IllegalStateException("unexpected, " + s.getOffset() + ", " + result.length);
+        if (s.getOffset() != getSize()) {
+            throw new IllegalStateException("unexpected, " + s.getOffset());
         }
     }
     
@@ -86,11 +84,9 @@ public class M1Packet implements Packet {
         data.ticketRequested = d.readBit();
         d.readBit();
         
-        int b0 = d.readUnsignedByte();
-        int b1 = d.readUnsignedByte();
-        
-        if (!(b0 == 'S' && b1 == '2')) {
-            throw new BadPeer("unexpected ProtocolIndicator");
+        String protocol = d.readString(3);
+        if (!"SC2".equals(protocol)) {
+            throw new BadPeer("unexpected ProtocolIndicator, " + protocol);
         }
         
         data.clientEncKey = d.readBytes(32);

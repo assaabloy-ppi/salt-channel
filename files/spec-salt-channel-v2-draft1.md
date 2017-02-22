@@ -1,26 +1,29 @@
-spec-salt-channel-v1.md
-=======================
+spec-salt-channel-v2-draft1.md
+==============================
 
-About this document
--------------------
+About
+-----
 
-*Date*: 2017-02-09
+About this document.
 
-*Status*: WORK IN PROGRESS. Not a complete draft yet.
+*Date*: 2017-02-22
+
+*Status*: DRAFT1.
 
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
 
 *Thanks*: 
-To Simon Johansson for valuable comments and discussions.
+To Simon Johansson for valuable comments and discussions; especially for
+the discussion that led to protection against delay attacks.
 
 
-Changes
+History
 -------
 
-Significant changes of this document since first non-draft version.
+Document history.
 
-* None.
+* 2017-02-22. DRAFT1 (spec-salt-channel-draft1.md).
 
 
 
@@ -50,25 +53,23 @@ Salt Channel is "Powered by Curve25519".
 Changes from v1
 ===============
 
-Salt Channel v2 is new version of Salt Channel. It is incompatible 
-with Salt Channel v1. However a Salt Channel server MAY support both 
-v1 and v2 at the same time. The first message from the client has
-a protocol indicator that can be used to differential between the 
-two version of the protocol.
+Salt Channel v2 is a new version of Salt Channel. It is incompatible 
+with Salt Channel v1.
 
 The major changes are: 
 
-1. Binson dependency removed,
-2. the resume feature.
+1. Binson dependency removed.
+2. Server protocol info added.
 
-The Binson dependency is removed to make implementation more
-independent. Also, it means more fixed sizes/offsets which can 
-be beneficiary for performance; especially on small embedded targets.
+The Binson dependency is removed to make implementations more
+independent. Also, it means more fixed sizes/offsets which is 
+beneficiary for performance in some cases; especially on 
+small embedded targets.
 
-The resume feature allows zero-way overhead for repeated connections 
-between a specific client-host pair. In addition to zero-way communication 
-overhead a resumed session handshake uses less data (down to around 100 bytes) 
-and *no asymmetric crypto*.
+The server protocol info feature allows the server to tell what 
+protocols and protocol versions it supports before a the real session 
+is initiated by the client. This allows easier future Salt Channel version 
+upgrades.
 
 
 Temporary notes
@@ -76,35 +77,22 @@ Temporary notes
 
 Not in final spec, of course.
 
-* NOTE. We need to consider attacker-delayed messages.
-    Discussed, phone call, Simon-Frans, 2017-02-09.
-    For example, the protocol is used to communicate between a digital key
-    and a door lock with an attacker that is man-in-the-middle.
-    The attacker could delay an "unlock" message, wait until the real
-    user walks away, then send the valid message to the door lock. It will then
-    unlock for the attacker!
+* v2 does not contain delay attack protection.
+
+* v2 does not include the resume feature.
+
+* v2 uses CloseFlag.
 
 * Independent message parsing. 
     Each packet should be possible to parse *independently*.
     Independently of the previous communication and any state.
-    The pack/unpack can thus be completely independent.
+    The pack/unpack code can thus be completely independent.
 
 * Single-byte alignment.
     There is not special reason to have 2, or 4-byte alignment of
     fields in this protocol. Compactness is preferred.
 
 * Notation. Use style: "M1/Header".
-
-* Symmetric protocol, not.
-    We could design a protocol that is symmetric. Both peers could
-    send their EncKey. Possibly in parallel and immediately when 
-    connection is established. 
-    This is beautiful and efficient, but it complicates things when 
-    we add the resume ticket feature.
-    So, decision now is to *not* do this.
-
-* CloseFlag.
-    Is it needed? Should it be used?
 
 
 
@@ -172,31 +160,29 @@ Session
 
 The message order of an ordinary successful Salt Channel session is:
  
-    Session = M1 M2 M3 M4 AppMessage*
+    Session = M1 M2 E(M3) E(M4) E(AppMessage)*
 
 The M1, and M4 messages are sent by the client and M2, M3 by the server.
 So, we have a three-way handshake (M1 from client, M2+M3 from server, and 
 M4 from client). When the first application message is from the client, this
 message can be sent together with M4 to achieve a two-way (one round-trip) 
-Salt Channel overhead. Application layer message (AppMessage*) are sent by 
-either the client or the server in any order.
+Salt Channel overhead. Application layer messages (AppMessage*) are sent by 
+either the client or the server in any order. The notation "E()" is used 
+to indicate authenticated encryption; see EncryptedMessage.
 
-The message order of a successful resumed Salt Channel session is:
+A Salt Channel session can also exist of an A1-A2 session allowing the client
+to ask the server about what protocols it supports:
 
-    From client: M1 AppMessage*
-    From server: M2 AppMessage*
+    Session = A1 A2
 
-When the first application message is from the client to the server
-(a common case), a resumed Salt Channel will have a zero-way overhead.
-The first application message can be sent together with M1 before the M2
-response from the server.
+After A2, the session is finished.
 
 
 Message details
 ===============
 
 This section describes how a message is represented as an array
-of bytes. The size of the messages are know by the layer above.
+of bytes. The size of the messages are known by the layer above.
 The term *message* is used for a whole byte array message and
 *packet* is used to refer to a byte array -- either a full message
 or a part of a message.
@@ -224,8 +210,7 @@ Message M1
 The first message of a Salt Channel session is always the M1 message.
 It is sent from the client to the server. It includes a protocol indicator, 
 the client's public ephemeral encryption key and optionally the server's
-public signing key. For a fast handshake, a resume ticket may be included
-in the message.
+public signing key.
 
 Details:
 
@@ -234,8 +219,8 @@ Details:
     1   Header.
         Message type and flags.
 
-    2   ProtocolIndicator.
-        Always 0x5332 (ASCII 'S2') for Salt Channel v2.
+    3   ProtocolIndicator.
+        Always ASCII 'SC2'. Protocol indicator for Salt Channel v2.
 
     32  ClientEncKey.
         The public ephemeral encryption key of the client.
@@ -293,6 +278,7 @@ this can decrease total handshake time significantly.
 Note, the server must read M1 before sending M2 since M2 depends on the 
 contents of M1.
 
+    
     **** M2 ****
     
     1   Header.
@@ -303,7 +289,7 @@ contents of M1.
     
     
     **** M2/Header ****
-
+    
     4b  MessageType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 2 for this message.
@@ -313,7 +299,7 @@ contents of M1.
 
     1b  ResumeSupported.
         Set to 1 if the server implementation supports resume tickets.
-
+    
     1b  NoSuchServer.
         Set to 1 if ServerSigKey was included in M1 but a server with such a
         public signature key does not exist at the end-point.
@@ -364,38 +350,137 @@ Message M4 is sent by the client. It finishes a three-way handshake.
 If can (and often should be) be sent together with a first application 
 message from the client to the server.
 
-
+    
     **** M4 ****
-
+    
     This message is encrypted. The message is sent within the body of 
     EncryptedMessage (EncryptedMessage/Body).
-
+    
     1   Header.
         Message type and flags.
-
+    
     32  ClientSigKey.
         The client's public signature key.
         
     64  Signature2.
         Signature of ClientEncKey+ServerEncKey concatenated.
-
-
+    
+    
     **** M4/Header ****
-
+    
     4b  MessageType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 4 for this message.
-
+    
     4b  Zero.
         Bits set to 0.
+    
+
+Messages A1 and A2
+==================
+
+Messages A1 and A2 are used by the client to query the server of which 
+protocols it supports. These two messages are intended to stay stable
+even if/when Salt Channel is upgraded to v3, v4, and so on.
+
+No encryption is used. Any information sent by the server should be 
+validated later once the secure channel has been established.
+The A2 response by the server is assumed to be static for days or weeks or
+longer. The client is allowed to cache this information.
+
+    
+    **** A1 ****
+    
+    Message sent by client to request server information.
+    
+    1   Header.
+        Message type and flags.
+    
+    
+    **** A1/Header ****
+    
+    4b  MessageType.
+        Four bits that encodes an integer in range 0-15.
+        The integer value is 8 for this message.
+    
+    1b  CloseFlag.
+        Set to 1 for for this message.
+
+    3b  Zero.
+        Bits set to 0.
+    
+
+And Message A2:
+
+    
+    **** A2 ****
+    
+    The message sent by the server in response to an A1 message.
+    
+    1   Header.
+        Message type and flags.
+    
+    1   Count
+        Value between 1 and 127. The number of protocol entries
+        (Prot) that follows.
+        
+    x   Prot+
+        1 to 127 Prot packets.
+    
+    
+    **** A2/Header ****
+    
+    4b  MessageType.
+        Four bits that encodes an integer in range 0-15.
+        The integer value is 9 for this message.
+    
+    1b  CloseFlag.
+        Set to 1 for for this message.
+
+    3b  Zero.
+        Bits set to 0.
+    
+    
+    **** A2/Prot ****
+    
+    10  P1.
+        Protocol ID of Salt Channel with version. 
+        Exactly 10 ASCII bytes. Whitespace and control characters
+        must be avoided.
+        The value for this field in for this version of
+        of Salt Channel MUST BE "SC2-------".
+    
+    10  P2.
+        Protocol ID of the protocol on top of Salt Channel. 
+        Exactly 10 ASCII bytes. Whitespace and control characters
+        must be avoided.
+        If the server does not wish to reveal any information about
+        the layer above, the server MUST use value "----------" for 
+        this field.
+    
+
+The server MUST use protocol ID "SC2-------" for this version (v2) of
+Salt Channel. The plan is that future versions of Salt Channel should use
+the same A1 and A2 messages. Salt Channel v2 should use "SC3-------" and 
+v4 should use "SC4-------" and so on.
+
+The server also has the possibility of specifiying a higher-level layer
+ID in the A2 message. This way a client can determine whether there is any
+use of connecting to the server. It may not support the protocol the client
+wants to communicate with.
+
+Note that messages A1, A2 together form a complete Salt Channel session.
+An M1 message following A1, A2 should be considered a *new* Salt Channel 
+session that must be completely independent of the previous A1-A2 session.
 
 
 EncryptedMessage
 ================
 
-Messages M3, M4, and the application messages are encrypted. They are included
-in the field EncryptedMessage/Body.
+Messages M3, M4, and the application messages (AppMessage) are encrypted.
+They are included in the field EncryptedMessage/Body.
 
+    
     **** EncryptedMessage ****
     
     1   Header.
@@ -405,17 +490,17 @@ in the field EncryptedMessage/Body.
         This is the ciphertext of the cleartext message encrypted with 
         [TODO insert here]. The message authentication prefix (16 bytes) is included.
         So, this field is at least 16 bytes long.
-
-
+    
+    
     **** EncryptedMessage/Header ****
-
+    
     4b  MessageType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 6 for this message.
-
+    
     1b  CloseFlag.
         Set to 1 for the last message sent by the peer.
-
+    
     3b  Zero.
         Bits set to 0.
         
@@ -426,31 +511,33 @@ Application messages
 After the handshake, application messages are sent between the client
 and the server in any order.
 
-
+    
     **** AppMessage ****
 
+    This message is encrypted. The message is sent within the body of 
+    EncryptedMessage (EncryptedMessage/Body).
+    
     1   Header.
         Message type and flags.
-        The header includes a close bit. If MUST be set for in the last
+        The header includes a close bit. It MUST be set in the last
         AppMessage sent by Client and in the last AppMessage sent by Server.
-
+    
     x   EncryptedMessage.
         Encrypted application message.
-
-
+    
+    
     **** AppMessage/Header ****
-
+    
     4b  MessageType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 5 for this message.
-
+    
     1b  CloseFlag.
         Set to 1 for the last message sent by the peer.
-
+    
     3b  Zero.
         Bits set to 0.
-
-
+    
 
 Encryption
 ==========
@@ -459,113 +546,24 @@ TODO: write about the how messages are encrypted.
 How Signatures are computed.
 
 
+List of message types
+=====================
 
-Resume feature
-==============
+This section is informative.
 
-The resume feature is implemented mostly on the server-side.
-To the client, a resume ticket is just an arbitrary array of bytes
-that can be used to improve handshake performance.
-The client MUST allow changes to the format of resume tickets.
-However, the server SHOULD follow the specification here. The resume
-ticket specification here is the one that will be audited and should
-have the highest possible security.
-
-The resume feature is OPTIONAL. Servers may not implemement it. In that
-case a server MUST always set the M2/ResumeSupported bit to 0.
-
-
-Idea
-----
-
-The idea with the resume tickets is to support session-resume to signicantly
-reduce the overhead of the Salt Channel handshake. A resumed session uses
-less communication data and a zero-way overhead. Also, the handshake of
-a resumed session does not require computationally heavy asymmetric 
-cryptography operations.
-
-Salt Channel resume allows a server to support the resume feature using only
-one single bit of memory for each created ticket. This allows the server to 
-have all sensitive data related to this feature in memory. Also the ticket
-encryption key can be stored in memory only. If it is lost due to power 
-failure the only affect is that outstanding tickets will become invalid
-and a full handshake will required when client connect.
-
-The clients store one ticket per server. A client can choose whether to use
-the resume feature or not. It can do this per-server if it choses to.
-
-A unique ticket index (Ticket/Encrypted/TicketIndex) is given to every 
-ticket that is issued by the server. The first such index may, for example,
-be the number of microseconds since Unix Epoch (1 January 1970 UTC).
-After that, each issued ticket is given an index that equals the previously
-issued index plus one.
-
-A bitmap is used to protect agains replay attacks. The bitmap stores one bit
-per non-experied ticket that is issued. The bit is set to 1 when a
-ticket is issued and to 0 when it is used. Thus, a ticket can only be used
-once. Of course, the bitmap cannot be of infinite size. In fact, the server
-implementation can use a fixed size circular bit buffer. Using one megabyte 
-of memory, the server can keep track of which tickets, out of the last 
-8 million issued tickets, that have been used.
-
-
-Ticket details
---------------
-
-
-    **** Ticket ****
-
-    1   Header. 
-        Packet type and flags.
     
-    2   KeyId.
-        The server can used KeyId to choose one among multiple 
-        encryption keys to decrypt the encrypted part of the ticket.
-        Note, server-side implementation may choose to use only one 
-        ticket encryption key for all outstanding tickets.
-
-    16  Nonce.
-        Nonce to use when decrypting Ticket/Encrypted.
-        The nonce MUST be unique among all tickets encrypted with
-        a particular key.
-
-    x   Encrypted.
-        Encrypted ticket data.
+    MessageType  Name
     
+    0            Not used
+    1            M1
+    2            M2
+    3            M3
+    4            M4
+    5            AppMessage
+    6            EncryptedMessage
+    7            Ticket (reserved for future version)
+    8            A1
+    9            A2
     
-    **** Ticket/Header ****
 
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 6 for this packet.
-
-    4b  Zero.
-        Bits set to 0.
-    
-    
-    **** Ticket/Encrypted ****
-
-    This is an encrypted packet.
-
-    1   Header.
-        The Ticket/Header repeated. For authentication purposes.
-        The server MUST consider the ticket invalid if Ticket/Encrypted/Header
-        differs from Ticket/Header.
-
-    2   KeyIndex.
-        The KeyIndex bytes repeated. For authentication purposes.
-        The server MUST consider the ticket invalid if Ticket/Encrypted/KeyIndex
-        differs from Ticket/KeyIndex.
-
-    8   TicketIndex
-        The ticket index of the ticket.
-        A 8-byte integer in the range: 0 to 2^63-1 (inclusive).
-
-    32  ClientSigKey.
-        The client's public signature key. Used to identify the client.
-
-    32  SessionKey.
-        The symmetric encryption key to use to encrypt and decrypt messages
-        of this session.
-    
 

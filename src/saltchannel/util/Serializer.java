@@ -1,5 +1,7 @@
 package saltchannel.util;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * Low-level, generic serializer. Serializes data (integers etc) to a 
  * given byte array.
@@ -38,6 +40,21 @@ public class Serializer {
             throw new IllegalArgumentException("out of range");
         }
         return writeByte((byte) value);
+    }
+    
+    /**
+     * Writes a string as UTF-8.
+     */
+    public Serializer writeString(String s) {
+        byte[] ascii;
+        
+        try {
+            ascii = s.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new Error("should not happen", e);
+        }
+        
+        return writeBytes(ascii);
     }
     
     public Serializer writeByte(byte value) {

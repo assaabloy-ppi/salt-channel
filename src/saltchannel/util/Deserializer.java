@@ -1,5 +1,7 @@
 package saltchannel.util;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * A deserializer that can deserialize (read) bytes created with 
  * Serializer.
@@ -63,6 +65,19 @@ public class Deserializer {
         offset += size;
         
         return result;
+    }
+    
+    /**
+     * Reads a UTF-8 string of known byte size.
+     */
+    public String readString(int byteSize) {
+        byte[] bytes = readBytes(byteSize);
+        
+        try {
+            return new String(bytes, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new Error("should not happen", e);
+        }
     }
     
     public boolean readBit() {
