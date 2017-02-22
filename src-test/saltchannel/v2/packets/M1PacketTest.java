@@ -10,8 +10,6 @@ public class M1PacketTest {
         M1Packet p = new M1Packet();
         p.clientEncKey = new byte[32];
         p.serverSigKey = null;
-        p.ticket = null;
-        p.ticketRequested = false;
         
         byte[] bytes1 = new byte[p.getSize()];
         p.toBytes(bytes1, 0);

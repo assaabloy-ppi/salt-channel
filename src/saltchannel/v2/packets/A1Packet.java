@@ -12,6 +12,10 @@ import saltchannel.util.Serializer;
 public class A1Packet implements Packet {
     public static final int PACKET_TYPE = 8;
     
+    public int getType() {
+        return PACKET_TYPE;
+    }
+    
     public int getSize() {
         return 1;
     }

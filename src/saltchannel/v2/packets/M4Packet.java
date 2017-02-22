@@ -10,8 +10,13 @@ import saltchannel.util.Serializer;
  * @author Frans Lundberg
  */
 public class M4Packet implements Packet {
+    public static final int PACKET_TYPE = 4;
     public byte[] clientSigKey;
     public byte[] signature2;
+    
+    public int getType() {
+        return PACKET_TYPE;
+    }
     
     public int getSize() {
         return 1 + 32 + 64;

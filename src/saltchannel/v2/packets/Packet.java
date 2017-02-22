@@ -14,4 +14,9 @@ public interface Packet {
      * Serializes packet to bytes.
      */
     public void toBytes(byte[] destination, int offset);
+    
+    /**
+     * Returns the packet type.
+     */
+    public int getType();
 }

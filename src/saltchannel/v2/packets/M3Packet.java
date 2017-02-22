@@ -5,8 +5,13 @@ import saltchannel.util.Deserializer;
 import saltchannel.util.Serializer;
 
 public class M3Packet implements Packet {
+    public static final int PACKET_TYPE = 3;
     public byte[] serverSigKey;
     public byte[] signature1;
+    
+    public int getType() {
+        return PACKET_TYPE;
+    }
     
     public int getSize() {
         return 1 + 

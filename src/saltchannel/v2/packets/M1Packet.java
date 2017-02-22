@@ -10,21 +10,13 @@ import saltchannel.util.Serializer;
  * @author Frans Lundberg
  */
 public class M1Packet implements Packet {
-    public boolean ticketRequested = false;
+    public static final int PACKET_TYPE = 1;
+    
     public byte[] clientEncKey;
     public byte[] serverSigKey;
-    public byte[] ticket;
     
-    public byte[] getTicket() {
-        return ticket;
-    }
-    
-    public boolean hasServerSigKey() {
-        return serverSigKey != null;
-    }
-    
-    public boolean hasTicket() {
-        return ticket != null;
+    public int getType() {
+        return PACKET_TYPE;
     }
     
     /**
@@ -32,8 +24,11 @@ public class M1Packet implements Packet {
      */
     public int getSize() {
         return 1 + 3 + 32
-                + (hasServerSigKey() ? 32 : 0)
-                + (hasTicket() ? (1 + ticket.length) : 0);
+                + (hasServerSigKey() ? 32 : 0);
+    }
+    
+    public boolean hasServerSigKey() {
+        return serverSigKey != null;
     }
     
     public void toBytes(byte[] destination, int offset) {
@@ -41,8 +36,8 @@ public class M1Packet implements Packet {
         
         s.writeUint4(1);    // message type is 1
         s.writeBit(hasServerSigKey());
-        s.writeBit(hasTicket());
-        s.writeBit(ticketRequested);
+        s.writeBit(0);
+        s.writeBit(0);
         s.writeBit(0);
         
         s.writeString("SC2");
@@ -53,15 +48,6 @@ public class M1Packet implements Packet {
         
         if (hasServerSigKey()) {
             s.writeBytes(serverSigKey);
-        }
-        
-        if (hasTicket()) {
-            if (ticket.length > 127 || ticket.length < 1) {
-                throw new IllegalStateException("bad ticket length, " + ticket.length);
-            }
-            
-            s.writeByte(ticket.length);
-            s.writeBytes(ticket);
         }
         
         if (s.getOffset() != getSize()) {
@@ -80,8 +66,8 @@ public class M1Packet implements Packet {
         }
         
         boolean serverSigKeyIncluded = d.readBit();
-        boolean ticketIncluded = d.readBit();
-        data.ticketRequested = d.readBit();
+        d.readBit();
+        d.readBit();
         d.readBit();
         
         String protocol = d.readString(3);
@@ -93,15 +79,6 @@ public class M1Packet implements Packet {
         
         if (serverSigKeyIncluded) {
             data.serverSigKey = d.readBytes(32);
-        }
-        
-        if (ticketIncluded) {
-            int ticketSize = d.readUnsignedByte();
-            if (ticketSize < 1 || ticketSize > 255) {
-                throw new BadPeer("bad TicketSize, " + ticketSize);
-            }
-            
-            data.ticket = d.readBytes(ticketSize);
         }
         
         return data;

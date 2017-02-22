@@ -14,6 +14,10 @@ public class A2Packet implements Packet {
     public static final int PACKET_TYPE = 9;
     public Prot[] prots;
     
+    public int getType() {
+        return PACKET_TYPE;
+    }
+    
     public int getSize() {
         return 1 + 1 + prots.length * (2 * Prot.P_SIZE);
     }

@@ -5,10 +5,13 @@ import saltchannel.util.Deserializer;
 import saltchannel.util.Serializer;
 
 public class EncryptedPacket implements Packet {
+    public static final int PACKET_TYPE = 6;
     public boolean closeFlag;
     public byte[] body;
     
-    public static final int PACKET_TYPE = 6;
+    public int getType() {
+        return PACKET_TYPE;
+    }
     
     public int getSize() {
         return 1 + 32 + 64;

@@ -214,51 +214,34 @@ public signing key.
 
 Details:
 
+    
     **** M1 ****
-
+    
     1   Header.
         Message type and flags.
-
+    
     3   ProtocolIndicator.
         Always ASCII 'SC2'. Protocol indicator for Salt Channel v2.
-
+    
     32  ClientEncKey.
         The public ephemeral encryption key of the client.
-
+    
     32  ServerSigKey, OPT.
         The server's public signing key. Used to choose what virtual 
         server to connect to in cases when there are many to choose from.
-
-    1   TicketSize, OPT.
-        The size of the following ticket encoded in one byte.
-        Allowed range: 1-127.
-
-    x   Ticket, OPT.
-        A resume ticket received from the server in a previous
-        session between this particular client and server.
-        The bytes of the ticket MUST NOT be interprented by the client.
-        The exact interprentation of the bytes is entirely up to
-        the server. See separate section.
-
-
+    
+    
     **** M1/Header ****
-
+    
     4b  MessageType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 1 for this message.
-
+    
     1b  ServerSigKeyIncluded.
         Set to 1 when ServerSigKey is included in the message.
-
-    1b  TicketIncluded.
-        Set to 1 when TicketSize and Ticket are included in the message.
-
-    1b  TicketRequested.
-        Set to 1 to request a new resume ticket to use in the future to 
-        connect quickly with the server.
-
-    1b  Zero.
-        Bit set to 0.
+    
+    3b  Zero.
+        Bits set to 0.
     
 
 Messages M2 and M3
@@ -278,67 +261,63 @@ this can decrease total handshake time significantly.
 Note, the server must read M1 before sending M2 since M2 depends on the 
 contents of M1.
 
-    
+        
     **** M2 ****
     
     1   Header.
         Message type and flags.
     
-    32  ServerEncKey, OPT.
+    32  ServerEncKey.
         The public ephemeral encryption key of the server.
+        32 zero-value bytes are sent in case of an error.
     
-    
+        
     **** M2/Header ****
     
     4b  MessageType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 2 for this message.
-
-    1b  ServerEncKeyIncluded.
-        Set to 1 when ServerEncKey is included in the message.
-
-    1b  ResumeSupported.
-        Set to 1 if the server implementation supports resume tickets.
     
     1b  NoSuchServer.
         Set to 1 if ServerSigKey was included in M1 but a server with such a
-        public signature key does not exist at the end-point.
+        public signature key does not exist at this end-point.
+        Note, when this happens, the client MUST ignore ServerEncKey.
+        The server SHOULD send zero-valued bytes in ServerEncKey if this 
+        condition happens.
 
-    1b  BadTicket.
-        Set to 1 if Ticket was included in M1 but the ticket is not valid
-        for some reason (bad format, expired, already used).
+    3b  Zero.
+        Bits set to zero.
+        
+
+If the NoSuchServer condition occurs, the client and the server should 
+consider the session closed once M2 has been sent.
+
     
-
-If the NoSuchServer condition occurs, ServerEncKey MUST NOT be included in 
-the message. When it happens the client and the server should consider the
-session closed once M2 has been sent.
-
-
     **** M3 ****
-
+    
     This message is encrypted. It is sent within the body of EncryptedMessage 
     (EncryptedMessage/Body).
-
+    
     1   Header.
         Message type and flags.
-
+    
     32  ServerSigKey, OPT.
         The server's public signature key. MUST NOT be included if client 
         sent it in Message M1.
-
+    
     64  Signature1
         The signature of ServerEncKey+ClientEncKey concatenated.
-
-
+    
+    
     **** M3/Header ****
-
+    
     4b  MessageType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 3 for this message.
-
+    
     1b  ServerSigKeyIncluded.
         Set to 1 if ServerSigKey is included in the message.
-
+    
     3b  Zero.
         Bits set to 0.
     
@@ -375,104 +354,6 @@ message from the client to the server.
     4b  Zero.
         Bits set to 0.
     
-
-Messages A1 and A2
-==================
-
-Messages A1 and A2 are used by the client to query the server of which 
-protocols it supports. These two messages are intended to stay stable
-even if/when Salt Channel is upgraded to v3, v4, and so on.
-
-No encryption is used. Any information sent by the server should be 
-validated later once the secure channel has been established.
-The A2 response by the server is assumed to be static for days or weeks or
-longer. The client is allowed to cache this information.
-
-    
-    **** A1 ****
-    
-    Message sent by client to request server information.
-    
-    1   Header.
-        Message type and flags.
-    
-    
-    **** A1/Header ****
-    
-    4b  MessageType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 8 for this message.
-    
-    1b  CloseFlag.
-        Set to 1 for for this message.
-
-    3b  Zero.
-        Bits set to 0.
-    
-
-And Message A2:
-
-    
-    **** A2 ****
-    
-    The message sent by the server in response to an A1 message.
-    
-    1   Header.
-        Message type and flags.
-    
-    1   Count
-        Value between 1 and 127. The number of protocol entries
-        (Prot) that follows.
-        
-    x   Prot+
-        1 to 127 Prot packets.
-    
-    
-    **** A2/Header ****
-    
-    4b  MessageType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 9 for this message.
-    
-    1b  CloseFlag.
-        Set to 1 for for this message.
-
-    3b  Zero.
-        Bits set to 0.
-    
-    
-    **** A2/Prot ****
-    
-    10  P1.
-        Protocol ID of Salt Channel with version. 
-        Exactly 10 ASCII bytes. Whitespace and control characters
-        must be avoided.
-        The value for this field in for this version of
-        of Salt Channel MUST BE "SC2-------".
-    
-    10  P2.
-        Protocol ID of the protocol on top of Salt Channel. 
-        Exactly 10 ASCII bytes. Whitespace and control characters
-        must be avoided.
-        If the server does not wish to reveal any information about
-        the layer above, the server MUST use value "----------" for 
-        this field.
-    
-
-The server MUST use protocol ID "SC2-------" for this version (v2) of
-Salt Channel. The plan is that future versions of Salt Channel should use
-the same A1 and A2 messages. Salt Channel v2 should use "SC3-------" and 
-v4 should use "SC4-------" and so on.
-
-The server also has the possibility of specifiying a higher-level layer
-ID in the A2 message. This way a client can determine whether there is any
-use of connecting to the server. It may not support the protocol the client
-wants to communicate with.
-
-Note that messages A1, A2 together form a complete Salt Channel session.
-An M1 message following A1, A2 should be considered a *new* Salt Channel 
-session that must be completely independent of the previous A1-A2 session.
-
 
 EncryptedMessage
 ================
@@ -539,6 +420,103 @@ and the server in any order.
         Bits set to 0.
     
 
+Messages A1 and A2
+==================
+
+Messages A1 and A2 are used by the client to query the server of which 
+protocols it supports. These two messages are intended to stay stable
+even if/when Salt Channel is upgraded to v3, v4, and so on.
+
+No encryption is used. Any information sent by the server should be 
+validated later once the secure channel has been established.
+The A2 response by the server is assumed to be static for days or weeks or
+longer. The client is allowed to cache this information.
+
+    
+    **** A1 ****
+    
+    Message sent by client to request server information.
+    
+    1   Header.
+        Message type and flags.
+    
+    
+    **** A1/Header ****
+    
+    4b  MessageType.
+        Four bits that encodes an integer in range 0-15.
+        The integer value is 8 for this message.
+    
+    1b  CloseFlag.
+        Set to 1 for for this message.
+
+    3b  Zero.
+        Bits set to 0.
+    
+
+And Message A2:
+
+    
+    **** A2 ****
+    
+    The message sent by the server in response to an A1 message.
+    
+    1   Header.
+        Message type and flags.
+    
+    1   Count
+        Value between 1 and 127. The number of protocol entries
+        (Prot) that follows.
+        
+    x   Prot+
+        1 to 127 Prot packets.
+    
+    
+    **** A2/Header ****
+    
+    4b  MessageType.
+        Four bits that encodes an integer in range 0-15.
+        The integer value is 9 for this message.
+    
+    1b  CloseFlag.
+        Set to 1 for for this message.
+    
+    3b  Zero.
+        Bits set to 0.
+    
+    
+    **** A2/Prot ****
+    
+    10  P1.
+        Protocol ID of Salt Channel with version. 
+        Exactly 10 ASCII bytes. Whitespace and control characters
+        must be avoided.
+        The value for this field in for this version of
+        of Salt Channel MUST BE "SC2-------".
+    
+    10  P2.
+        Protocol ID of the protocol on top of Salt Channel. 
+        Exactly 10 ASCII bytes. Whitespace and control characters
+        must be avoided.
+        If the server does not wish to reveal any information about
+        the layer above, the server MUST use value "----------" for 
+        this field.
+    
+
+The server MUST use protocol ID "SC2-------" for this version (v2) of
+Salt Channel. The plan is that future versions of Salt Channel should use
+the same A1 and A2 messages. Salt Channel v2 should use "SC3-------" and 
+v4 should use "SC4-------" and so on.
+
+The server also has the possibility of specifying a higher-level layer
+protocol in the A2 message. This way a client can determine whether there 
+is any use of connecting to the server.
+
+Note that messages A1, A2 together form a complete Salt Channel session.
+An M1 message following A1, A2 should be considered a *new* Salt Channel 
+session that is completely independent of the previous A1-A2 session.
+
+
 Encryption
 ==========
 
@@ -550,7 +528,6 @@ List of message types
 =====================
 
 This section is informative.
-
     
     MessageType  Name
     
@@ -564,6 +541,6 @@ This section is informative.
     7            Ticket (reserved for future version)
     8            A1
     9            A2
+    10-15        Not used
     
-
 

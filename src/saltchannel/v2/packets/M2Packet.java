@@ -10,34 +10,38 @@ import saltchannel.util.Serializer;
  * @author Frans Lundberg
  */
 public class M2Packet implements Packet {
-    public boolean resumeSupported;
+    public static final int PACKET_TYPE = 2;
     public boolean noSuchServer;
-    public boolean badTicket;
     public byte[] serverEncKey;
     
-    public static final int PACKET_TYPE = 2;
+    public int getType() {
+        return PACKET_TYPE;
+    }
+    
+    public int getSize() {
+        return 1 + 32;
+    }
     
     public boolean hasServerEncKey() {
         return serverEncKey != null;
     }
     
-    public int getSize() {
-        return 1 + 
-               (hasServerEncKey() ? 32 : 0);
-    }
-    
     public void toBytes(byte[] destination, int offset) {
-        if (serverEncKey != null && serverEncKey.length != 32) {
+        if (serverEncKey == null) {
+            throw new IllegalStateException("serverEncKey not set");
+        }
+        
+        if (serverEncKey.length != 32) {
             throw new IllegalStateException("bad serverEncKey length");
         }
         
         Serializer s = new Serializer(destination, offset);
         
         s.writeUint4(PACKET_TYPE);
-        s.writeBit(hasServerEncKey());
-        s.writeBit(resumeSupported);
         s.writeBit(noSuchServer);
-        s.writeBit(badTicket);
+        s.writeBit(0);
+        s.writeBit(0);
+        s.writeBit(0);
         
         s.writeBytes(serverEncKey);
     }
@@ -51,14 +55,12 @@ public class M2Packet implements Packet {
             throw new BadPeer("unexpected packet type, " + packetType);
         }
         
-        boolean serverEncKeyIncluded = d.readBit();
-        p.resumeSupported = d.readBit();
         p.noSuchServer = d.readBit();
-        p.badTicket = d.readBit();
+        d.readBit();
+        d.readBit();
+        d.readBit();
         
-        if (serverEncKeyIncluded) {
-            p.serverEncKey = d.readBytes(32);
-        }
+        p.serverEncKey = d.readBytes(32);
         
         return p;
     }

@@ -8,9 +8,7 @@ public class M2PacketTest {
     @Test
     public void testSanity() {
         M2Packet p = new M2Packet();
-        p.badTicket = false;
         p.noSuchServer = false;
-        p.resumeSupported = false;
         p.serverEncKey = new byte[32];
 
         byte[] bytes1 = new byte[p.getSize()];
