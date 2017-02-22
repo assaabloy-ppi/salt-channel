@@ -55,6 +55,12 @@ public class M1Packet implements Packet {
         }
     }
     
+    public byte[] toBytes() {
+        byte[] result = new byte[getSize()];
+        toBytes(result, 0);
+        return result;
+    }
+    
     public static M1Packet fromBytes(byte[] source, int offset) {
         M1Packet data = new M1Packet();
         

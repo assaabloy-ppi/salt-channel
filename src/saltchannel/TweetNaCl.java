@@ -614,7 +614,8 @@ public class TweetNaCl {
         return crypto_box_open_afternm(m, c, d, n, k);
     }
 
-    private static int crypto_hash(byte[] out, byte[] m, int n) {
+    // CHANGE, made it public.
+    public static int crypto_hash(byte[] out, byte[] m, int n) {
         int[] hh = new int[8], hl = new int[8];
         byte[] x = new byte[256];
         int i, b = n;

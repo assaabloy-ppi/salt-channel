@@ -18,7 +18,6 @@ public class M3PacketTest {
         
         M3Packet p2 = M3Packet.fromBytes(bytes1, 0);
         
-        Assert.assertEquals(p1.hasServerSigKey(), p2.hasServerSigKey());
         Assert.assertArrayEquals(p1.serverSigKey, p2.serverSigKey);
         Assert.assertArrayEquals(p1.signature1, p2.signature1);
     }

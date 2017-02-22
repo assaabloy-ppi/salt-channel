@@ -1,13 +1,11 @@
-package saltchannel.v1;
+package saltchannel.v2;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
-
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.TweetNaCl;
 import saltchannel.util.Bytes;
+import saltchannel.v2.packets.EncryptedPacket;
 
 /**
  * An implementation of an encrypted channel using a shared symmetric 
@@ -15,7 +13,7 @@ import saltchannel.util.Bytes;
  * 
  * @author Frans Lundberg
  */
-public class EncryptedChannel implements ByteChannel {
+public class EncryptedChannelV2 implements ByteChannel {
     private long readNonceInteger;
     private byte[] readNonceBytes = new byte[TweetNaCl.BOX_NONCE_BYTES];
     private long writeNonceInteger;
@@ -31,7 +29,7 @@ public class EncryptedChannel implements ByteChannel {
      *      Shared symmetric encryption key for one session. 
      *      A new key must be used for every session.
      */
-    public EncryptedChannel(ByteChannel channel, byte[] key, Role role) {
+    public EncryptedChannelV2(ByteChannel channel, byte[] key, Role role) {
         if (key.length != TweetNaCl.BOX_SECRET_KEY_BYTES) {
             throw new IllegalArgumentException("bad key size, should be " + TweetNaCl.BOX_SECRET_KEY_BYTES);
         }
@@ -86,7 +84,11 @@ public class EncryptedChannel implements ByteChannel {
     /**
      * @throws ComException
      */
-    private byte[] decrypt(byte[] encrypted) {
+    byte[] decrypt(byte[] encrypted) {
+        if (encrypted == null) {
+            throw new Error("encrypted == null");
+        }
+        
         byte[] clear;
         byte[] c = new byte[TweetNaCl.SECRETBOX_OVERHEAD_BYTES + encrypted.length];
         byte[] m = new byte[c.length];
@@ -104,7 +106,7 @@ public class EncryptedChannel implements ByteChannel {
     }
     
     /**
-     * Needed by ServerChannel.
+     * Needed by ServerChannelV2.
      */
     byte[] encryptAndIncreaseWriteNonce(byte[] bytes) {
         byte[] encrypted = wrap(encrypt(bytes));
@@ -112,7 +114,7 @@ public class EncryptedChannel implements ByteChannel {
         return encrypted;
     }
     
-    private byte[] encrypt(byte[] clear) {
+    byte[] encrypt(byte[] clear) {
         byte[] m = new byte[TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES + clear.length];
         byte[] c = new byte[m.length];
         System.arraycopy(clear, 0, m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, clear.length);
@@ -150,36 +152,18 @@ public class EncryptedChannel implements ByteChannel {
     }
     
     /**
-     * Wrap encrypted bytes in a Binson object.
+     * Wrap encrypted bytes in EncryptedPacket.
      */
-    private byte[] wrap(byte[] bytes) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        BinsonLight.Writer w = new BinsonLight.Writer(out);
-        try {
-            w.begin()
-                .name("b").bytes(bytes)
-            .end().flush();
-        } catch (IOException e) {
-            throw new Error("never happens");
-        }
-        
-        return out.toByteArray();
+    static byte[] wrap(byte[] bytes) {
+        EncryptedPacket p = new EncryptedPacket();
+        p.body = bytes;
+        byte[] result = new byte[p.getSize()];
+        p.toBytes(result, 0);
+        return result;
     }
     
-    private byte[] unwrap(byte[] binsonBytes) {
-        BinsonLight.Parser p = new BinsonLight.Parser(binsonBytes);
-        
-        try {
-            p.field("b");
-        } catch (BinsonLight.FormatException e) {
-            throw new ComException("bad format, no b-field");
-        }
-        
-        BinsonLight.BytesValue bytesValue = p.getBytes();
-        if (bytesValue == null) {
-            throw new ComException("bad format of encrypted message, bad b-field");
-        }
-        
-        return bytesValue.toByteArray();
+    static byte[] unwrap(byte[] packetBytes) {
+        EncryptedPacket p = EncryptedPacket.fromBytes(packetBytes, 0, packetBytes.length);
+        return p.body;
     }
 }

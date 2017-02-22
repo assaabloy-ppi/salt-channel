@@ -18,12 +18,12 @@ import saltchannel.v1.BinsonLight.Parser;
  * 
  * @author Frans Lundberg
  */
-public class ServerChannel implements ByteChannel {
+public class ServerChannelV1 implements ByteChannel {
     private final ByteChannel clearChannel;
-    private EncryptedChannel encryptedChannel;
+    private EncryptedChannelV1 encryptedChannel;
     private byte[] peerId;
     
-    public ServerChannel(ByteChannel clearChannel) {
+    public ServerChannelV1(ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
     }
     
@@ -62,9 +62,9 @@ public class ServerChannel implements ByteChannel {
         checkM1E(eField);
         
         byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), eField);
-        byte[] mySignature = CryptoLib.createSaltChannelSignature(sigKeyPair, encKeyPair.pub(), eField);
+        byte[] mySignature = CryptoLib.createSaltChannelV1Signature(sigKeyPair, encKeyPair.pub(), eField);
 
-        encryptedChannel = new EncryptedChannel(clearChannel, sharedKey, EncryptedChannel.Role.SERVER);
+        encryptedChannel = new EncryptedChannelV1(clearChannel, sharedKey, EncryptedChannelV1.Role.SERVER);
         
         byte[] m2 = createM2(encKeyPair.pub());
         
@@ -80,7 +80,7 @@ public class ServerChannel implements ByteChannel {
         byte[] gField = parseM4g(m4Parser);
         
         try {
-            CryptoLib.checkSaltChannelSignature(cField, encKeyPair.pub(), eField, gField);
+            CryptoLib.checkSaltChannelV1Signature(cField, encKeyPair.pub(), eField, gField);
         } catch (ComException e) {
             throw new ComException("invalid handskake signature from client");
         }

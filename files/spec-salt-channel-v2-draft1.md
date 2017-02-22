@@ -1,10 +1,8 @@
 spec-salt-channel-v2-draft1.md
 ==============================
 
-About
------
-
-About this document.
+About this document
+-------------------
 
 *Date*: 2017-02-22
 
@@ -14,16 +12,13 @@ About this document.
 frans.lundberg@assaabloy.com, phone: +46707601861.
 
 *Thanks*: 
-To Simon Johansson for valuable comments and discussions; especially for
-the discussion that led to protection against delay attacks.
+To Simon Johansson and Håkan Olsson for valuable comments and discussions.
 
 
-History
--------
+Document history
+----------------
 
-Document history.
-
-* 2017-02-22. DRAFT1 (spec-salt-channel-draft1.md).
+* 2017-02-22. DRAFT1.
 
 
 
@@ -32,20 +27,20 @@ Introduction
 
 Salt Channel is a secure channel protocol based on the TweetNaCl 
 ("tweet salt") cryptography library by Daniel Bernstein et al 
-[TWEET-1, TWEET-2]. Like TweetNaCl itself, Salt Channel is simple and 
-light-weight.
+[TWEET-1, TWEET-2]. Like TweetNaCl itself, Salt Channel is small och
+simple.
 
 The protocol is essentially an implementation of the station-to-station [STS] 
 protocol using the crypto primitives of TweetNaCl.
 It relies on an underlying reliable communication channel between two 
 peers. TCP is an important example of such a channel, but Salt Channel is in
-no way restricted to TCP. In fact, Salt Channel has been successfully 
-implemented on top of WebSocket, RS232, Bluetooth, and Bluetooth Low Energy.
+no way restricted to TCP. In fact, Salt Channel can be successfully 
+implemented on top of WebSocket, RS485, Bluetooth, and NFC.
 
 This is the second version of the protocol, *Salt Channel v2*. The major changes
-is the removal of the Binson dependency and the addition of the resume feature
-which allows repeated sessions between a particular client and server to be 
-started more efficiently.
+is the removal of the Binson dependency and the addition of the server
+protocol support messages that allows the client to query the server about 
+what protocols it supports.
 
 Salt Channel is "Powered by Curve25519".
 
@@ -54,22 +49,29 @@ Changes from v1
 ===============
 
 Salt Channel v2 is a new version of Salt Channel. It is incompatible 
-with Salt Channel v1.
+with v1.
 
 The major changes are: 
 
 1. Binson dependency removed.
 2. Server protocol info added.
+3. Signature1, Signature2 modified to include sha512(M1) + sha512(M2).
 
-The Binson dependency is removed to make implementations more
-independent. Also, it means more fixed sizes/offsets which is 
-beneficiary for performance in some cases; especially on 
-small embedded targets.
+The Binson dependency is removed to make the protocol independent 
+of the specification. Also, it means more fixed sizes and offsets
+which can be beneficiary for performance; especially on 
+small embedded processors.
 
 The server protocol info feature allows the server to tell what 
 protocols and protocol versions it supports before a the real session 
-is initiated by the client. This allows easier future Salt Channel version 
-upgrades.
+is initiated by the client. This allows easy future Salt Channel version 
+upgrades since both the client and the server may support multiple
+versions in parallel.
+
+The Signatures changed to follow recommendations in Cryptography Enginnering
+[SCHNEIER]. It does make sense to add integrity checks to M1, M2. This way
+all messages have integrity protection and all but M1, M2 have confidentiality
+protection.
 
 
 Temporary notes
@@ -160,7 +162,7 @@ Session
 
 The message order of an ordinary successful Salt Channel session is:
  
-    Session = M1 M2 E(M3) E(M4) E(AppMessage)*
+    Session = M1 M2 M3 M4 AppMessage*
 
 The M1, and M4 messages are sent by the client and M2, M3 by the server.
 So, we have a three-way handshake (M1 from client, M2+M3 from server, and 
@@ -177,23 +179,47 @@ to ask the server about what protocols it supports:
 
 After A2, the session is finished.
 
+Overview of a typical Salt Channel session:
+
+    
+    CLIENT                                                 SERVER
+    
+    ProtocolIndicator
+    ClientEncKey
+    [ServerSigKey]               ---M1----->
+                
+                                 <--M2------         ServerEncKey
+                                   
+                                                     ServerSigKey
+                                 <--E(M3)---           Signature1
+    
+    ClientSigKey
+    Signature2                   ---E(M4)--->
+    
+    AppMessage                   <--E(App)-->          AppMessage
+    
+            Figure 1: Salt Channel messages. "E()" is 
+            used to indicate that a message is authenticated
+            and encrypted.
+    
+
 
 Message details
 ===============
 
 This section describes how a message is represented as an array
-of bytes. The size of the messages are known by the layer above.
+of bytes. The size of a message is known by the layer above.
 The term *message* is used for a whole byte array message and
 *packet* is used to refer to a byte array -- either a full message
 or a part of a message.
 
-Messages are presented below with fields of specified byte size.
+Packets are presented below with fields of specified sizes.
 If the size number has a "b" suffix, the size is in bits, otherwise
-it the byte size. 
+it is the byte size.
 
-Bit order: the "first" bit (Bit 0) of a byte is the least-significant bit.
 Byte order: little-endian byte order is used. The first byte is the 
-least significant one.
+least significant one. Bit order: the "first" bit (Bit 0) of a 
+byte is the least-significant bit.
 
 Unless otherwise stated explicitely, bits are set to 0.
 
@@ -233,9 +259,9 @@ Details:
     
     **** M1/Header ****
     
-    4b  MessageType.
+    4b  PacketType.
         Four bits that encodes an integer in range 0-15.
-        The integer value is 1 for this message.
+        The integer value is 1 for this packet type.
     
     1b  ServerSigKeyIncluded.
         Set to 1 when ServerSigKey is included in the message.
@@ -247,21 +273,24 @@ Details:
 Messages M2 and M3
 ==================
 
-The M2 message is the first message sent by the server when an 
-ordinary three-way handshake is performed. It is followed by 
-Message M3, also sent by the server.
+The M2 message is the first message sent by the server when the 
+handshake is performed. It is followed by Message M3, also sent 
+by the server.
 
-By two message, M2, M3, instead one, the M3 message can be encrypted
+By using two messages, M2, M3, instead one, the M3 message can be encrypted
 the same way as the application messages. Also, it allows the signature
 computations (Signature1, Signature2) to be done in parallel. The server
 MAY send the M2 message before Signature1 is computed and M3 sent. 
 In cases when computation time is long compared to communication time, 
-this can decrease total handshake time significantly.
+this may decrease total handshake time significantly.
 
 Note, the server must read M1 before sending M2 since M2 depends on the 
-contents of M1.
+contents of M1. We could imagine a protocol where M2 could be sent before
+the complete M1 has been read. However, this would not allow for the
+virtual server functionality and the possibility of the server to support
+multiple protocols at the same endpoint.
 
-        
+            
     **** M2 ****
     
     1   Header.
@@ -269,14 +298,13 @@ contents of M1.
     
     32  ServerEncKey.
         The public ephemeral encryption key of the server.
-        32 zero-value bytes are sent in case of an error.
     
-        
+    
     **** M2/Header ****
     
-    4b  MessageType.
+    4b  PacketType.
         Four bits that encodes an integer in range 0-15.
-        The integer value is 2 for this message.
+        The integer value is 2 for this type of packet.
     
     1b  NoSuchServer.
         Set to 1 if ServerSigKey was included in M1 but a server with such a
@@ -289,8 +317,8 @@ contents of M1.
         Bits set to zero.
         
 
-If the NoSuchServer condition occurs, the client and the server should 
-consider the session closed once M2 has been sent.
+If the NoSuchServer condition occurs, the session is considered closed
+once M2 has been sent and received.
 
     
     **** M3 ****
@@ -301,24 +329,24 @@ consider the session closed once M2 has been sent.
     1   Header.
         Message type and flags.
     
-    32  ServerSigKey, OPT.
-        The server's public signature key. MUST NOT be included if client 
-        sent it in Message M1.
+    32  ServerSigKey.
+        The server's public signature key. Must be included even when
+        it was specified in M1 (to keep things simple).
     
     64  Signature1
-        The signature of ServerEncKey+ClientEncKey concatenated.
+        Signature of the following elements concatenated:
+        ServerEncKey + ClientEncKey + hash(M1) + hash(M2).
+        hash() is used to denote the SHA512 checksum.
+        Only the actual signature (64 bytes) is included in the field.
     
-    
+       
     **** M3/Header ****
     
-    4b  MessageType.
+    4b  PacketType.
         Four bits that encodes an integer in range 0-15.
-        The integer value is 3 for this message.
+        The integer value is 3 for this packet.
     
-    1b  ServerSigKeyIncluded.
-        Set to 1 if ServerSigKey is included in the message.
-    
-    3b  Zero.
+    4b  Zero.
         Bits set to 0.
     
 
@@ -332,24 +360,27 @@ message from the client to the server.
     
     **** M4 ****
     
-    This message is encrypted. The message is sent within the body of 
+    This packet is encrypted. The packet is sent within the body of 
     EncryptedMessage (EncryptedMessage/Body).
     
     1   Header.
-        Message type and flags.
+        Packet type and flags.
     
     32  ClientSigKey.
         The client's public signature key.
         
     64  Signature2.
-        Signature of ClientEncKey+ServerEncKey concatenated.
+        Signature of the following elements concatenated:
+        ClientEncKey + ServerEncKey + hash(M1) + hash(M2).
+        hash() is used to denote the SHA512 checksum.
+        Only the actual signature (64 bytes) is included in the field.
     
     
     **** M4/Header ****
     
-    4b  MessageType.
+    4b  PacketType.
         Four bits that encodes an integer in range 0-15.
-        The integer value is 4 for this message.
+        The integer value is 4 for this packet.
     
     4b  Zero.
         Bits set to 0.
@@ -369,54 +400,47 @@ They are included in the field EncryptedMessage/Body.
         
     x   Body.
         This is the ciphertext of the cleartext message encrypted with 
-        [TODO insert here]. The message authentication prefix (16 bytes) is included.
-        So, this field is at least 16 bytes long.
+        [TODO insert here]. 
+        The message authentication prefix (16 bytes) is included.
+        This field is 16 bytes longer than the corresponding cleartext.
     
     
     **** EncryptedMessage/Header ****
     
-    4b  MessageType.
+    4b  PacketType.
         Four bits that encodes an integer in range 0-15.
-        The integer value is 6 for this message.
+        The integer value is 6 for this packet.
     
-    1b  CloseFlag.
-        Set to 1 for the last message sent by the peer.
-    
-    3b  Zero.
+    4b  Zero.
         Bits set to 0.
         
 
-Application messages
-====================
+AppPacket
+=========
 
-After the handshake, application messages are sent between the client
-and the server in any order.
+After the handshake, encrypted application packets (E(AppPacket)*) 
+are sent between the client and the server in any order.
 
     
-    **** AppMessage ****
+    **** AppPacket ****
 
-    This message is encrypted. The message is sent within the body of 
+    This packet is encrypted. It is sent within the body of 
     EncryptedMessage (EncryptedMessage/Body).
     
     1   Header.
         Message type and flags.
-        The header includes a close bit. It MUST be set in the last
-        AppMessage sent by Client and in the last AppMessage sent by Server.
     
-    x   EncryptedMessage.
-        Encrypted application message.
+    x   Data.
+        The cleartext application data.
     
     
     **** AppMessage/Header ****
     
-    4b  MessageType.
+    4b  PacketType.
         Four bits that encodes an integer in range 0-15.
-        The integer value is 5 for this message.
+        The integer value is 5 for this packet type.
     
-    1b  CloseFlag.
-        Set to 1 for the last message sent by the peer.
-    
-    3b  Zero.
+    4b  Zero.
         Bits set to 0.
     
 
@@ -443,7 +467,7 @@ longer. The client is allowed to cache this information.
     
     **** A1/Header ****
     
-    4b  MessageType.
+    4b  PacketType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 8 for this message.
     
@@ -474,7 +498,7 @@ And Message A2:
     
     **** A2/Header ****
     
-    4b  MessageType.
+    4b  PacketType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 9 for this message.
     
@@ -517,6 +541,30 @@ An M1 message following A1, A2 should be considered a *new* Salt Channel
 session that is completely independent of the previous A1-A2 session.
 
 
+Session close
+=============
+
+This protocol is designed so that both Salt Channel peers will 
+be able to agree on when a Salt Channel ends in case the 
+session does not start an application layer session.
+If the application layer starts successfully (handshake completed), 
+it is up to the application layer to determine when the session ends.
+
+The underlying reliable channel may be reused for multiple sequential
+Salt Channel sessions. Multiple concurrent sessions over
+a single underlying channel is *not* within scope of this protocol.
+
+A Salt Channel session ends when one the the following conditions occur:
+
+1. After message A2 is sent by Server.
+
+2. After message M2 is sent by Server with the M2/NoSuchServer bit set to 1.
+
+3. After the session of the layer on top (AppMessage*) ends. This is
+   entrirely up to that layer to determine when the session ends.
+   The Salt Channel implementation will be able to determine this.
+
+
 Encryption
 ==========
 
@@ -529,7 +577,7 @@ List of message types
 
 This section is informative.
     
-    MessageType  Name
+    PacketType   Name
     
     0            Not used
     1            M1
@@ -543,4 +591,27 @@ This section is informative.
     9            A2
     10-15        Not used
     
+
+
+References
+==========
+
+* **TWEET-1**, *TweetNaCl: a crypto library in 100 tweets*. 
+    Progress in Cryptology - LATINCRYPT 2014,
+    Volume 8895 of the series Lecture Notes in Computer Science pp 64-83.
+
+* **TWEET-2**, web: https://tweetnacl.cr.yp.to/.
+
+* **NACL**, web: http://nacl.cr.yp.to/.
+
+* **BINSON**, web: http://binson.org/.
+
+* **STS**, *Authentication and authenticated key exchanges*, 
+  Diffie, W., Van Oorschot, P.C. & Wiener, M.J. Des Codes Crypt (1992) 2: 107. 
+  doi:10.1007/BF00124891.
+
+* **VIRTUAL**, *Virtual hosting* at Wikipedia, 2017-01-04, 
+  https://en.wikipedia.org/wiki/Virtual_hosting.
+  
+* **WS**, RFC 7936, *The WebSocket Protocol*. December 2011.
 

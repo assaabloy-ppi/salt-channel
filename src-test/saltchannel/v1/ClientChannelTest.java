@@ -1,11 +1,13 @@
-package saltchannel;
+package saltchannel.v1;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import saltchannel.ByteChannel;
+import saltchannel.Tunnel;
 import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
-import saltchannel.v1.ClientChannel;
+import saltchannel.v1.ClientChannelV1;
 
 /**
  * Tests for ClientChannel.
@@ -33,7 +35,7 @@ public class ClientChannelTest {
         
         Tunnel tunnel = new Tunnel();
         ByteChannel serverChannel = tunnel.channel2();
-        final ClientChannel clientChannel = new ClientChannel(tunnel.channel1());
+        final ClientChannelV1 clientChannel = new ClientChannelV1(tunnel.channel1());
         clientChannel.setBufferM4(false);
         
         Thread thread = new Thread(new Runnable() {

@@ -46,6 +46,12 @@ public class M2Packet implements Packet {
         s.writeBytes(serverEncKey);
     }
     
+    public byte[] toBytes() {
+        byte[] result = new byte[getSize()];
+        toBytes(result, 0);
+        return result;
+    }
+    
     public static M2Packet fromBytes(byte[] source, int offset) {
         M2Packet p = new M2Packet();
         Deserializer d = new Deserializer(source, offset);

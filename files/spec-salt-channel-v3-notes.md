@@ -12,8 +12,9 @@ About this document
 frans.lundberg@assaabloy.com, phone: +46707601861.
 
 *Thanks*: 
-To Simon Johansson for valuable comments and discussions; especially for
-the discussion that led to protection against delay attacks.
+To Simon Johansson and Håkan Olsson for valuable comments.
+Special thanks to Simon for the discussion that led to protection
+against delay attacks.
 
 
 Notes

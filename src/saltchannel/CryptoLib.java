@@ -150,7 +150,7 @@ public class CryptoLib {
         return sharedKey;
     }
     
-    public static byte[] createSaltChannelSignature(KeyPair sigKeyPair, byte[] myEk, byte[] peerEk) {
+    public static byte[] createSaltChannelV1Signature(KeyPair sigKeyPair, byte[] myEk, byte[] peerEk) {
         byte[] secretSigningKey = sigKeyPair.sec();
         
         if (secretSigningKey.length != TweetNaCl.SIGN_SECRET_KEY_BYTES) {
@@ -173,7 +173,7 @@ public class CryptoLib {
      * 
      * @throws ComException if signature not valid.
      */
-    public static void checkSaltChannelSignature(byte[] peerSigPubKey, byte[] myEk,
+    public static void checkSaltChannelV1Signature(byte[] peerSigPubKey, byte[] myEk,
             byte[] peerEk, byte[] signature) {
         // To use NaCl's crypto_sign_open, we create 
         // a signed message: signature+message concatenated.

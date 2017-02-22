@@ -1,12 +1,14 @@
-package saltchannel;
+package saltchannel.v1;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import saltchannel.CryptoLib;
+import saltchannel.Tunnel;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
-import saltchannel.v1.ClientChannel;
-import saltchannel.v1.ServerChannel;
+import saltchannel.v1.ClientChannelV1;
+import saltchannel.v1.ServerChannelV1;
 
 /**
  * Tests full channel usage.
@@ -24,8 +26,8 @@ public class ChannelTest {
         final KeyPair clientKeyPair = CryptoLib.createSigKeys(rand);
         final KeyPair serverKeyPair = CryptoLib.createSigKeys(rand);
         final Tunnel tunnel = new Tunnel();
-        final ServerChannel serverChannel = new ServerChannel(tunnel.channel2());
-        final ClientChannel clientChannel = new ClientChannel(tunnel.channel1());
+        final ServerChannelV1 serverChannel = new ServerChannelV1(tunnel.channel2());
+        final ClientChannelV1 clientChannel = new ClientChannelV1(tunnel.channel1());
         
         Thread thread = new Thread(new Runnable() {
             public void run() {
@@ -51,8 +53,8 @@ public class ChannelTest {
         final KeyPair clientKeyPair = CryptoLib.createSigKeys(rand);
         final KeyPair serverKeyPair = CryptoLib.createSigKeys(rand);
         final Tunnel tunnel = new Tunnel();
-        final ServerChannel serverChannel = new ServerChannel(tunnel.channel2());
-        final ClientChannel clientChannel = new ClientChannel(tunnel.channel1());
+        final ServerChannelV1 serverChannel = new ServerChannelV1(tunnel.channel2());
+        final ClientChannelV1 clientChannel = new ClientChannelV1(tunnel.channel1());
         
         Thread thread = new Thread(new Runnable() {
             public void run() {

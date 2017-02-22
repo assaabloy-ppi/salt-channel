@@ -14,13 +14,7 @@ public class M3Packet implements Packet {
     }
     
     public int getSize() {
-        return 1 + 
-               (hasServerSigKey() ? 32 : 0) +
-               64;
-    }
-    
-    public boolean hasServerSigKey() {
-        return serverSigKey != null;
+        return 1 + 32 + 64;
     }
     
     public void toBytes(byte[] destination, int offset) {
@@ -28,23 +22,31 @@ public class M3Packet implements Packet {
             throw new IllegalStateException("bad signature1");
         }
         
-        if (hasServerSigKey() && serverSigKey.length != 32) {
+        if (this.serverSigKey == null) {
+            throw new IllegalStateException("serverSigKey is null");
+        }
+        
+        if (serverSigKey.length != 32) {
             throw new IllegalStateException("bad serverSigKey size");
         }
         
         Serializer s = new Serializer(destination, offset);
         
         s.writeUint4(3);    // packet type == 3
-        s.writeBit(hasServerSigKey());
+        s.writeBit(0);
         s.writeBit(0);
         s.writeBit(0);
         s.writeBit(0);
         
-        if (hasServerSigKey()) {
-            s.writeBytes(serverSigKey);
-        }
+        s.writeBytes(serverSigKey);
         
         s.writeBytes(signature1);
+    }
+    
+    public byte[] toBytes() {
+        byte[] result = new byte[getSize()];
+        toBytes(result, 0);
+        return result;
     }
     
     public static M3Packet fromBytes(byte[] source, int offset) {
@@ -56,14 +58,12 @@ public class M3Packet implements Packet {
             throw new BadPeer("unexpected packet type, " + packetType);
         }
         
-        boolean serverSigIncluded = d.readBit();
+        d.readBit();
         d.readBit();
         d.readBit();
         d.readBit();
         
-        if (serverSigIncluded) {
-            p.serverSigKey = d.readBytes(32);
-        }
+        p.serverSigKey = d.readBytes(32);
         
         p.signature1 = d.readBytes(64);
         

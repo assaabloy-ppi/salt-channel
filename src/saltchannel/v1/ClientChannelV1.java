@@ -14,7 +14,7 @@ import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
 import saltchannel.v1.BinsonLight.Parser;
-import saltchannel.v1.EncryptedChannel.Role;
+import saltchannel.v1.EncryptedChannelV1.Role;
 
 /**
  * The client-side of a Salt Channel.
@@ -24,9 +24,9 @@ import saltchannel.v1.EncryptedChannel.Role;
  * 
  * @author Frans Lundberg
  */
-public class ClientChannel implements ByteChannel {
+public class ClientChannelV1 implements ByteChannel {
     private ByteChannel clearChannel;
-    private EncryptedChannel encryptedChannel;
+    private EncryptedChannelV1 encryptedChannel;
     private volatile byte[] m4Buffered = null;
     private byte[] actualServerKey;
     private boolean bufferM4 = true;
@@ -39,7 +39,7 @@ public class ClientChannel implements ByteChannel {
      * @param clearChannel
      *          Cleartext communication channel. 
      */
-    public ClientChannel(ByteChannel clearChannel) {
+    public ClientChannelV1(ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
     }
     
@@ -114,7 +114,7 @@ public class ClientChannel implements ByteChannel {
         
         handleNoSuchServer(wantedServer, tField);
         byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), eField);
-        encryptedChannel = new EncryptedChannel(clearChannel, sharedKey, EncryptedChannel.Role.CLIENT);
+        encryptedChannel = new EncryptedChannelV1(clearChannel, sharedKey, EncryptedChannelV1.Role.CLIENT);
         
         byte[] m3 = encryptedChannel.read();
         BinsonLight.Parser m3Parser = new BinsonLight.Parser(m3);
@@ -122,8 +122,8 @@ public class ClientChannel implements ByteChannel {
         actualServerKey = parseM3s(m3Parser);
         
         checkWantedServer(wantedServer, actualServerKey);        
-        CryptoLib.checkSaltChannelSignature(actualServerKey, encKeyPair.pub(), eField, serverSignature);
-        byte[] mySignature = CryptoLib.createSaltChannelSignature(sigKeyPair, encKeyPair.pub(), eField);
+        CryptoLib.checkSaltChannelV1Signature(actualServerKey, encKeyPair.pub(), eField, serverSignature);
+        byte[] mySignature = CryptoLib.createSaltChannelV1Signature(sigKeyPair, encKeyPair.pub(), eField);
         
         byte[] m4 = createM4(sigKeyPair.pub(), mySignature);
         writeOrBufferM4(m4);

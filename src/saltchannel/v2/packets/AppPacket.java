@@ -4,36 +4,36 @@ import saltchannel.BadPeer;
 import saltchannel.util.Deserializer;
 import saltchannel.util.Serializer;
 
-public class EncryptedPacket implements Packet {
-    public static final int PACKET_TYPE = 6;
-    public byte[] body;
+public class AppPacket implements Packet {
+    public static final int PACKET_TYPE = 5;
+    public byte[] appData;
     
     public int getType() {
         return PACKET_TYPE;
     }
     
     public int getSize() {
-        return 1 + body.length;
+        return 1 + appData.length;
     }
-
+    
     public void toBytes(byte[] destination, int offset) {
-        if (body == null || body.length < 16) {
-            throw new IllegalStateException("bad body");
+        if (appData == null) {
+            throw new IllegalStateException("appData is null");
         }
         
         Serializer s = new Serializer(destination, offset);
         
-        s.writeUint4(PACKET_TYPE);     // packet type == 6
+        s.writeUint4(PACKET_TYPE);
         s.writeBit(0);
         s.writeBit(0);
         s.writeBit(0);
         s.writeBit(0);
         
-        s.writeBytes(body);
+        s.writeBytes(appData);
     }
     
-    public static EncryptedPacket fromBytes(byte[] source, int offset, int messageSize) {
-        EncryptedPacket p = new EncryptedPacket();
+    public static AppPacket fromBytes(byte[] source, int offset, int packetSize) {
+        AppPacket p = new AppPacket();
         Deserializer d = new Deserializer(source, offset);
         
         int packetType = d.readUint4();
@@ -46,8 +46,12 @@ public class EncryptedPacket implements Packet {
         d.readBit();
         d.readBit();
         
-        int size = messageSize - 1;
-        p.body = d.readBytes(size);
+        int dataSize = packetSize - 1;
+        if (dataSize < 0) {
+            throw new BadPeer("bad dataSize");
+        }
+        
+        p.appData = d.readBytes(dataSize);
         
         return p;
     }
