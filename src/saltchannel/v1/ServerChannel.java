@@ -1,11 +1,15 @@
-package saltchannel;
+package saltchannel.v1;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import saltchannel.util.BinsonLight;
+import saltchannel.BadPeer;
+import saltchannel.ByteChannel;
+import saltchannel.ComException;
+import saltchannel.CryptoLib;
+import saltchannel.TweetNaCl;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
-import saltchannel.util.BinsonLight.Parser;
+import saltchannel.v1.BinsonLight.Parser;
 
 /**
  * Server-side implementation of Salt Channel.

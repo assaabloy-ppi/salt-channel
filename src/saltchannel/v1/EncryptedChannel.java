@@ -1,10 +1,12 @@
-package saltchannel;
+package saltchannel.v1;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-import saltchannel.util.BinsonLight;
+import saltchannel.ByteChannel;
+import saltchannel.ComException;
+import saltchannel.TweetNaCl;
 import saltchannel.util.Bytes;
 
 /**

@@ -2,7 +2,7 @@
 // This code is public domain. Use it as you please.
 // Source was copied from https://github.com/franslundberg/binson-java-light, October 2016.
 
-package saltchannel.util;
+package saltchannel.v1;
 
 import java.io.IOException;
 import java.io.OutputStream;

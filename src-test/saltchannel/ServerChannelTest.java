@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
+import saltchannel.v1.ServerChannel;
 
 /**
  * Tests ServerChannel.

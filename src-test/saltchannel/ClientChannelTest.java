@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
+import saltchannel.v1.ClientChannel;
 
 /**
  * Tests for ClientChannel.

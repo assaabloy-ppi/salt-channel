@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import saltchannel.util.Hex;
+import saltchannel.v1.EncryptedChannel;
 
 /**
  * Tests for EncryptedChannel.

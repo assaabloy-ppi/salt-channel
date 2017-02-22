@@ -5,6 +5,8 @@ import org.junit.Test;
 
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
+import saltchannel.v1.ClientChannel;
+import saltchannel.v1.ServerChannel;
 
 /**
  * Tests full channel usage.
