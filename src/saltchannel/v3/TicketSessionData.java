@@ -1,4 +1,4 @@
-package saltchannel.v2.server;
+package saltchannel.v3;
 
 public class TicketSessionData {
     public long ticketIndex;

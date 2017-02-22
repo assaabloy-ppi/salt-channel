@@ -1,4 +1,4 @@
-package saltchannel.v2.server;
+package saltchannel.v3;
 
 //
 // IDEA. Have step value. For example, increase ticketIndex by 1000 each time a 

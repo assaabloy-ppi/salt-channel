@@ -1,4 +1,4 @@
-package saltchannel.v2.server;
+package saltchannel.v2;
 
 import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
@@ -8,7 +8,7 @@ import saltchannel.v2.packets.M1Packet;
 
 /**
  * Server-side implementation of Salt Channel v2.
- * Usage: create object, set or crate ephemeral key, 
+ * Usage: create object, set or create ephemeral key, 
  * call handshake(), get resulting encrypted ByteChannel to use by
  * application layer.
  * Do not reuse the object for more than one Salt Channel session.
@@ -19,17 +19,12 @@ public class ServerChannelV2 {
     private final ByteChannel clearChannel;
     private KeyPair sigKeyPair;
     private KeyPair encKeyPair;
-    private ResumeHandler resumeHandler;
     private byte[] clientSigKey;
     private byte[] symmetricKey;
     
     public ServerChannelV2(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
-    }
-    
-    public void setResumeHandler(ResumeHandler resumeHandler) {
-        this.resumeHandler = resumeHandler;
     }
     
     /**
@@ -54,20 +49,6 @@ public class ServerChannelV2 {
         
         M1Packet m1 = M1Packet.fromBytes(clearChannel.read(), 0);
         
-        if (m1.hasTicket()) {
-            TicketSessionData sessionData = null;
-            
-            try {
-                sessionData = resumeHandler.checkTicket(m1.getTicket());
-                this.clientSigKey = sessionData.clientSigKey;
-                this.symmetricKey = sessionData.sessionKey;
-            } catch (ResumeHandler.InvalidTicket e) {
-                // empty
-            }
-        }
-        
-        if (symmetricKey != null) {
-            return;  // we are done, ticket worked.
-        }
+        // TODO A. work here!
     }
 }
