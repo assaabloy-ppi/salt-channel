@@ -30,7 +30,7 @@ Do not use Java, mainly due to Android limitations.
         </fileset>
     </copy>
 </target>
-	
+    
 <target name="clean" description="">
     <delete includeemptydirs="true" quiet="true">
         <fileset dir="out" includes="**/*"/>
@@ -72,19 +72,6 @@ Do not use Java, mainly due to Android limitations.
         </fileset>
         <pathelement path="out/classes"/>
         <pathelement path="out/classes-test"/>
-        <!--<fileset dir="out/classes">
-            <include name="**/*.class" />
-        </fileset>
-        <fileset dir="out/classes-test">
-            <include name="**/*.class" />
-        </fileset>        
-
-        <fileset dir="lib">
-            <include name="**/*.jar" />
-        </fileset>
-        <fileset dir="bin">
-            <include name="**/*.class" />
-        </fileset> -->
     </path>
 
     <javac srcdir="src-test" destdir="out/classes-test" source="1.7" target="1.7">
@@ -103,7 +90,6 @@ Do not use Java, mainly due to Android limitations.
 <target name="test" depends="compileTest">
   <property name="arch" value="x86_64" />
   <junit fork="yes" printsummary="on" haltonerror="on" haltonfailure="on" showoutput="true">
-    <!--<sysproperty key="java.library.path" value="lib/${arch}:${java.library.path}"/>-->
     <classpath>
       <pathelement location="lib-dev/junit-4.12.jar"/>
       <pathelement location="lib-dev/hamcrest-core-1.3.jar"/>
