@@ -135,6 +135,15 @@ public class CryptoLib {
     public static byte[] sign(byte[] messageToSign, byte[] sigSecKey) {
         return TweetNaCl.crypto_sign(messageToSign, sigSecKey);
     }
+    
+    /**
+     * Computes SHA-512 of message.
+     */
+    public static byte[] sha512(byte[] message) {
+        byte[] hash = new byte[64];
+        TweetNaCl.crypto_hash(hash, message, message.length);
+        return hash;
+    }
 
     public static byte[] computeSharedKey(byte[] myPriv, byte[] peerPub) {
         if (myPriv.length != TweetNaCl.BOX_SECRET_KEY_BYTES) {

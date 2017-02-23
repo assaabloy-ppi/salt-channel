@@ -23,17 +23,18 @@ import saltchannel.v2.packets.M4Packet;
  * 
  * @author Frans Lundberg
  */
-public class ServerChannelV2 {
+public class Server {
     private final ByteChannel clearChannel;
     private EncryptedChannelV2 encryptedChannel;
     private KeyPair sigKeyPair;
     private KeyPair encKeyPair;
-    private byte[] clientSigKey;
     private M1Packet m1;
+    private byte[] m1Hash;
     private M2Packet m2;
+    private byte[] m2Hash;
     private M4Packet m4;
     
-    public ServerChannelV2(KeyPair sigKeyPair, ByteChannel clearChannel) {
+    public Server(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
     }
@@ -58,26 +59,31 @@ public class ServerChannelV2 {
      * @throws BadPeer
      */
     public void handshake() {
+        checkThatEncKeyPairWasSet();        
+        
+        m1();
+        handleNoSuchServerIfNeeded();
+        
+        m2();
+        createEncryptedChannel();
+        
+        m3();
+        
+        m4();
+        validateSignature2();
+    }
+
+    private void checkThatEncKeyPairWasSet() {
         if (encKeyPair == null) {
             throw new IllegalStateException("encKeyPair must be set before calling handshake()");
         }
-        
-        readM1();
-        
+    }
+
+    private void handleNoSuchServerIfNeeded() {
         if (m1.hasServerSigKey() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
             clearChannel.write(noSuchServerM2Raw());
             throw new NoSuchServer();
         }
-        
-        clearChannel.write(m2Raw());
-        
-        createEncryptedChannel();
-        
-        encryptedChannel.write(m3Raw());
-        
-        readM4();
-        
-        validateSignature2();
     }
     
     /**
@@ -85,71 +91,54 @@ public class ServerChannelV2 {
      * Available after a successful handshake.
      */
     public byte[] getClientSigKey() {
-        return this.clientSigKey;
-    }
-
-    private void readM1() {
-        this.m1 = M1Packet.fromBytes(clearChannel.read(), 0);
+        return this.m4.clientSigKey;
     }
     
-    private void readM4() {
-        M4Packet m4 = M4Packet.fromBytes(encryptedChannel.read(), 0);
-        this.clientSigKey = m4.clientSigKey;
+    /**
+     * Returns the encrypted channel after a successful handshake.
+     */
+    public ByteChannel getChannel() {
+        return this.encryptedChannel;
+    }
+
+    private void m1() {
+        byte[] m1Bytes = clearChannel.read();
+        this.m1Hash = CryptoLib.sha512(m1Bytes);
+        this.m1 = M1Packet.fromBytes(m1Bytes, 0);
+    }
+    
+    private void m2() {
+        this.m2 = new M2Packet();
+        m2.noSuchServer = false;
+        m2.serverEncKey = this.encKeyPair.pub();
+        byte[] m2Bytes = m2.toBytes();
+        this.m2Hash = CryptoLib.sha512(m2Bytes);
+        clearChannel.write(m2Bytes);
+    }
+    
+    private void m4() {
+        this.m4 = M4Packet.fromBytes(encryptedChannel.read(), 0);
     }
     
     private void createEncryptedChannel() {
         byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m1.clientEncKey);
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sharedKey, Role.SERVER);
     }
+
     
-    private byte[] m2Raw() {
-        this.m2 = new M2Packet();
-        m2.noSuchServer = false;
-        m2.serverEncKey = this.encKeyPair.pub();
-        byte[] raw = new byte[m2.getSize()];
-        m2.toBytes(raw, 0);
-        return raw;
-    }
-    
-    private byte[] m3Raw() {
+    private void m3() {
         M3Packet p = new M3Packet();
         p.serverSigKey = this.sigKeyPair.pub();
         p.signature1 = signature1();
-        return p.toBytes();
+        encryptedChannel.write(p.toBytes());
     }
     
     /**
-     * Computes M3/Signature1.
+     * Computes Signature1.
      */
     private byte[] signature1() {
-        int size = 32 + 32 + 64 + 64;
-        byte[] toSign = new byte[size];
-        byte[] hash1 = new byte[64];
-        byte[] hash2 = new byte[64];
-        
-        byte[] m1Bytes = m1.toBytes();
-        TweetNaCl.crypto_hash(hash1, m1Bytes, m1Bytes.length);
-        
-        byte[] m2Bytes = m2.toBytes();
-        TweetNaCl.crypto_hash(hash2, m2Bytes, m2Bytes.length);
-        
-        int offset = 0;
-        
-        System.arraycopy(this.encKeyPair.pub(), 0, toSign, offset, 32);
-        offset += 32;
-        System.arraycopy(this.m1.clientEncKey, 0, toSign, offset, 32);
-        offset += 32;
-        System.arraycopy(m1Bytes, 0, toSign, offset, 64);
-        offset += 64;
-        System.arraycopy(m2Bytes, 0, toSign, offset, 64);
-        offset += 64;
-        
-        assert offset == toSign.length;
-        
-        byte[] signedMessage = TweetNaCl.crypto_sign(toSign, this.sigKeyPair.sec());
-        byte[] signature = new byte[64];
-        System.arraycopy(signedMessage, 0, signature, 0, 64);
-        return signature;
+        return V2Util.createSignature(sigKeyPair, 
+                encKeyPair.pub(), m1.clientEncKey, m1Hash, m2Hash);
     }
     
     /**
@@ -158,31 +147,12 @@ public class ServerChannelV2 {
      * @throws BadPeer
      */
     private void validateSignature2() {
-        int size = 64 + 32 + 32 + 64 + 64;  // signature + key + key + hash + hash
-        byte[] signedMessage = new byte[size];
-        byte[] hash1 = new byte[64];
-        byte[] hash2 = new byte[64];
+        assert m4.signature2 != null;
+        assert m1.clientEncKey != null;
+        assert encKeyPair.pub() != null;
         
-        byte[] m1Bytes = m1.toBytes();
-        TweetNaCl.crypto_hash(hash1, m1Bytes, m1Bytes.length);
-        
-        byte[] m2Bytes = m2.toBytes();
-        TweetNaCl.crypto_hash(hash2, m2Bytes, m2Bytes.length);
-        
-        int offset = 0;
-        
-        System.arraycopy(m4.signature2, 0, signedMessage, 0, 64);
-        offset += 64;
-        System.arraycopy(this.m1.clientEncKey, 0, signedMessage, offset, 32);
-        offset += 32;
-        System.arraycopy(this.encKeyPair.pub(), 0, signedMessage, offset, 32);
-        offset += 32;
-        System.arraycopy(m1Bytes, 0, signedMessage, offset, 64);
-        offset += 64;
-        System.arraycopy(m2Bytes, 0, signedMessage, offset, 64);
-        offset += 64;
-        
-        assert offset == signedMessage.length;
+        byte[] signedMessage = V2Util.concat(m4.signature2, m1.clientEncKey, encKeyPair.pub(), 
+                m1Hash, m2Hash);
         
         try {
             TweetNaCl.crypto_sign_open(signedMessage, m4.clientSigKey);
@@ -198,9 +168,5 @@ public class ServerChannelV2 {
         byte[] raw = new byte[m2.getSize()];
         m2.toBytes(raw, 0);
         return raw;
-    }
-    
-    public static class NoSuchServer extends RuntimeException {
-        private static final long serialVersionUID = 1L;
     }
 }

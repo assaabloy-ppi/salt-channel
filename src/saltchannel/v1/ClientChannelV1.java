@@ -3,7 +3,6 @@ package saltchannel.v1;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-
 import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
@@ -14,7 +13,6 @@ import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
 import saltchannel.v1.BinsonLight.Parser;
-import saltchannel.v1.EncryptedChannelV1.Role;
 
 /**
  * The client-side of a Salt Channel.
@@ -78,7 +76,7 @@ public class ClientChannelV1 implements ByteChannel {
      *      Source of secure random data for creating the ephemeral key pair.
      * @throws BadPeer
      * @throws ComException
-     * @throws NoSuchHostException  
+     * @throws NoSuchServerException  
      *      If there is no active host at the endpoint with the given public key.
      */
     public void handshake(KeyPair sigKeyPair, Rand rand) {
@@ -97,7 +95,7 @@ public class ClientChannelV1 implements ByteChannel {
      *      Ephemeral key pair, must only be used for this session.
      * @throws BadPeer
      * @throws ComException
-     * @throws NoSuchHostException  
+     * @throws NoSuchServerException  
      *      If there is no active host at the endpoint with the given public key.
      */
     public void handshake(KeyPair sigKeyPair, KeyPair encKeyPair) {

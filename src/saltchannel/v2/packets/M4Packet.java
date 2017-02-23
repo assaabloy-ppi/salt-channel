@@ -43,6 +43,12 @@ public class M4Packet implements Packet {
         s.writeBytes(signature2);
     }
     
+    public byte[] toBytes() {
+        byte[] result = new byte[getSize()];
+        toBytes(result, 0);
+        return result;
+    }
+    
     public static M4Packet fromBytes(byte[] source, int offset) {
         M4Packet p = new M4Packet();
         Deserializer d = new Deserializer(source, offset);

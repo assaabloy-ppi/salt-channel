@@ -33,7 +33,6 @@ public class ServerChannelV1 implements ByteChannel {
      * (virtual servers).
      * 
      * @param sigKeyPair  The server's long-term signing key pair.
-     * @param encKeyPair  Ephemeral encryption key pair, for this session only.
      * @throws ComException
      */
     public void handshake(KeyPair sigKeyPair, Rand rand) {
