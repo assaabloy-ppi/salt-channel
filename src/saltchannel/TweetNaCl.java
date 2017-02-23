@@ -20,10 +20,9 @@ package saltchannel;
 import java.security.*;
 import java.util.Arrays;
 
-/* Ported from the original C by Ian Preston and Chris Boddy
- * crypto_hash() is ported from TweetNaCl.js
- * Released under GPL 2
- */
+import org.libsodium.jni.NaCl;
+import static org.libsodium.jni.NaCl.sodium;
+
 
 public class TweetNaCl {
     public static final int crypto_auth_hmacsha512256_tweet_BYTES = 32;
@@ -51,11 +50,17 @@ public class TweetNaCl {
     public static class InvalidCipherTextException extends RuntimeException {
         private static final long serialVersionUID = 1L;
     }
-
+    
+        
+    /*
+     * 
+     */
     public static void crypto_sign_keypair(byte[] pk, byte[] sk, boolean isSeeded)
     {
-        byte[] d = new byte[64];
-        long[][] /*gf*/ p = new long[4][GF_LEN];
+    	sodium().crypto_sign_keypair(pk, sk);    	
+    
+        /*byte[] d = new byte[64];
+        long[][] /gf/ p = new long[4][GF_LEN];
         int i;
 
         if (!isSeeded)
@@ -68,81 +73,148 @@ public class TweetNaCl {
         scalarbase(p,d, 0);
         pack(pk,p);
 
-        for (i=0;i < 32;++i)sk[32 + i] = pk[i];
+        for (i=0;i < 32;++i)sk[32 + i] = pk[i];*/    	
     }
 
+    /*
+     * 
+     */    
     public static int crypto_box_keypair(byte[] y,byte[] x, boolean isSeeded)
-    {
-        if (!isSeeded) {
+    {           	    	
+    	return sodium().crypto_box_keypair(y, x);
+    	
+        /*if (!isSeeded) {
             randombytes(x,32);
         }
-        return crypto_scalarmult_base(y,x);
+        return crypto_scalarmult_base(y,x);*/
     }
 
-    public static int crypto_scalarmult_base(byte[] q,byte[] n)
+    /*
+     * 
+     */    
+    /*public static int crypto_scalarmult_base(byte[] q,byte[] n)
     {
-        return crypto_scalarmult(q, n, _9);
-    }
+		return sodium().crypto_scalarmult_curve25519(q, n, _9);
+        //return crypto_scalarmult(q, n, _9);
+    }*/
 
-    public static byte[] crypto_sign(byte[] message, byte[] secretSigningKey) {
+    /*
+     * 
+     */    
+    public static byte[] crypto_sign(byte[] message, byte[] secretSigningKey)
+    {         	
         byte[] signedMessage = new byte[message.length + TweetNaCl.SIGNATURE_SIZE_BYTES];
-        TweetNaCl.crypto_sign(signedMessage, message, message.length, secretSigningKey);
+        int[] dummyInt = new int[1];
+        //TweetNaCl.crypto_sign(signedMessage, message, message.length, secretSigningKey);
+        sodium().crypto_sign(signedMessage, dummyInt, message, message.length, secretSigningKey);
         return signedMessage;
     }
 
-    /**
-     * Returns the message without the signature if the signature is valid.
+    /*
+     * 
      */
-    public static byte[] crypto_sign_open(byte[] signed, byte[] publicSigningKey) {
-        byte[] message = new byte[signed.length];
-        int res = TweetNaCl.crypto_sign_open(message, signed, signed.length, publicSigningKey);
+    public static byte[] crypto_sign_open(byte[] signed, byte[] publicSigningKey) 
+    {    	
+    	byte[] message = new byte[signed.length];
+        int[] dummyInt = new int[1];
+        //int res = TweetNaCl.crypto_sign_open(message, signed, signed.length, publicSigningKey);
+    	int res = sodium().crypto_sign_open(message, dummyInt, signed, signed.length, publicSigningKey);
         if (res != 0) {
             throw new InvalidSignatureException();
         }
         return Arrays.copyOfRange(message, 64, message.length);
     }
 
+    /*
+     * 
+     */    
     public static byte[] crypto_box(byte[] message, byte[] nonce, byte[] theirPublicBoxingKey, byte[] ourSecretBoxingKey) {
         if (nonce.length != BOX_NONCE_BYTES)
             throw new IllegalStateException("Illegal nonce length: "+nonce.length);
         byte[] cipherText = new byte[SECRETBOX_INTERNAL_OVERHEAD_BYTES + message.length];
         byte[] paddedMessage = new byte[SECRETBOX_INTERNAL_OVERHEAD_BYTES + message.length];
         System.arraycopy(message, 0, paddedMessage, SECRETBOX_INTERNAL_OVERHEAD_BYTES, message.length);
-        TweetNaCl.crypto_box(cipherText, paddedMessage, paddedMessage.length, nonce, theirPublicBoxingKey, ourSecretBoxingKey);
-        return Arrays.copyOfRange(cipherText, 16, cipherText.length);
+        //TweetNaCl.crypto_box(cipherText, paddedMessage, paddedMessage.length, nonce, theirPublicBoxingKey, ourSecretBoxingKey);
+        sodium().crypto_box(cipherText, paddedMessage, paddedMessage.length, nonce, theirPublicBoxingKey, ourSecretBoxingKey);
+        return Arrays.copyOfRange(cipherText, 16, cipherText.length);        
     }
 
+    /*
+     * 
+     */    
     public static byte[] crypto_box_open(byte[] cipher, byte[] nonce, byte[] theirPublicBoxingKey, byte[] secretBoxingKey) {
         byte[] paddedCipher = new byte[cipher.length + 16];
         System.arraycopy(cipher, 0, paddedCipher, 16, cipher.length);
         byte[] rawText = new byte[paddedCipher.length];
-        int res = TweetNaCl.crypto_box_open(rawText, paddedCipher, paddedCipher.length, nonce, theirPublicBoxingKey, secretBoxingKey);
+        //int res = TweetNaCl.crypto_box_open(rawText, paddedCipher, paddedCipher.length, nonce, theirPublicBoxingKey, secretBoxingKey);
+        int res = sodium().crypto_box_open(rawText, paddedCipher, paddedCipher.length, nonce, theirPublicBoxingKey, secretBoxingKey);
         if (res != 0)
             throw new InvalidCipherTextException();
-        return Arrays.copyOfRange(rawText, 32, rawText.length);
+        return Arrays.copyOfRange(rawText, 32, rawText.length);        
     }
 
+    /*
+     * 
+     */    
     public static byte[] secretbox(byte[] mesage, byte[] nonce, byte[] key) {
         byte[] m = new byte[SECRETBOX_INTERNAL_OVERHEAD_BYTES + mesage.length];
         byte[] c = new byte[m.length];
         System.arraycopy(mesage, 0, m, SECRETBOX_INTERNAL_OVERHEAD_BYTES, mesage.length);
-        crypto_secretbox(c, m, m.length, nonce, key);
-        return Arrays.copyOfRange(c, SECRETBOX_OVERHEAD_BYTES, c.length);
+        //crypto_secretbox(c, m, m.length, nonce, key);
+        sodium().crypto_secretbox_xsalsa20poly1305(c, m, m.length, nonce, key);
+        return Arrays.copyOfRange(c, SECRETBOX_OVERHEAD_BYTES, c.length);        
     }
 
+    /*
+     * 
+     */    
     public static byte[] secretbox_open(byte[] cipher, byte[] nonce, byte[] key) {
         byte[] c = new byte[SECRETBOX_OVERHEAD_BYTES + cipher.length];
         byte[] m = new byte[c.length];
         System.arraycopy(cipher, 0, c, SECRETBOX_OVERHEAD_BYTES, cipher.length);
         if (c.length < 32) throw new IllegalStateException("Cipher too small!");
-        if (crypto_secretbox_open(m, c, c.length, nonce, key) != 0) throw new IllegalStateException("Invalid encryption!");
-        return Arrays.copyOfRange(m, SECRETBOX_INTERNAL_OVERHEAD_BYTES, m.length);
+        //if (crypto_secretbox_open(m, c, c.length, nonce, key) != 0) throw new IllegalStateException("Invalid encryption!");
+        if (sodium().crypto_secretbox_xsalsa20poly1305_open(m, c, c.length, nonce, key) != 0) throw new IllegalStateException("Invalid encryption!");        
+        return Arrays.copyOfRange(m, SECRETBOX_INTERNAL_OVERHEAD_BYTES, m.length);        
     }
+    
+    // CHANGE - changed to public
+    // Note, always returns 0.
+    public static int crypto_box_beforenm(byte[] k,byte[] y,byte[] x)
+    {    	
+    	return sodium().crypto_box_beforenm(k, y, x);
+        /*byte[] s = new byte[32];
+        crypto_scalarmult(s, x, y);
+        return crypto_core_hsalsa20(k,_0,s,sigma);*/
+    }    
 
-    private static byte[] _0 = new byte[16], _9 = new byte[32];
+        // CHANGE - changed to public
+    public static int crypto_box_afternm(byte[] c,byte[] m, int/*long*/ d,byte[] n,byte[] k)
+    {
+    	/////public static int crypto_box_afternm(byte[] dst_cipher, byte[] src_msg, int msg_len, byte[] src_nonce, byte[] src_key) {    	
+    	return sodium().crypto_box_afternm(c, m, d, n, k);
+        //return crypto_secretbox(c, m, d, n, k);
+    }
+      
+    
+    // CHANGE - changed to public
+    public static int crypto_box_open_afternm(byte[] m, byte[] c, int/*long*/ d,byte[] n,byte[] k)
+    {    	
+    	/////public static int crypto_box_open_afternm(byte[] dst_msg, byte[] src_cipher, int cipher_len, byte[] src_nonce, byte[] src_key) {
+    	return sodium().crypto_box_open_afternm(m, c, d, n, k); //(c, m, d, n, k);
+        //return crypto_secretbox_open(m, c, d, n, k);
+    }    
+     
+    
+/** Next private stuff now implemented as JNI library internals (native code) **/
+        
+    
+ /*   private static byte[] _0 = new byte[16], _9 = new byte[32];
     static {
         _9[0] = 9;
     }
+*/
+/*    
     private static final int GF_LEN = 16;
     private static long[]  gf0 = new long[GF_LEN];
     private static long[] gf1 = new long[GF_LEN]; static{gf1[0] = 1;}
@@ -391,14 +463,16 @@ public class TweetNaCl {
         for (i=0;i < 32;++i)m[i] = 0;
         return 0;
     }
-
-    private static void set25519(long[] /*gf*/ r, long[] /*gf*/ a)
+*/
+    
+/*    
+    private static void set25519(long[] /gf/ r, long[] /gf/ a)
     {
         int i;
         for (i=0;i < 16;++i)r[i]=a[i];
     }
 
-    private static void car25519(long[] /*gf*/ o, int oOff)
+    private static void car25519(long[] /gf/ o, int oOff)
     {
         for (int i=0;i < 16;++i){
             o[oOff + i]+=(1<<16);
@@ -408,7 +482,7 @@ public class TweetNaCl {
         }
     }
 
-    private static void sel25519(long[] /*gf*/ p,long[] /*gf*/ q,int b)
+    private static void sel25519(long[] /gf/ p,long[] /gf/ q,int b)
     {
         long t,c=~(b-1);
         int i;
@@ -419,10 +493,10 @@ public class TweetNaCl {
     }
     }
 
-    private static void pack25519(byte[] o,long[] /*gf*/ n, int nOff)
+    private static void pack25519(byte[] o,long[] /gf/ n, int nOff)
     {
         int i,j,b;
-        long[] /*gf*/ m = new long[GF_LEN],t = new long[GF_LEN];
+        long[] /gf/ m = new long[GF_LEN],t = new long[GF_LEN];
         for (i=0;i < 16;++i)t[i]=n[nOff+i];
         car25519(t, 0);
         car25519(t, 0);
@@ -444,7 +518,7 @@ public class TweetNaCl {
         }
     }
 
-    private static int neq25519(long[] /*gf*/ a, long[] /*gf*/ b)
+    private static int neq25519(long[] /gf/ a, long[] /gf/ b)
     {
         byte[] c = new byte[32],d = new byte[32];
         pack25519(c,a, 0);
@@ -452,14 +526,14 @@ public class TweetNaCl {
         return crypto_verify_32(c,d);
     }
 
-    private static byte par25519(long[] /*gf*/ a)
+    private static byte par25519(long[] /gf/ a)
     {
         byte[] d = new byte[32];
         pack25519(d,a, 0);
         return (byte)(d[0]&1);
     }
 
-    private static void unpack25519(long[] /*gf*/ o, byte[] n)
+    private static void unpack25519(long[] /gf/ o, byte[] n)
     {
         int i;
         for (i=0;i < 16;++i)
@@ -467,19 +541,19 @@ public class TweetNaCl {
         o[15]&=0x7fff;
     }
 
-    private static void A(long[] /*gf*/ o,long[] /*gf*/ a,long[] /*gf*/ b)
+    private static void A(long[] /gf/ o,long[] /gf/ a,long[] /gf/ b)
     {
         int i;
         for (i=0;i < 16;++i)o[i]=a[i]+b[i];
     }
 
-    private static void Z(long[] /*gf*/ o,long[] /*gf*/ a,long[] /*gf*/ b)
+    private static void Z(long[] /gf/ o,long[] /gf/ a,long[] /gf/ b)
     {
         int i;
         for (i=0;i < 16;++i)o[i]=a[i]-b[i];
     }
 
-    private static void M(long[] /*gf*/ o, int oOff, long[] /*gf*/ a, int aOff, long[] /*gf*/ b, int bOff)
+    private static void M(long[] /gf/ o, int oOff, long[] /gf/ a, int aOff, long[] /gf/ b, int bOff)
     {
         long[] t = new long[31];
         for (int i=0;i < 31;++i)t[i]=0;
@@ -490,14 +564,14 @@ public class TweetNaCl {
         car25519(o, oOff);
     }
 
-    private static void S(long[] /*gf*/ o,long[] /*gf*/ a)
+    private static void S(long[] /gf/ o,long[] /gf/ a)
     {
         M(o, 0, a, 0, a, 0);
     }
 
-    private static void inv25519(long[] /*gf*/ o, int oOff, long[] /*gf*/ i, int iOff)
+    private static void inv25519(long[] /gf/ o, int oOff, long[] /gf/ i, int iOff)
     {
-        long[] /*gf*/ c = new long[GF_LEN];
+        long[] /gf/ c = new long[GF_LEN];
         int a;
         for (a=0;a < 16;++a)c[a]=i[iOff + a];
         for(a=253;a>=0;a--) {
@@ -507,9 +581,9 @@ public class TweetNaCl {
         for (a=0;a < 16;++a)o[oOff + a]=c[a];
     }
 
-    private static void pow2523(long[] /*gf*/ o,long[] /*gf*/ i)
+    private static void pow2523(long[] /gf/ o,long[] /gf/ i)
     {
-        long[] /*gf*/ c = new long[GF_LEN];
+        long[] /gf/ c = new long[GF_LEN];
         int a;
         for (a=0;a < 16;++a)c[a]=i[a];
         for(a=250;a>=0;a--) {
@@ -526,7 +600,7 @@ public class TweetNaCl {
         long[] x = new long[80];
         int r;
         int i;
-        long[] /*gf*/ a = new long[GF_LEN],b = new long[GF_LEN],c = new long[GF_LEN],
+        long[] /gf/ a = new long[GF_LEN],b = new long[GF_LEN],c = new long[GF_LEN],
                 d = new long[GF_LEN],e = new long[GF_LEN],f = new long[GF_LEN];
         for (i=0;i < 31;++i)
             z[i] = n[i];
@@ -579,27 +653,10 @@ public class TweetNaCl {
         return 0;
     }
 
-    // CHANGE - changed to public
-    // Note, always returns 0.
-    public static int crypto_box_beforenm(byte[] k,byte[] y,byte[] x)
-    {
-        byte[] s = new byte[32];
-        crypto_scalarmult(s, x, y);
-        return crypto_core_hsalsa20(k,_0,s,sigma);
-    }
+*/
 
-    // CHANGE - changed to public
-    public static int crypto_box_afternm(byte[] c,byte[] m,long d,byte[] n,byte[] k)
-    {
-        return crypto_secretbox(c, m, d, n, k);
-    }
-
-    // CHANGE - changed to public
-    public static int crypto_box_open_afternm(byte[] m,byte[] c,long d,byte[] n,byte[] k)
-    {
-        return crypto_secretbox_open(m, c, d, n, k);
-    }
-
+    
+/*
     private static int crypto_box(byte[] c,byte[] m,long d,byte[] nonce, byte[] theirPublicBoxingKey, byte[] ourSecretBoxingKey)
     {
         byte[] k = new byte[32];
@@ -1069,9 +1126,9 @@ public class TweetNaCl {
         return n;
     }
 
-    private static void add(long[][] /*gf*/ p/*[4]*/,long[][] /*gf*/ q/*[4]*/)
+    private static void add(long[][] /gf/ p/[4]/,long[][] /gf/ q/[4]/)
     {
-        long[] /*gf*/ a=new long[GF_LEN],b=new long[GF_LEN],c=new long[GF_LEN],
+        long[] /gf/ a=new long[GF_LEN],b=new long[GF_LEN],c=new long[GF_LEN],
                 d=new long[GF_LEN],t=new long[GF_LEN],e=new long[GF_LEN],
                 f=new long[GF_LEN],g=new long[GF_LEN],h=new long[GF_LEN];
 
@@ -1096,16 +1153,16 @@ public class TweetNaCl {
         M(p[3], 0, e, 0, h, 0);
     }
 
-    private static void cswap(long[][] /*gf*/ p/*[4]*/,long[][] /*gf*/ q/*[4]*/,byte b)
+    private static void cswap(long[][] /gf/ p/[4]/,long[][] /gf/ q/[4]/,byte b)
     {
         int i;
         for(i=0; i < 4; i++)
         sel25519(p[i],q[i],b & 0xff);
     }
 
-    private static void pack(byte[] r,long[][] /*gf*/ p/*[4]*/)
+    private static void pack(byte[] r,long[][] /gf/ p/[4]/)
     {
-        long[] /*gf*/ tx = new long[GF_LEN], ty = new long[GF_LEN], zi = new long[GF_LEN];
+        long[] /gf/ tx = new long[GF_LEN], ty = new long[GF_LEN], zi = new long[GF_LEN];
         inv25519(zi, 0, p[2], 0);
         M(tx, 0, p[0], 0, zi, 0);
         M(ty, 0, p[1], 0, zi, 0);
@@ -1113,7 +1170,7 @@ public class TweetNaCl {
         r[31] ^= par25519(tx) << 7;
     }
 
-    private static void scalarmult(long[][] /*gf*/ p/*[4]*/,long[][] /*gf*/ q/*[4]*/,byte[] s, int sOff)
+    private static void scalarmult(long[][] /gf/ p/[4]/,long[][] /gf/ q/[4]/,byte[] s, int sOff)
     {
         int i;
         set25519(p[0], gf0);
@@ -1129,9 +1186,9 @@ public class TweetNaCl {
         }
     }
 
-    private static void scalarbase(long[][] /*gf*/ p/*[4]*/,byte[] s,  int sOff)
+    private static void scalarbase(long[][] /gf/ p/[4]/,byte[] s,  int sOff)
     {
-        long[][] /*gf*/ q = new long[4][16];
+        long[][] /gf/ q = new long[4][16];
         set25519(q[0],X);
         set25519(q[1],Y);
         set25519(q[2],gf1);
@@ -1144,7 +1201,7 @@ public class TweetNaCl {
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0x10};
 
-    private static void modL(byte[] r, int rOff, long[] x/*[64]*/)
+    private static void modL(byte[] r, int rOff, long[] x/[64]/)
     {
         long carry;
         int i,j;
@@ -1183,7 +1240,7 @@ public class TweetNaCl {
     {
         byte[] d = new byte[64],h = new byte[64],r = new byte[64];
         long[] x = new long[64];
-        long[][] /*gf*/ p/*[4]*/ = new long[4][GF_LEN];
+        long[][] /gf/ p/[4]/ = new long[4][GF_LEN];
 
         crypto_hash(d, sk, 32);
         d[0] &= 248;
@@ -1210,9 +1267,9 @@ public class TweetNaCl {
         return 0;
     }
 
-    private static int unpackneg(long[][] /*gf*/ r/*[4]*/,byte[] p/*[32]*/)
+    private static int unpackneg(long[][] /gf/ r/[4]/,byte[] p*[32]/)
     {
-        long[] /*gf*/ t = new long[GF_LEN], chk = new long[GF_LEN], num = new long[GF_LEN], den = new long[GF_LEN],
+        long[] /gf/ t = new long[GF_LEN], chk = new long[GF_LEN], num = new long[GF_LEN], den = new long[GF_LEN],
                 den2 = new long[GF_LEN], den4 = new long[GF_LEN], den6 = new long[GF_LEN];
         set25519(r[2],gf1);
         unpack25519(r[1],p);
@@ -1251,7 +1308,7 @@ public class TweetNaCl {
     {
         int i;
         byte[] t = new byte[32],h = new byte[64];
-        long[][] /*gf*/ p = new long[4][GF_LEN],q = new long[4][GF_LEN];
+        long[][] /gf/ p = new long[4][GF_LEN],q = new long[4][GF_LEN];
 
 //        mlen[0] = -1;
         if (n < 64) return -1;
@@ -1289,6 +1346,8 @@ public class TweetNaCl {
         //}
     }
 
+*/
+    
     //private static Random prng = getStrongCSPRNG();
     //
     private static void randombytes(byte[] b, int len) {
