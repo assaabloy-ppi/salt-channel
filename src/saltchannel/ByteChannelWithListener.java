@@ -1,7 +1,7 @@
 package saltchannel;
 
 /**
- * Adds a listener to an existing ByteChannel. Decorator pattern.
+ * Adds a listener to an existing ByteChannel; decorator pattern.
  * 
  * @author Frans Lundberg
  */

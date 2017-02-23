@@ -15,10 +15,11 @@ import saltchannel.v2.packets.M4Packet;
 /**
  * Client-side implementation of Salt Channel v2.
  * Usage: create object, set or create ephemeral key, 
- * call handshake(), get resulting encrypted ByteChannel to use by
- * application layer. Use getClientSig() to get client's pubkey.
+ * call handshake(), get resulting encrypted channel (getChannel()) 
+ * to use by application layer. Use getServerSigKey() to get the server's pubkey.
  * Do not reuse the object for more than one Salt Channel session.
  * Limitation: does not support virtual servers, just one pubkey supported.
+ * For debug/inspection: the handshake messages (m1, m2, m3, m4) are stored.
  * 
  * @author Frans Lundberg
  */
@@ -33,6 +34,7 @@ public class Client {
     private M2Packet m2;
     private byte[] m2Hash;
     private M3Packet m3;
+    private M4Packet m4;
 
     public Client(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -120,10 +122,10 @@ public class Client {
     }
     
     private void m4() {
-        M4Packet p = new M4Packet();
-        p.clientSigKey = this.sigKeyPair.pub();
-        p.signature2 = signature2();
-        encryptedChannel.write(p.toBytes());
+        this.m4 = new M4Packet();
+        m4.clientSigKey = this.sigKeyPair.pub();
+        m4.signature2 = signature2();
+        encryptedChannel.write(m4.toBytes());
     }
     
     /**
@@ -132,8 +134,8 @@ public class Client {
      * @throws BadPeer
      */
     private void validateSignature1() {        
-        byte[] signedMessage = V2Util.concat(m3.signature1, 
-                m2.serverEncKey, m1.clientEncKey, m1Hash, m2Hash);
+        byte[] signedMessage = V2Util.concat(
+                m3.signature1, m2.serverEncKey, m1.clientEncKey, m1Hash, m2Hash);
         
         try {
             TweetNaCl.crypto_sign_open(signedMessage, m3.serverSigKey);
@@ -141,7 +143,6 @@ public class Client {
             throw new BadPeer("invalid signature");
         }
     }
-    
     
     /**
      * Computes Signature2.
