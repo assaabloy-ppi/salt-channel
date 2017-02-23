@@ -671,9 +671,13 @@ public class TweetNaCl {
         return crypto_box_open_afternm(m, c, d, n, k);
     }
 
+*/
     // CHANGE, made it public.
     public static int crypto_hash(byte[] out, byte[] m, int n) {
-        int[] hh = new int[8], hl = new int[8];
+        
+        return sodium().crypto_hash_sha512(out, m, n);
+
+        /*int[] hh = new int[8], hl = new int[8];
         byte[] x = new byte[256];
         int i, b = n;
 
@@ -708,9 +712,10 @@ public class TweetNaCl {
 
         for (i = 0; i < 8; i++) jsts64(out, 8 * i, hh[i], hl[i]);
 
-        return 0;
+        return 0;*/
     }
 
+/*
     private static void jsts64(byte[] x, int i, int h, int l) {
         x[i]   = (byte)(h >> 24);
         x[i+1] = (byte)(h >> 16);
