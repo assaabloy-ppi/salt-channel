@@ -32,14 +32,8 @@ public class M3Packet implements Packet {
         
         Serializer s = new Serializer(destination, offset);
         
-        s.writeUint4(3);    // packet type == 3
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        
+        s.writeHeader(PACKET_TYPE, false, false, false, false);        
         s.writeBytes(serverSigKey);
-        
         s.writeBytes(signature1);
     }
     

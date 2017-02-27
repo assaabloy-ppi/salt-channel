@@ -3,8 +3,7 @@ package saltchannel.util;
 import java.io.UnsupportedEncodingException;
 
 /**
- * Low-level, generic serializer. Serializes data (integers etc) to a 
- * given byte array.
+ * Low-level, serializer. Serializes data (integers etc) to a given byte array.
  * 
  * @author Frans Lundberg
  */
@@ -68,6 +67,15 @@ public class Serializer {
         checkBitOffsetZero();
         System.arraycopy(bytes, 0, this.buffer, offset, bytes.length);
         offset += bytes.length;
+        return this;
+    }
+    
+    public Serializer writeHeader(int packetType, boolean bit0, boolean bit1, boolean bit2, boolean bit3) {
+        this.writeUint4(packetType);
+        this.writeBit(bit0);
+        this.writeBit(bit1);
+        this.writeBit(bit2);
+        this.writeBit(bit3);
         return this;
     }
     

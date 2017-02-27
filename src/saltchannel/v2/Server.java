@@ -7,6 +7,8 @@ import saltchannel.CryptoLib;
 import saltchannel.TweetNaCl;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
+import saltchannel.util.TimeKeeper;
+import saltchannel.util.ZeroTimeKeeper;
 import saltchannel.v2.EncryptedChannelV2.Role;
 import saltchannel.v2.packets.M1Packet;
 import saltchannel.v2.packets.M2Packet;
@@ -26,6 +28,7 @@ import saltchannel.v2.packets.M4Packet;
 public class Server {
     private final ByteChannel clearChannel;
     private EncryptedChannelV2 encryptedChannel;
+    private TimeKeeper timeKeeper;
     private KeyPair sigKeyPair;
     private KeyPair encKeyPair;
     private M1Packet m1;
@@ -37,6 +40,7 @@ public class Server {
     public Server(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
+        this.timeKeeper = new ZeroTimeKeeper();
     }
     
     /**

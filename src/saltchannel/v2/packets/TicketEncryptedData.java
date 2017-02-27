@@ -8,6 +8,7 @@ import saltchannel.util.Serializer;
  * Inner ticket data; the data that is encrypted in field Ticket/Encrypted.
  */
 public class TicketEncryptedData {    
+    public static final int PACKET_TYPE = 6;
     public byte[] sessionKey;    // shared symmetric session key
     public byte[] clientSigKey;  // client's public signature key
     public long ticketIndex;
@@ -30,12 +31,7 @@ public class TicketEncryptedData {
         
         Serializer s = new Serializer(result, 0);
         
-        s.writeUint4(6);
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        
+        s.writeHeader(PACKET_TYPE, false, false, false, false);
         s.writeUint16(keyIndex);
         s.writeInt64(ticketIndex);
         s.writeBytes(clientSigKey);

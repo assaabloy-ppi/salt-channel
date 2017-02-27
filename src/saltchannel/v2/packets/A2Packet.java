@@ -32,12 +32,7 @@ public class A2Packet implements Packet {
         }
         
         Serializer s = new Serializer(destination, offset);
-        s.writeUint4(PACKET_TYPE);
-        s.writeBit(1);    // close == true
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        
+        s.writeHeader(PACKET_TYPE, true, false, false, false);        
         s.writeByte(prots.length);
         
         for (int i = 0; i < prots.length; i++) {

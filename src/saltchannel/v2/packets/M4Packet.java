@@ -33,12 +33,7 @@ public class M4Packet implements Packet {
         
         Serializer s = new Serializer(destination, offset);
         
-        s.writeUint4(4);     // packet type == 4
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        
+        s.writeHeader(PACKET_TYPE, false, false, false, false);
         s.writeBytes(clientSigKey);
         s.writeBytes(signature2);
     }

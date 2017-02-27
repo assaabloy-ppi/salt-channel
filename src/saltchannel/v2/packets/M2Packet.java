@@ -37,12 +37,7 @@ public class M2Packet implements Packet {
         
         Serializer s = new Serializer(destination, offset);
         
-        s.writeUint4(PACKET_TYPE);
-        s.writeBit(noSuchServer);
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        
+        s.writeHeader(PACKET_TYPE, noSuchServer, false, false, false);        
         s.writeBytes(serverEncKey);
     }
     

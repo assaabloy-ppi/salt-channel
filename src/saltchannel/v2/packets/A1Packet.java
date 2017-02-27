@@ -22,11 +22,8 @@ public class A1Packet implements Packet {
     
     public void toBytes(byte[] destination, int offset) {
         Serializer s = new Serializer(destination, offset);
-        s.writeUint4(PACKET_TYPE);
-        s.writeBit(1);    // close == true
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
+        boolean closeBit = true;
+        s.writeHeader(PACKET_TYPE, closeBit, false, false, false);
     }
     
     public static A1Packet fromBytes(byte[] source, int offset) {

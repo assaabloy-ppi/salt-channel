@@ -35,13 +35,7 @@ public class M1Packet implements Packet {
         Serializer s = new Serializer(destination, offset);
         
         s.writeString("SCv2");    // ProtocolIndicator
-        
-        s.writeUint4(PACKET_TYPE);
-        s.writeBit(hasServerSigKey());
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        
+        s.writeHeader(PACKET_TYPE, hasServerSigKey(), false, false, false);
         s.writeBytes(clientEncKey);
         
         assert s.getOffset() == getSize() : "unexpected offset, " + s.getOffset();
