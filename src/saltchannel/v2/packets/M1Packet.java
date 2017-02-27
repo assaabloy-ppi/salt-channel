@@ -23,7 +23,7 @@ public class M1Packet implements Packet {
      * Returns the total byte size.
      */
     public int getSize() {
-        return 1 + 3 + 32
+        return 4 + 1 + 32
                 + (hasServerSigKey() ? 32 : 0);
     }
     
@@ -34,17 +34,17 @@ public class M1Packet implements Packet {
     public void toBytes(byte[] destination, int offset) {
         Serializer s = new Serializer(destination, offset);
         
-        s.writeUint4(1);    // message type is 1
+        s.writeString("SCv2");    // ProtocolIndicator
+        
+        s.writeUint4(PACKET_TYPE);
         s.writeBit(hasServerSigKey());
         s.writeBit(0);
         s.writeBit(0);
         s.writeBit(0);
         
-        s.writeString("SC2");
-        
         s.writeBytes(clientEncKey);
         
-        assert s.getOffset() == 1 + 3 + 32 : "unexpected offset, " + s.getOffset();
+        assert s.getOffset() == getSize() : "unexpected offset, " + s.getOffset();
         
         if (hasServerSigKey()) {
             s.writeBytes(serverSigKey);
@@ -64,8 +64,13 @@ public class M1Packet implements Packet {
     public static M1Packet fromBytes(byte[] source, int offset) {
         M1Packet data = new M1Packet();
         
-        Deserializer d = new Deserializer(source, offset);
+        Deserializer d = new Deserializer(source, offset);        
         
+        String protocol = d.readString(4);
+        if (!"SCv2".equals(protocol)) {
+            throw new BadPeer("unexpected ProtocolIndicator, " + protocol);
+        }
+
         int messageType = d.readUint4();
         if (messageType != 1) {
             throw new BadPeer("bad message type, " + messageType);
@@ -75,11 +80,6 @@ public class M1Packet implements Packet {
         d.readBit();
         d.readBit();
         d.readBit();
-        
-        String protocol = d.readString(3);
-        if (!"SC2".equals(protocol)) {
-            throw new BadPeer("unexpected ProtocolIndicator, " + protocol);
-        }
         
         data.clientEncKey = d.readBytes(32);
         

@@ -243,11 +243,11 @@ Details:
     
     **** M1 ****
     
+    4   ProtocolIndicator.
+        Always ASCII 'SCv2'. Protocol indicator for Salt Channel v2.
+        
     1   Header.
         Message type and flags.
-    
-    3   ProtocolIndicator.
-        Always ASCII 'SC2'. Protocol indicator for Salt Channel v2.
     
     32  ClientEncKey.
         The public ephemeral encryption key of the client.
