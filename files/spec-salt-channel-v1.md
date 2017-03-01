@@ -70,8 +70,7 @@ and Server during a Salt Channel session.
             indicate that a message is encrypted.
     
     
-Each peer holds a long-term signing key pair. The peers are assumed to know
-each other's public signing key before the Salt Channel session is started.
+Each peer holds a long-term signing key pair.
 In addition to the signing key pair, each peer generates an 
 ephemeral encryption key pair for use exclusively for one Salt Channel session.
 
