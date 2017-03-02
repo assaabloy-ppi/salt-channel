@@ -14,7 +14,7 @@ public class M3Packet implements Packet {
     }
     
     public int getSize() {
-        return 1 + 32 + 64;
+        return PacketHeader.SIZE + 32 + 64;
     }
     
     public void toBytes(byte[] destination, int offset) {
@@ -31,8 +31,8 @@ public class M3Packet implements Packet {
         }
         
         Serializer s = new Serializer(destination, offset);
-        
-        s.writeHeader(PACKET_TYPE, false, false, false, false);        
+        PacketHeader header = new PacketHeader(PACKET_TYPE);
+        s.writeHeader(header);
         s.writeBytes(serverSigKey);
         s.writeBytes(signature1);
     }
@@ -47,18 +47,12 @@ public class M3Packet implements Packet {
         M3Packet p = new M3Packet();
         Deserializer d = new Deserializer(source, 0);
         
-        int packetType = d.readUint4();
-        if (packetType != 3) {
-            throw new BadPeer("unexpected packet type, " + packetType);
+        PacketHeader header = d.readHeader();
+        if (header.getType() != PACKET_TYPE) {
+            throw new BadPeer("unexpected packet type, " + header.getType());
         }
         
-        d.readBit();
-        d.readBit();
-        d.readBit();
-        d.readBit();
-        
         p.serverSigKey = d.readBytes(32);
-        
         p.signature1 = d.readBytes(64);
         
         return p;

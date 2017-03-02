@@ -2,6 +2,8 @@ package saltchannel.util;
 
 import java.io.UnsupportedEncodingException;
 
+import saltchannel.v2.packets.PacketHeader;
+
 /**
  * A deserializer that can deserialize (read) bytes created with 
  * Serializer.
@@ -89,6 +91,13 @@ public class Deserializer {
     
     public int readBitAsInt() {
         return readBit() ? 1 : 0;
+    }
+    
+    public PacketHeader readHeader() {
+        PacketHeader header = new PacketHeader();
+        System.arraycopy(buffer, offset, header.bytes, 0, PacketHeader.SIZE);
+        offset += PacketHeader.SIZE;
+        return header;
     }
     
     /**

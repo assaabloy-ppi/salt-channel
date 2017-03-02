@@ -19,7 +19,7 @@ public class M2Packet implements Packet {
     }
     
     public int getSize() {
-        return 1 + 32;
+        return PacketHeader.SIZE + 32;
     }
     
     public boolean hasServerEncKey() {
@@ -36,8 +36,10 @@ public class M2Packet implements Packet {
         }
         
         Serializer s = new Serializer(destination, offset);
+        PacketHeader header = new PacketHeader(PACKET_TYPE);
+        header.setBit(0, noSuchServer);
         
-        s.writeHeader(PACKET_TYPE, noSuchServer, false, false, false);        
+        s.writeHeader(header);        
         s.writeBytes(serverEncKey);
     }
     
@@ -51,16 +53,13 @@ public class M2Packet implements Packet {
         M2Packet p = new M2Packet();
         Deserializer d = new Deserializer(source, offset);
         
-        int packetType = d.readUint4();
+        PacketHeader header = d.readHeader();
+        int packetType = header.getType();
         if (packetType != PACKET_TYPE) {
             throw new BadPeer("unexpected packet type, " + packetType);
         }
         
-        p.noSuchServer = d.readBit();
-        d.readBit();
-        d.readBit();
-        d.readBit();
-        
+        p.noSuchServer = header.getBit(0);
         p.serverEncKey = d.readBytes(32);
         
         return p;

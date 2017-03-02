@@ -15,7 +15,7 @@ public class TicketEncryptedData {
     public int keyIndex;
     
     public int getSize() {
-        return 1 + 2 + 8 + 32 + 32;
+        return PacketHeader.SIZE + 2 + 8 + 32 + 32;
     }
     
     public byte[] toBytes() {
@@ -30,8 +30,9 @@ public class TicketEncryptedData {
         byte[] result = new byte[getSize()];
         
         Serializer s = new Serializer(result, 0);
+        PacketHeader header = new PacketHeader();
         
-        s.writeHeader(PACKET_TYPE, false, false, false, false);
+        s.writeHeader(header);
         s.writeUint16(keyIndex);
         s.writeInt64(ticketIndex);
         s.writeBytes(clientSigKey);
@@ -47,16 +48,10 @@ public class TicketEncryptedData {
     public static TicketEncryptedData fromBytes(byte[] bytes, int offset) {
         TicketEncryptedData data = new TicketEncryptedData();
         Deserializer d = new Deserializer(bytes, 0);
-        
-        int packetType = d.readUint4();
-        if (packetType != 6) {
-            throw new BadPeer("unexpected packetType, " + packetType);
+        PacketHeader header = d.readHeader();
+        if (header.getType() != PACKET_TYPE) {
+            throw new BadPeer("unexpected packet type, " + header.getType());
         }
-        
-        d.readBitAsInt();
-        d.readBitAsInt();
-        d.readBitAsInt();
-        d.readBitAsInt();
         
         data.ticketIndex = d.readInt64();
         data.clientSigKey = d.readBytes(32);

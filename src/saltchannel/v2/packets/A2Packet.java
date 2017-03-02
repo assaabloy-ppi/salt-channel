@@ -19,7 +19,7 @@ public class A2Packet implements Packet {
     }
     
     public int getSize() {
-        return 1 + 1 + prots.length * (2 * Prot.P_SIZE);
+        return PacketHeader.SIZE + 1 + prots.length * (2 * Prot.P_SIZE);
     }
     
     public void toBytes(byte[] destination, int offset) {
@@ -32,7 +32,10 @@ public class A2Packet implements Packet {
         }
         
         Serializer s = new Serializer(destination, offset);
-        s.writeHeader(PACKET_TYPE, true, false, false, false);        
+        PacketHeader header = new PacketHeader(PACKET_TYPE);
+        header.setBit(0, true);   // close bit   
+        
+        s.writeHeader(header);
         s.writeByte(prots.length);
         
         for (int i = 0; i < prots.length; i++) {
@@ -65,15 +68,13 @@ public class A2Packet implements Packet {
         A2Packet p = new A2Packet();
         Deserializer d = new Deserializer(source, offset);
         
-        int packetType = d.readUint4();
+        PacketHeader header = d.readHeader();
+        int packetType = header.getType();
         if (packetType != PACKET_TYPE) {
             throw new BadPeer("unexpected packet type, " + packetType);
         }
         
-        boolean close = d.readBit();
-        d.readBit();
-        d.readBit();
-        d.readBit();
+        boolean close = header.getBit(0);
         
         if (!close) {
             throw new BadPeer("close flag must be set");

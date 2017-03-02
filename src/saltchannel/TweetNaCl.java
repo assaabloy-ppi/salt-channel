@@ -17,12 +17,11 @@
 
 package saltchannel;
 
-import java.security.*;
 import java.util.Arrays;
 
-import org.libsodium.jni.NaCl;
-import static org.libsodium.jni.NaCl.sodium;
+import org.libsodium.jni.Sodium;
 
+import static org.libsodium.jni.NaCl.sodium;
 
 public class TweetNaCl {
     public static final int crypto_auth_hmacsha512256_tweet_BYTES = 32;
@@ -57,7 +56,8 @@ public class TweetNaCl {
      */
     public static void crypto_sign_keypair(byte[] pk, byte[] sk, boolean isSeeded)
     {
-    	sodium().crypto_sign_keypair(pk, sk);    	
+    	sodium();
+        Sodium.crypto_sign_keypair(pk, sk);    	
     
         /*byte[] d = new byte[64];
         long[][] /gf/ p = new long[4][GF_LEN];
@@ -1353,8 +1353,7 @@ public class TweetNaCl {
 
 */
     
-    //private static Random prng = getStrongCSPRNG();
-    //
+    @SuppressWarnings("unused")
     private static void randombytes(byte[] b, int len) {
         throw new Error("randombytes not implemented");
         //byte[] r = new byte[len];

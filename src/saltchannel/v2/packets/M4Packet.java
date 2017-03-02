@@ -19,7 +19,7 @@ public class M4Packet implements Packet {
     }
     
     public int getSize() {
-        return 1 + 32 + 64;
+        return PacketHeader.SIZE + 32 + 64;
     }
     
     public void toBytes(byte[] destination, int offset) {
@@ -32,8 +32,8 @@ public class M4Packet implements Packet {
         }
         
         Serializer s = new Serializer(destination, offset);
-        
-        s.writeHeader(PACKET_TYPE, false, false, false, false);
+        PacketHeader header = new PacketHeader(PACKET_TYPE);
+        s.writeHeader(header);
         s.writeBytes(clientSigKey);
         s.writeBytes(signature2);
     }
@@ -47,16 +47,12 @@ public class M4Packet implements Packet {
     public static M4Packet fromBytes(byte[] source, int offset) {
         M4Packet p = new M4Packet();
         Deserializer d = new Deserializer(source, offset);
+        PacketHeader header = d.readHeader();
         
-        int packetType = d.readUint4();
+        int packetType = header.getType();
         if (packetType != 4) {
             throw new BadPeer("unexpected packet type");
         }
-        
-        d.readBit();
-        d.readBit();
-        d.readBit();
-        d.readBit();
         
         p.clientSigKey = d.readBytes(32);
         p.signature2 = d.readBytes(64);

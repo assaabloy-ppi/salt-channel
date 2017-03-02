@@ -13,7 +13,7 @@ public class AppPacket implements Packet {
     }
     
     public int getSize() {
-        return 1 + appData.length;
+        return PacketHeader.SIZE + appData.length;
     }
     
     public void toBytes(byte[] destination, int offset) {
@@ -22,13 +22,8 @@ public class AppPacket implements Packet {
         }
         
         Serializer s = new Serializer(destination, offset);
-        
-        s.writeUint4(PACKET_TYPE);
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        
+        PacketHeader header = new PacketHeader(PACKET_TYPE);
+        s.writeHeader(header);
         s.writeBytes(appData);
     }
     
@@ -36,17 +31,13 @@ public class AppPacket implements Packet {
         AppPacket p = new AppPacket();
         Deserializer d = new Deserializer(source, offset);
         
-        int packetType = d.readUint4();
+        PacketHeader header = d.readHeader();
+        int packetType = header.getType();
         if (packetType != PACKET_TYPE) {
             throw new BadPeer("unexpected packet type");
         }
         
-        d.readBit();
-        d.readBit();
-        d.readBit();
-        d.readBit();
-        
-        int dataSize = packetSize - 1;
+        int dataSize = packetSize - PacketHeader.SIZE;
         if (dataSize < 0) {
             throw new BadPeer("bad dataSize");
         }

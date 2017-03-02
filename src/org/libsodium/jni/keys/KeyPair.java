@@ -19,12 +19,12 @@ package org.libsodium.jni.keys;
 import org.libsodium.jni.crypto.Point;
 import org.libsodium.jni.crypto.Util;
 import org.libsodium.jni.encoders.Encoder;
-
 import static org.libsodium.jni.SodiumConstants.PUBLICKEY_BYTES;
 import static org.libsodium.jni.SodiumConstants.SECRETKEY_BYTES;
 import static org.libsodium.jni.NaCl.sodium;
-import static org.libsodium.jni.crypto.Util.checkLength;
 import static org.libsodium.jni.crypto.Util.zeros;
+
+import org.libsodium.jni.Sodium;
 
 public class KeyPair {
 
@@ -35,9 +35,9 @@ public class KeyPair {
     public KeyPair() {
         this.secretKey = zeros(SECRETKEY_BYTES);
         this.publicKey = zeros(PUBLICKEY_BYTES);
-        sodium().crypto_box_curve25519xsalsa20poly1305_keypair(publicKey, secretKey);
+        sodium();
+        Sodium.crypto_box_curve25519xsalsa20poly1305_keypair(publicKey, secretKey);
     }
-
 
     public KeyPair(byte[] seed){
         Util.checkLength(seed, SECRETKEY_BYTES);

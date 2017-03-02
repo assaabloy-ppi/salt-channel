@@ -77,72 +77,6 @@ public class SerializerTest {
         Assert.assertEquals(0, buffer[4]);
     }
     
-    
-    @Test
-    public void testBit1() {
-        byte[] buffer = new byte[2];
-        Serializer s = new Serializer(buffer, 0);
-        s.writeBit(0);
-        s.writeBit(1);
-        s.writeBit(1);
-        s.writeBit(0);
-        Assert.assertEquals(2 + 4, buffer[0]);
-    }
-    
-    @Test
-    public void testBit2() {
-        byte[] buffer = new byte[2];
-        Serializer s = new Serializer(buffer, 0);
-        s.writeBit(0);
-        s.writeBit(1);
-        s.writeBit(1);
-        s.writeBit(0);
-        
-        Deserializer d = new Deserializer(buffer, 0);
-        Assert.assertEquals(0, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(0, d.readBitAsInt());
-    }
-    
-    @Test
-    public void testManyBits() {
-        byte[] buffer = new byte[3];
-        Serializer s = new Serializer(buffer, 0);
-        
-        s.writeBit(0);
-        s.writeBit(1);
-        s.writeBit(1);
-        s.writeBit(0);
-        
-        s.writeBit(1);
-        s.writeBit(1);
-        s.writeBit(1);
-        s.writeBit(1);
-        
-        s.writeBit(1);
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(1);
-        
-        Deserializer d = new Deserializer(buffer, 0);
-        
-        Assert.assertEquals(0, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(0, d.readBitAsInt());
-        
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-        
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(0, d.readBitAsInt());
-        Assert.assertEquals(0, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-    }
-    
     @Test
     public void testUint16() {
         byte[] buffer = new byte[8];
@@ -165,23 +99,5 @@ public class SerializerTest {
         Deserializer d = new Deserializer(buffer, 0);
         Assert.assertEquals(-23456, d.readInt64());
         Assert.assertEquals(40*1000L*1000L*1000L, d.readInt64());
-    }
-    
-    @Test
-    public void testInt4() {
-        byte[] buffer = new byte[2];
-        Serializer s = new Serializer(buffer, 0);
-        s.writeUint4(13);
-        s.writeBit(0);
-        s.writeBit(1);
-        s.writeBit(1);
-        s.writeBit(0);
-        
-        Deserializer d = new Deserializer(buffer, 0);
-        Assert.assertEquals(13, d.readUint4());
-        Assert.assertEquals(0, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(1, d.readBitAsInt());
-        Assert.assertEquals(0, d.readBitAsInt());
     }
 }

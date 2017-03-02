@@ -13,7 +13,7 @@ public class EncryptedPacket implements Packet {
     }
     
     public int getSize() {
-        return 1 + body.length;
+        return PacketHeader.SIZE + body.length;
     }
 
     public void toBytes(byte[] destination, int offset) {
@@ -22,13 +22,9 @@ public class EncryptedPacket implements Packet {
         }
         
         Serializer s = new Serializer(destination, offset);
+        PacketHeader header = new PacketHeader(PACKET_TYPE);
         
-        s.writeUint4(PACKET_TYPE);     // packet type == 6
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        s.writeBit(0);
-        
+        s.writeHeader(header);
         s.writeBytes(body);
     }
     
@@ -36,17 +32,12 @@ public class EncryptedPacket implements Packet {
         EncryptedPacket p = new EncryptedPacket();
         Deserializer d = new Deserializer(source, offset);
         
-        int packetType = d.readUint4();
-        if (packetType != PACKET_TYPE) {
-            throw new BadPeer("unexpected packet type");
+        PacketHeader header = d.readHeader();
+        if (header.getType() != PACKET_TYPE) {
+            throw new BadPeer("unexpected packet type, " + header.getType());
         }
         
-        d.readBit();
-        d.readBit();
-        d.readBit();
-        d.readBit();
-        
-        int size = messageSize - 1;
+        int size = messageSize - PacketHeader.SIZE;
         p.body = d.readBytes(size);
         
         return p;
