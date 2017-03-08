@@ -10,13 +10,14 @@ import saltchannel.util.Rand;
 import saltchannel.util.TimeKeeper;
 import saltchannel.util.ZeroTimeKeeper;
 import saltchannel.v2.EncryptedChannelV2.Role;
+import saltchannel.v2.packets.A2Packet;
 import saltchannel.v2.packets.M1Packet;
 import saltchannel.v2.packets.M2Packet;
 import saltchannel.v2.packets.M3Packet;
 import saltchannel.v2.packets.M4Packet;
 
 /**
- * Server-side implementation of Salt Channel v2.
+ * Server-side implementation of a Salt Channel v2 session.
  * Usage: create object, set or create ephemeral key, 
  * call handshake(), get resulting encrypted ByteChannel to use by
  * application layer. Use getClientSig() to get client's pubkey.
@@ -29,6 +30,7 @@ public class Server {
     private final ByteChannel clearChannel;
     private EncryptedChannelV2 encryptedChannel;
     private TimeKeeper timeKeeper;
+    private A2Packet a2Packet;
     private KeyPair sigKeyPair;
     private KeyPair encKeyPair;
     private M1Packet m1;
@@ -56,6 +58,10 @@ public class Server {
      */
     public void setEncKeyPair(Rand rand) {
         this.encKeyPair = CryptoLib.createEncKeys(rand);
+    }
+    
+    public void setA2(A2Packet a2Packet) {
+        this.a2Packet = a2Packet;
     }
     
     /**
