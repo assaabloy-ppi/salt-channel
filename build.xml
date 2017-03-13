@@ -88,7 +88,7 @@ Do not use Java, mainly due to Android limitations.
 
 
 <target name="test" depends="compileTest">
-  <property name="arch" value="x86_64" />
+<!--  <property name="arch" value="x86_64" /> -->
   <junit fork="yes" printsummary="on" haltonerror="on" haltonfailure="on" showoutput="true">
     <classpath>
       <pathelement location="lib-dev/junit-4.12.jar"/>

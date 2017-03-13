@@ -20,6 +20,8 @@ import java.util.Arrays;
 
 public class Util {
 
+    private static final int DEFAULT_SIZE = 32;
+
     public static byte[] prependZeros(int n, byte[] message) {
         byte[] result = new byte[n + message.length];
         Arrays.fill(result, (byte) 0);

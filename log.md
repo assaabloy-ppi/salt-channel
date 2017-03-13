@@ -1,3 +1,10 @@
+Log 2017-03-13
+==============
+
+Alex Reshniuk:
+Updated '.\lib' with new libsodiumjni Android lib builds.
+Added 'lib-native' with libsodiumjni for Linux/Windows.
+
 Log 2017-01-31
 ==============
 
