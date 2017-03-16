@@ -125,7 +125,10 @@ public class CryptoLib {
     public static KeyPair createSigKeysFromSec(byte[] sec) {
         byte[] pub = new byte[TweetNaCl.SIGN_PUBLIC_KEY_BYTES];
         boolean isSeeded = true;
-        TweetNaCl.crypto_sign_keypair(pub, sec, isSeeded);
+
+        //TweetNaCl.crypto_sign_keypair(pub, sec, isSeeded);
+        // fix of bug #2. Now use deterministic version of KeyPair derivation (deriving from 3rd parameter)
+        TweetNaCl.crypto_sign_seed_keypair(pub, sec, sec);  
         return new KeyPair(sec, pub);
     }
     

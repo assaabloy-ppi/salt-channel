@@ -56,6 +56,9 @@ public class TweetNaCl {
      */
     public static void crypto_sign_keypair(byte[] pk, byte[] sk, boolean isSeeded)
     {
+       if (!isSeeded)
+            randombytes(sk, 32);
+
     	sodium();
         Sodium.crypto_sign_keypair(pk, sk);    	
     
@@ -79,8 +82,21 @@ public class TweetNaCl {
     /*
      * 
      */    
+    public static void crypto_sign_seed_keypair(byte[] pk, byte[] sk, byte[] seed)
+    {
+    	sodium();
+        Sodium.crypto_sign_seed_keypair(pk, sk, seed);    
+    }
+
+    /*
+     * 
+     */    
     public static int crypto_box_keypair(byte[] y,byte[] x, boolean isSeeded)
-    {           	    	
+    {           	    
+        if (!isSeeded) {
+            randombytes(x,32);
+        }
+	
     	return sodium().crypto_box_keypair(y, x);
     	
         /*if (!isSeeded) {
@@ -1353,9 +1369,11 @@ public class TweetNaCl {
 
 */
     
-    @SuppressWarnings("unused")
+    //@SuppressWarnings("unused")
     private static void randombytes(byte[] b, int len) {
-        throw new Error("randombytes not implemented");
+        sodium().randombytes(b, len);
+
+        //throw new Error("randombytes not implemented");
         //byte[] r = new byte[len];
         //prng.nextBytes(r);
         //System.arraycopy(r, 0, b, 0, len);
