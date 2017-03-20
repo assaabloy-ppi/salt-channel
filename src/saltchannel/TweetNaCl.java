@@ -126,19 +126,15 @@ public class TweetNaCl {
         return signedMessage;
     }
 
-    /*
-     * 
-     */
-    public static byte[] crypto_sign_open(byte[] signed, byte[] publicSigningKey) 
-    {    	
-    	byte[] message = new byte[signed.length];
+    public static byte[] crypto_sign_open(byte[] signed, byte[] publicSigningKey) {
+    	byte[] message = new byte[signed.length - SIGNATURE_SIZE_BYTES];
         int[] dummyInt = new int[1];
         //int res = TweetNaCl.crypto_sign_open(message, signed, signed.length, publicSigningKey);
     	int res = sodium().crypto_sign_open(message, dummyInt, signed, signed.length, publicSigningKey);
         if (res != 0) {
             throw new InvalidSignatureException();
         }
-        return Arrays.copyOfRange(message, 64, message.length);
+        return message;
     }
 
     /*

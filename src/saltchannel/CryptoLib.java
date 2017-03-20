@@ -138,7 +138,16 @@ public class CryptoLib {
     public static byte[] sign(byte[] messageToSign, byte[] sigSecKey) {
         return TweetNaCl.crypto_sign(messageToSign, sigSecKey);
     }
-    
+
+    /**
+     * Opens a signed messages, returns message.
+     *
+     * @throws TweetNaCl.InvalidSignatureException
+     */
+    public static byte[] signOpen(byte[] messageToSign, byte[] sigSecKey) {
+        return TweetNaCl.crypto_sign_open(messageToSign, sigSecKey);
+    }
+
     /**
      * Computes SHA-512 of message.
      */
