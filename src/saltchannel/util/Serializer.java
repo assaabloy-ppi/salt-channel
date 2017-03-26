@@ -80,10 +80,15 @@ public class Serializer {
         return this;
     }
     
+    public Serializer writeInt32(int value) {
+        Bytes.intToBytesLE(value, buffer, offset);
+        offset += 4;
+        return this;
+    }
+    
     public Serializer writeInt64(long value) {
         Bytes.longToBytesLE(value, buffer, offset);
         offset += 8;
-        
         return this;
     }
 }

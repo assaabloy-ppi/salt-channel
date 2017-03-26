@@ -12,6 +12,7 @@ import saltchannel.util.Serializer;
 public class M2Packet implements Packet {
     public static final int PACKET_TYPE = 2;
     public boolean noSuchServer;
+    public int time;
     public byte[] serverEncKey;
     
     public int getType() {
@@ -19,7 +20,7 @@ public class M2Packet implements Packet {
     }
     
     public int getSize() {
-        return PacketHeader.SIZE + 32;
+        return PacketHeader.SIZE + 4 + 32;
     }
     
     public boolean hasServerEncKey() {
@@ -39,7 +40,8 @@ public class M2Packet implements Packet {
         PacketHeader header = new PacketHeader(PACKET_TYPE);
         header.setBit(0, noSuchServer);
         
-        s.writeHeader(header);        
+        s.writeHeader(header);
+        s.writeInt32(time);
         s.writeBytes(serverEncKey);
     }
     
@@ -60,6 +62,11 @@ public class M2Packet implements Packet {
         }
         
         p.noSuchServer = header.getBit(0);
+        p.time = d.readInt32();
+        if (p.time < 0) {
+            throw new BadPeer("bad time, " + p.time);
+        }
+        
         p.serverEncKey = d.readBytes(32);
         
         return p;

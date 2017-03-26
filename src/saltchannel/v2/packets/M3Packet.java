@@ -6,6 +6,7 @@ import saltchannel.util.Serializer;
 
 public class M3Packet implements Packet {
     public static final int PACKET_TYPE = 3;
+    public int time;
     public byte[] serverSigKey;
     public byte[] signature1;
     
@@ -14,7 +15,7 @@ public class M3Packet implements Packet {
     }
     
     public int getSize() {
-        return PacketHeader.SIZE + 32 + 64;
+        return PacketHeader.SIZE + 4 + 32 + 64;
     }
     
     public void toBytes(byte[] destination, int offset) {
@@ -33,6 +34,7 @@ public class M3Packet implements Packet {
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
         s.writeHeader(header);
+        s.writeInt32(time);
         s.writeBytes(serverSigKey);
         s.writeBytes(signature1);
     }
@@ -50,6 +52,11 @@ public class M3Packet implements Packet {
         PacketHeader header = d.readHeader();
         if (header.getType() != PACKET_TYPE) {
             throw new BadPeer("unexpected packet type, " + header.getType());
+        }
+        
+        p.time = d.readInt32();
+        if (p.time < 0) {
+            throw new BadPeer("bad time, " + p.time);
         }
         
         p.serverSigKey = d.readBytes(32);

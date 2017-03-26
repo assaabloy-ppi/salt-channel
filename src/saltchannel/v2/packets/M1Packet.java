@@ -12,6 +12,7 @@ import saltchannel.util.Serializer;
 public class M1Packet implements Packet {
     public static final int PACKET_TYPE = 1;
     
+    public int time;
     public byte[] clientEncKey;
     public byte[] serverSigKey;
     
@@ -23,7 +24,7 @@ public class M1Packet implements Packet {
      * Returns the total byte size.
      */
     public int getSize() {
-        return 4 + PacketHeader.SIZE 
+        return 4 + PacketHeader.SIZE + 4
                 + 32
                 + (hasServerSigKey() ? 32 : 0);
     }
@@ -38,6 +39,7 @@ public class M1Packet implements Packet {
         
         s.writeString("SCv2");    // ProtocolIndicator
         s.writeHeader(header);
+        s.writeInt32(time);
         s.writeBytes(clientEncKey);
         
         assert s.getOffset() == getSize() : "unexpected offset, " + s.getOffset();
@@ -70,6 +72,11 @@ public class M1Packet implements Packet {
         PacketHeader header = d.readHeader();
         if (header.getType() != PACKET_TYPE) {
             throw new BadPeer("bad message type, " + header.getType());
+        }
+        
+        data.time = d.readInt32();
+        if (data.time < 0) {
+            throw new BadPeer("bad time, negative, " + data.time);
         }
         
         boolean serverSigKeyIncluded = header.getBit(0);

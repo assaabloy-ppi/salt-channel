@@ -118,6 +118,12 @@ public class Deserializer {
         return result;
     }
     
+    public int readInt32() {
+        int result = Bytes.bytesToIntLE(buffer, offset);
+        offset += 4;
+        return result;
+    }
+    
     public long readInt64() {
         long result = Bytes.bytesToLongLE(buffer, offset);
         offset += 8;

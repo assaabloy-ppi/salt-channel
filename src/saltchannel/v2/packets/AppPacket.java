@@ -6,6 +6,7 @@ import saltchannel.util.Serializer;
 
 public class AppPacket implements Packet {
     public static final int PACKET_TYPE = 5;
+    public int time;
     public byte[] appData;
     
     public int getType() {
@@ -13,7 +14,7 @@ public class AppPacket implements Packet {
     }
     
     public int getSize() {
-        return PacketHeader.SIZE + appData.length;
+        return PacketHeader.SIZE + 4 + appData.length;
     }
     
     public void toBytes(byte[] destination, int offset) {
@@ -24,6 +25,7 @@ public class AppPacket implements Packet {
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
         s.writeHeader(header);
+        s.writeInt32(time);
         s.writeBytes(appData);
     }
     
@@ -37,7 +39,12 @@ public class AppPacket implements Packet {
             throw new BadPeer("unexpected packet type");
         }
         
-        int dataSize = packetSize - PacketHeader.SIZE;
+        p.time = d.readInt32();
+        if (p.time < 0) {
+            throw new BadPeer("bad time, " + p.time);
+        }
+        
+        int dataSize = packetSize - (PacketHeader.SIZE + 4);
         if (dataSize < 0) {
             throw new BadPeer("bad dataSize");
         }

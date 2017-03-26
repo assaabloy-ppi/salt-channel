@@ -11,6 +11,7 @@ import saltchannel.util.Serializer;
  */
 public class M4Packet implements Packet {
     public static final int PACKET_TYPE = 4;
+    public int time;
     public byte[] clientSigKey;
     public byte[] signature2;
     
@@ -19,7 +20,7 @@ public class M4Packet implements Packet {
     }
     
     public int getSize() {
-        return PacketHeader.SIZE + 32 + 64;
+        return PacketHeader.SIZE + 4 + 32 + 64;
     }
     
     public void toBytes(byte[] destination, int offset) {
@@ -34,6 +35,7 @@ public class M4Packet implements Packet {
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
         s.writeHeader(header);
+        s.writeInt32(time);
         s.writeBytes(clientSigKey);
         s.writeBytes(signature2);
     }
@@ -52,6 +54,11 @@ public class M4Packet implements Packet {
         int packetType = header.getType();
         if (packetType != 4) {
             throw new BadPeer("unexpected packet type");
+        }
+        
+        p.time = d.readInt32();
+        if (p.time < 0) {
+            throw new BadPeer("bad time, " + p.time);
         }
         
         p.clientSigKey = d.readBytes(32);
