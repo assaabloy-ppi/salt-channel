@@ -1,6 +1,6 @@
 package saltchannel.v2.packets;
 
-// TODO B. implement
+// TODO D. implement TicketPacket
 
 public class TicketPacket {
 

@@ -16,6 +16,8 @@ import saltchannel.v2.packets.M2Packet;
 import saltchannel.v2.packets.M3Packet;
 import saltchannel.v2.packets.M4Packet;
 
+// TODO B. implement A1-A2.
+
 /**
  * Server-side implementation of a Salt Channel v2 session.
  * Usage: create object, set or create ephemeral key, 
@@ -38,6 +40,7 @@ public class Server {
     private M2Packet m2;
     private byte[] m2Hash;
     private M4Packet m4;
+    private AppChannelV2 appChannel;
     
     public Server(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -105,13 +108,15 @@ public class Server {
     }
     
     /**
-     * Returns the encrypted channel after a successful handshake.
+     * Returns the application channel after a successful handshake.
+     * The returned ByteChannel is for the application to use.
      */
     public ByteChannel getChannel() {
-        return this.encryptedChannel;
+        return this.appChannel;
     }
 
     private void m1() {
+        // TODO B. check m1.time
         byte[] m1Bytes = clearChannel.read();
         this.m1Hash = CryptoLib.sha512(m1Bytes);
         this.m1 = M1Packet.fromBytes(m1Bytes, 0);
@@ -119,6 +124,7 @@ public class Server {
     
     private void m2() {
         this.m2 = new M2Packet();
+        m2.time = timeKeeper.getFirstTime();
         m2.noSuchServer = false;
         m2.serverEncKey = this.encKeyPair.pub();
         byte[] m2Bytes = m2.toBytes();
@@ -127,17 +133,19 @@ public class Server {
     }
     
     private void m4() {
+        // TODO B. check time field here.
         this.m4 = M4Packet.fromBytes(encryptedChannel.read(), 0);
     }
     
     private void createEncryptedChannel() {
         byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m1.clientEncKey);
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sharedKey, Role.SERVER);
+        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper);
     }
 
-    
     private void m3() {
         M3Packet p = new M3Packet();
+        p.time = timeKeeper.getTime();
         p.serverSigKey = this.sigKeyPair.pub();
         p.signature1 = signature1();
         encryptedChannel.write(p.toBytes());
@@ -173,6 +181,7 @@ public class Server {
     
     private byte[] noSuchServerM2Raw() {
         M2Packet m2 = new M2Packet();
+        m2.time = timeKeeper.getFirstTime();
         m2.noSuchServer = true;
         m2.serverEncKey = new byte[32];
         byte[] raw = new byte[m2.getSize()];

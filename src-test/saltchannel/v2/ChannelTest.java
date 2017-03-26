@@ -46,7 +46,6 @@ public class ChannelTest {
         byte[] response = channel.read();
         
         Assert.assertArrayEquals(app1, response);
-        
         Assert.assertArrayEquals(CryptoTestData.aSig.pub(), server.getClientSigKey());
         Assert.assertArrayEquals(CryptoTestData.bSig.pub(), client.getServerSigKey());
     }

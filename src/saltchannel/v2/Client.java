@@ -38,6 +38,7 @@ public class Client {
     private byte[] m2Hash;
     private M3Packet m3;
     private M4Packet m4;
+    private AppChannelV2 appChannel;
 
     public Client(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -86,7 +87,7 @@ public class Client {
      * Returns a channel to be used by upper layer (application layer).
      */
     public ByteChannel getChannel() {
-        return this.encryptedChannel;
+        return this.appChannel;
     }
     
     public byte[] getServerSigKey() {
@@ -98,6 +99,7 @@ public class Client {
      */
     private void m1() {
         this.m1 = new M1Packet();
+        m1.time = timeKeeper.getFirstTime();
         m1.clientEncKey = this.encKeyPair.pub();
         m1.serverSigKey = this.wantedServerSigKey;
         
@@ -113,6 +115,7 @@ public class Client {
      * @throws NoSuchServer.
      */
     private void m2() {
+        // TODO B. check m2.time
         this.m2 = M2Packet.fromBytes(clearChannel.read(), 0);
         if (m2.noSuchServer) {
             throw new NoSuchServer();
@@ -122,11 +125,13 @@ public class Client {
     }
     
     private void m3() {
+        // TODO B. check m3.time
         this.m3 = M3Packet.fromBytes(encryptedChannel.read(), 0);
     }
     
     private void m4() {
         this.m4 = new M4Packet();
+        m4.time = timeKeeper.getTime();
         m4.clientSigKey = this.sigKeyPair.pub();
         m4.signature2 = signature2();
         encryptedChannel.write(m4.toBytes());
@@ -159,6 +164,7 @@ public class Client {
     private void createEncryptedChannel() {
         byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m2.serverEncKey);
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sharedKey, Role.CLIENT);
+        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper);
     }
 
     private void checkThatEncKeyPairWasSet() {

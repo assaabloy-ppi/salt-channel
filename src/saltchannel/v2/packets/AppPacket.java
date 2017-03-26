@@ -36,7 +36,7 @@ public class AppPacket implements Packet {
         PacketHeader header = d.readHeader();
         int packetType = header.getType();
         if (packetType != PACKET_TYPE) {
-            throw new BadPeer("unexpected packet type");
+            throw new BadPeer("unexpected packet type, " + packetType);
         }
         
         p.time = d.readInt32();

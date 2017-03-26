@@ -19,7 +19,7 @@ public class EncryptedChannelV2 implements ByteChannel {
     private long writeNonceInteger;
     private byte[] writeNonceBytes = new byte[TweetNaCl.BOX_NONCE_BYTES];
     private byte[] key;
-    private ByteChannel channel;
+    private final ByteChannel channel;
     
     /**
      * Creates a new EncryptedChannel given the underlying channel to be 
