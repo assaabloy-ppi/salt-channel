@@ -6,9 +6,11 @@ import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
 import saltchannel.TweetNaCl;
 import saltchannel.util.KeyPair;
+import saltchannel.util.NullTimeChecker;
 import saltchannel.util.Rand;
+import saltchannel.util.TimeChecker;
 import saltchannel.util.TimeKeeper;
-import saltchannel.util.ZeroTimeKeeper;
+import saltchannel.util.NullTimeKeeper;
 import saltchannel.v2.EncryptedChannelV2.Role;
 import saltchannel.v2.packets.A2Packet;
 import saltchannel.v2.packets.M1Packet;
@@ -32,6 +34,7 @@ public class Server {
     private final ByteChannel clearChannel;
     private EncryptedChannelV2 encryptedChannel;
     private TimeKeeper timeKeeper;
+    private TimeChecker timeChecker;
     private A2Packet a2Packet;
     private KeyPair sigKeyPair;
     private KeyPair encKeyPair;
@@ -45,7 +48,8 @@ public class Server {
     public Server(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
-        this.timeKeeper = new ZeroTimeKeeper();
+        this.timeKeeper = NullTimeKeeper.INSTANCE;
+        this.timeChecker = NullTimeChecker.INSTANCE;
     }
     
     /**
@@ -65,6 +69,14 @@ public class Server {
     
     public void setA2(A2Packet a2Packet) {
         this.a2Packet = a2Packet;
+    }
+    
+    public void setTimeKeeper(TimeKeeper timeKeeper) {
+        this.timeKeeper = timeKeeper;
+    }
+    
+    public void setTimeChecker(TimeChecker timeChecker) {
+        this.timeChecker = timeChecker;
     }
     
     /**
@@ -116,10 +128,10 @@ public class Server {
     }
 
     private void m1() {
-        // TODO B. check m1.time
         byte[] m1Bytes = clearChannel.read();
         this.m1Hash = CryptoLib.sha512(m1Bytes);
         this.m1 = M1Packet.fromBytes(m1Bytes, 0);
+        timeChecker.reportFirstTime(m1.time);
     }
     
     private void m2() {
@@ -133,14 +145,14 @@ public class Server {
     }
     
     private void m4() {
-        // TODO B. check time field here.
         this.m4 = M4Packet.fromBytes(encryptedChannel.read(), 0);
+        this.timeChecker.checkTime(m4.time);
     }
     
     private void createEncryptedChannel() {
         byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m1.clientEncKey);
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sharedKey, Role.SERVER);
-        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper);
+        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
     }
 
     private void m3() {

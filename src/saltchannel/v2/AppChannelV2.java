@@ -2,6 +2,7 @@ package saltchannel.v2;
 
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
+import saltchannel.util.TimeChecker;
 import saltchannel.util.TimeKeeper;
 import saltchannel.v2.packets.AppPacket;
 
@@ -12,17 +13,19 @@ import saltchannel.v2.packets.AppPacket;
 public class AppChannelV2 implements ByteChannel {
     private ByteChannel channel;
     private TimeKeeper timeKeeper;
+    private TimeChecker timeChecker;
     
-    public AppChannelV2(ByteChannel channel, TimeKeeper timeKeeper) {
+    public AppChannelV2(ByteChannel channel, TimeKeeper timeKeeper, TimeChecker timeChecker) {
         this.channel = channel;
         this.timeKeeper = timeKeeper;
+        this.timeChecker = timeChecker;
     }
 
     @Override
     public byte[] read() throws ComException {
-        // TODO B. check p.time here!
         byte[] bytes = channel.read();
         AppPacket p = AppPacket.fromBytes(bytes, 0, bytes.length);
+        timeChecker.checkTime(p.time);
         return p.appData;
     }
 
