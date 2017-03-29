@@ -741,7 +741,7 @@ TODO: update this.
     **** Ticket/Encrypted ****
 
     This is an encrypted packet.
-    TODO Should we have ticket version? Perhaps different PacketType values for that?
+    TODO update this.
 
     2   Header.
         The Ticket/Header repeated. For authentication purposes.

@@ -6,15 +6,22 @@ import saltchannel.util.Serializer;
 
 public class TTPacket {
     public static final int PACKET_TYPE = Packet.TYPE_TT;
+    public static final int SESSION_NONCE_SIZE = 8;
     public int time;
-    public byte[] ticket;
+    public byte[] sessionNonce;  // session nonce for session to be created with the ticket
+    public byte[] ticket;        // ticket as issued by server
+    
+    public TTPacket() {
+    }
     
     public int getType() {
         return PACKET_TYPE;
     }
     
     public int getSize() {
-        return PacketHeader.SIZE + 4 
+        return PacketHeader.SIZE 
+                + 4 
+                + TicketPacket.SESSION_NONCE_SIZE
                 + (ticketIncluded() ? (1 + ticket.length) : 0);
     }
     
@@ -35,6 +42,7 @@ public class TTPacket {
                 throw new IllegalStateException("bad ticket size, " + ticket.length);
             }
             
+            s.writeBytes(sessionNonce);
             s.writeByte((byte) ticket.length);
             s.writeBytes(ticket);
         }
@@ -63,8 +71,14 @@ public class TTPacket {
         }
         
         if (ticketIncluded) {
+            p.sessionNonce = d.readBytes(TicketPacket.SESSION_NONCE_SIZE);
+            
             byte ticketSize = d.readByte();
             if (ticketSize > 127) {
+                throw new BadPeer("bad TicketSize, " + ticketSize);
+            }
+            
+            if (ticketSize < 4) {
                 throw new BadPeer("bad TicketSize, " + ticketSize);
             }
             

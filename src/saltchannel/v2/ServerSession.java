@@ -15,6 +15,7 @@ import saltchannel.util.TimeChecker;
 import saltchannel.util.TimeKeeper;
 import saltchannel.util.NullTimeKeeper;
 import saltchannel.v2.EncryptedChannelV2.Role;
+import saltchannel.v2.packets.BadTicket;
 import saltchannel.v2.packets.M1Packet;
 import saltchannel.v2.packets.M2Packet;
 import saltchannel.v2.packets.M3Packet;
@@ -51,6 +52,7 @@ public class ServerSession {
     private byte[] m1Bytes;
     private PacketHeader m1Header;
     private byte[] sessionKey;
+    private byte[] clientSigKey;
     
     public ServerSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -114,11 +116,14 @@ public class ServerSession {
         }
         
         checkThatEncKeyPairWasSet();
-        processM1();
-        handleNoSuchServerIfNeeded();
+        
+        boolean resumed = processM1();
+        if (resumed) {
+            return;
+        }
         
         m2();
-        createEncryptedChannel();
+        createEncryptedChannelFromKeyAgreement();
         
         m3();
         
@@ -144,23 +149,13 @@ public class ServerSession {
             throw new IllegalStateException("encKeyPair must be set before calling handshake()");
         }
     }
-
-    /**
-     * @throws NoSuchServer
-     */
-    private void handleNoSuchServerIfNeeded() {
-        if (m1.serverSigKeyIncluded() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
-            clearChannel.write(noSuchServerM2Raw());
-            throw new NoSuchServer();
-        }
-    }
     
     /**
      * Returns the static (signing) public key of the client.
      * Available after a successful handshake.
      */
     public byte[] getClientSigKey() {
-        return this.m4.clientSigKey;
+        return this.clientSigKey;
     }
     
     /**
@@ -181,10 +176,36 @@ public class ServerSession {
         clearChannel.write(buffer);
     }
 
-    private void processM1() {
+    /**
+     * Returns true if the session was resumed using a ticket in M1.
+     */
+    private boolean processM1() {
+        // Note the missing support for "virtual hosting". Only one server sig key is allowed.
+        
         this.m1Hash = CryptoLib.sha512(m1Bytes);
         this.m1 = M1Packet.fromBytes(m1Bytes, 0);
         timeChecker.reportFirstTime(m1.time);
+        
+        if (m1.serverSigKeyIncluded() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
+            clearChannel.write(noSuchServerM2Raw());
+            throw new NoSuchServer();
+        }
+        
+        if (m1.ticketIncluded() && resumeSupported()) {
+            TicketSessionData sessionData;
+            try {
+                sessionData = resumeHandler.validateTicket(m1.ticket);
+            } catch (BadTicket e) {
+                return false;
+            }
+            
+            createEncryptedChannelFromResumedSession(sessionData);
+            writeTTPacket();
+            
+            return true;
+        }
+        
+        return false;
     }
     
     private void m2() {
@@ -210,6 +231,7 @@ public class ServerSession {
     private void m4() {
         this.m4 = M4Packet.fromBytes(encryptedChannel.read(), 0);
         this.timeChecker.checkTime(m4.time);
+        this.clientSigKey = m4.clientSigKey;
     }
     
     /**
@@ -222,17 +244,35 @@ public class ServerSession {
         }
         
         if (m1.ticketRequested) {
-            byte[] ticket = resumeHandler.issueTicket(m4.clientSigKey, sessionKey);
-            TTPacket p = new TTPacket();
-            p.time = timeKeeper.getTime();
-            p.ticket = ticket;
-            encryptedChannel.write(p.toBytes());
+            writeTTPacket();
         }
     }
 
-    private void createEncryptedChannel() {
+    private void writeTTPacket() {
+        ResumeHandler.IssuedTicket t = resumeHandler.issueTicket(clientSigKey, sessionKey);
+        
+        TTPacket p = new TTPacket();
+        p.time = timeKeeper.getTime();
+        p.ticket = t.ticket;
+        p.sessionNonce = t.sessionNonce;
+        encryptedChannel.write(p.toBytes());
+    }
+
+    private void createEncryptedChannelFromKeyAgreement() {
         this.sessionKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m1.clientEncKey);
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, Role.SERVER);
+        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
+    }
+    
+    /**
+     * Creates this.encryptedChannel, this.appChannel, 
+     * sets this.sessionKey and this.clientSigKey.
+     */
+    private void createEncryptedChannelFromResumedSession(TicketSessionData data) {
+        this.sessionKey = data.sessionKey;
+        this.clientSigKey = data.clientSigKey;
+        this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, 
+                Role.SERVER, data.sessionNonce);
         this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
     }
     

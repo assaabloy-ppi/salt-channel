@@ -4,6 +4,7 @@ import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
 import saltchannel.TweetNaCl;
+import saltchannel.util.Deserializer;
 import saltchannel.util.KeyPair;
 import saltchannel.util.NullTimeChecker;
 import saltchannel.util.Rand;
@@ -15,6 +16,8 @@ import saltchannel.v2.packets.M1Packet;
 import saltchannel.v2.packets.M2Packet;
 import saltchannel.v2.packets.M3Packet;
 import saltchannel.v2.packets.M4Packet;
+import saltchannel.v2.packets.Packet;
+import saltchannel.v2.packets.PacketHeader;
 import saltchannel.v2.packets.TTPacket;
 
 /**
@@ -45,6 +48,11 @@ public class ClientSession {
     private TTPacket tt;
     private AppChannelV2 appChannel;
     private boolean ticketRequested;
+    private byte[] m2Bytes;
+    private PacketHeader m2Header;
+    private byte[] sessionKey;
+    private ClientTicketData ticketData;     // ticket data to use
+    private ClientTicketData newTicketData;  // new ticket from server
 
     public ClientSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -77,6 +85,10 @@ public class ClientSession {
         this.ticketRequested = requestTicket;
     }
     
+    public void setTicketData(ClientTicketData ticketData) {
+        this.ticketData = ticketData;
+    }
+    
     public void setTimeKeeper(TimeKeeper timeKeeper) {
         this.timeKeeper = timeKeeper;
     }
@@ -94,22 +106,37 @@ public class ClientSession {
         
         m1();
         
+        readM2Bytes();   // M2 or TT message
+        
+        if (m2Header.getType() == Packet.TYPE_ENCRYPTED_MESSAGE) {
+            tt1();
+            return;
+        }
+        
         m2();
-        createEncryptedChannel();
+        createEncryptedChannelForNewSession();
         
         m3();
         validateSignature1();
         
         m4();
         
-        tt();
+        tt2();
     }
     
     /**
      * Returns a channel to be used by upper layer (application layer).
+     * 
+     * @throws IllegalStateException 
+     *          If the channel is not available, has not been created yet.
      */
     public ByteChannel getChannel() {
-        return this.appChannel;
+        ByteChannel result = this.appChannel;
+        if (result == null) {
+            throw new IllegalStateException("this.appChannel == null");
+        }
+        
+        return result;
     }
     
     public byte[] getServerSigKey() {
@@ -117,11 +144,11 @@ public class ClientSession {
     }
     
     /**
-     * Returns ticket from server or null if ticket was sent from
-     * server.
+     * Returns the newly issued ticket from the server or null 
+     * if no new ticket was sent from the server.
      */
-    public byte[] getTicket() {
-        return tt == null ? null : tt.ticket;
+    public ClientTicketData getNewTicketData() {
+        return newTicketData;
     }
     
     /**
@@ -134,19 +161,32 @@ public class ClientSession {
         m1.serverSigKey = this.wantedServerSigKey;
         m1.ticketRequested = this.ticketRequested;
         
+        if (ticketData != null) {
+            m1.ticket = ticketData.ticket;
+        }
+        
         byte[] m1Bytes = m1.toBytes();
         this.m1Hash = CryptoLib.sha512(m1Bytes);
         
         clearChannel.write(m1Bytes);
+        
+        if (ticketData != null) {
+            createEncryptedChannelForResumedSession();
+        }
+    }
+    
+    private void readM2Bytes() {
+        this.m2Bytes = clearChannel.read();
+        this.m2Header = parseHeader(m2Bytes);
     }
     
     /**
-     * Reads M2 message.
+     * Handles M2 message.
      * 
      * @throws NoSuchServer.
      */
     private void m2() {
-        this.m2 = M2Packet.fromBytes(clearChannel.read(), 0);
+        this.m2 = M2Packet.fromBytes(m2Bytes, 0);
         if (m2.noSuchServer) {
             throw new NoSuchServer();
         }
@@ -169,12 +209,31 @@ public class ClientSession {
     }
     
     /**
-     * Reads TT packet from server if expected.
+     * Reads expected TT message.
      */
-    private void tt() {
+    private void tt1() {
+        encryptedChannel.pushback(this.m2Bytes);
+        
+        byte[] bytes = encryptedChannel.read();
+        TTPacket tt = TTPacket.fromBytes(bytes, 0);
+        
+        this.newTicketData = new ClientTicketData();
+        this.newTicketData.sessionKey = this.sessionKey;
+        this.newTicketData.sessionNonce = tt.sessionNonce;
+        this.newTicketData.ticket = tt.ticket;
+    }
+    
+    /**
+     * Reads TT packet from server after 3-way handshake.
+     */
+    private void tt2() {
         if (m1.ticketRequested && m2.resumeSupported) {
             byte[] bytes = encryptedChannel.read();
-            this.tt = TTPacket.fromBytes(bytes, 0);
+            tt = TTPacket.fromBytes(bytes, 0);
+            newTicketData = new ClientTicketData();
+            newTicketData.ticket = tt.ticket;
+            newTicketData.sessionKey = this.sessionKey;
+            newTicketData.sessionNonce = tt.sessionNonce;
         }
     }
     
@@ -202,9 +261,16 @@ public class ClientSession {
                 encKeyPair.pub(), m2.serverEncKey, m1Hash, m2Hash);
     }
     
-    private void createEncryptedChannel() {
-        byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m2.serverEncKey);
-        this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sharedKey, Role.CLIENT);
+    private void createEncryptedChannelForNewSession() {
+        this.sessionKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m2.serverEncKey);
+        this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, Role.CLIENT);
+        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
+    }
+    
+    private void createEncryptedChannelForResumedSession() {
+        this.sessionKey = this.ticketData.sessionKey;
+        this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, 
+                Role.CLIENT, this.ticketData.sessionNonce);
         this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
     }
 
@@ -212,5 +278,9 @@ public class ClientSession {
         if (encKeyPair == null) {
             throw new IllegalStateException("encKeyPair must be set before calling handshake()");
         }
+    }
+    
+    private PacketHeader parseHeader(byte[] messageBytes) {
+        return new Deserializer(messageBytes, 0).readHeader();
     }
 }

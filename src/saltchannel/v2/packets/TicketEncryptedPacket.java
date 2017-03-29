@@ -9,6 +9,7 @@ import saltchannel.util.Serializer;
 public class TicketEncryptedPacket {
     public byte ticketType;
     public long ticketId;
+    public byte[] sessionNonce;  // the "session nonce" to use in the ticket session
     public byte[] sessionKey;    // shared symmetric session key
     public byte[] clientSigKey;  // client's public signature key
     
@@ -17,7 +18,7 @@ public class TicketEncryptedPacket {
     }
     
     public int getSize() {
-        return 1 + 1 + 8 + 32 + 32;
+        return 1 + 1 + 8 + 8 + 32 + 32;
     }
     
     public byte[] toBytes() {
@@ -25,8 +26,16 @@ public class TicketEncryptedPacket {
             throw new IllegalStateException("bad sessionKey value");
         }
         
-        if (clientSigKey == null || clientSigKey.length != 32) {
-            throw new IllegalStateException("bad clientSigKey value");
+        if (sessionNonce == null || sessionNonce.length != TTPacket.SESSION_NONCE_SIZE) {
+            throw new IllegalStateException("bad sessionNonce value");
+        }
+        
+        if (clientSigKey == null) {
+            throw new IllegalStateException("clientSigKey must not be null");
+        }
+        
+        if (clientSigKey.length != 32) {
+            throw new IllegalStateException("bad clientSigKey length, " + clientSigKey.length);
         }
         
         byte[] result = new byte[getSize()];
@@ -35,8 +44,9 @@ public class TicketEncryptedPacket {
         s.writeByte(ticketType);
         s.writeByte(0);
         s.writeInt64(ticketId);
-        s.writeBytes(clientSigKey);
+        s.writeBytes(sessionNonce);
         s.writeBytes(sessionKey);
+        s.writeBytes(clientSigKey);
         
         if (s.getOffset() != getSize()) {
             throw new IllegalStateException("offset mismatch, " + s.getOffset());
@@ -64,8 +74,9 @@ public class TicketEncryptedPacket {
         }
         
         p.ticketId = d.readInt64();
-        p.clientSigKey = d.readBytes(32);
+        p.sessionNonce = d.readBytes(TTPacket.SESSION_NONCE_SIZE);
         p.sessionKey = d.readBytes(32);
+        p.clientSigKey = d.readBytes(32);
         
         return p;
     }

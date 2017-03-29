@@ -64,7 +64,7 @@ public class M2Packet implements Packet {
         PacketHeader header = d.readHeader();
         int packetType = header.getType();
         if (packetType != PACKET_TYPE) {
-            throw new BadPeer("unexpected packet type, " + packetType);
+            throw new BadPeer("unexpected packet type, " + packetType + ", expected " + PACKET_TYPE);
         }
         
         p.noSuchServer = header.getBit(0);

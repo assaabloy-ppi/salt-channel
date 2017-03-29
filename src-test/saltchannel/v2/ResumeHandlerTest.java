@@ -12,7 +12,7 @@ public class ResumeHandlerTest {
         byte[] clientSigKey = new byte[32];
         byte[] sessionKey = new byte[32];
         
-        byte[] ticket = h.issueTicket(clientSigKey, sessionKey);
+        byte[] ticket = h.issueTicket(clientSigKey, sessionKey).ticket;
         TicketSessionData data = h.validateTicket(ticket);
         
         Assert.assertEquals(data.ticketId, 1000);
@@ -23,7 +23,7 @@ public class ResumeHandlerTest {
         ResumeHandler h = handler1();
         byte[] clientSigKey = new byte[32];
         byte[] sessionKey = new byte[32];
-        byte[] ticket = h.issueTicket(clientSigKey, sessionKey);
+        byte[] ticket = h.issueTicket(clientSigKey, sessionKey).ticket;
         ticket[70] = 70;
         h.validateTicket(ticket);
     }
@@ -33,7 +33,7 @@ public class ResumeHandlerTest {
         ResumeHandler h = handler1();
         byte[] clientSigKey = new byte[32];
         byte[] sessionKey = new byte[32];
-        byte[] ticket = h.issueTicket(clientSigKey, sessionKey);
+        byte[] ticket = h.issueTicket(clientSigKey, sessionKey).ticket;
         
         h.validateTicket(ticket);
         

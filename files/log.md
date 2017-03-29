@@ -9,6 +9,16 @@ Log and general notes.
 New approach: we will add the resume feature in v2
 (not wait until v3).
 
+End of day status: 
+
+* first spike with a resume session that works!
+
+* Case C, *invalid ticket* (in spec) is not implemented!
+  We need an EncryptedChannel that we *test*. If ticket is invalid
+  we must replace that EncryptedChannel.
+  
+* Spec needs to be updated.
+
 
 2017-02-27
 ==========

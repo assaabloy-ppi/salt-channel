@@ -9,7 +9,7 @@ public class TicketPacketTest {
     public void testSanity() {
         TicketPacket p = new TicketPacket();
         p.ticketType = 1;
-        p.nonce = new byte[TicketPacket.NONCE_SIZE];
+        p.encryptedTicketNonce = new byte[TicketPacket.ENCRYPTED_NONCE_SIZE];
         p.encrypted = new byte[40];
         
         byte[] bytes1 = p.toBytes();

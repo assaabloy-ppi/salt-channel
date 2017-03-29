@@ -1,11 +1,11 @@
 package saltchannel.v2;
 
 import java.util.Arrays;
-
 import saltchannel.ComException;
 import saltchannel.CryptoLib;
 import saltchannel.util.Bytes;
 import saltchannel.v2.packets.BadTicket;
+import saltchannel.v2.packets.TTPacket;
 import saltchannel.v2.packets.TicketEncryptedPacket;
 import saltchannel.v2.packets.TicketPacket;
 
@@ -19,7 +19,7 @@ import saltchannel.v2.packets.TicketPacket;
 public class ResumeHandler {
     public static final int KEY_SIZE = 32;
     private final TicketBits ticketBits;
-    private byte[] key;
+    private byte[] ticketEncryptionKey;
     
     /**
      * Creates a new instance with a given wanted capacity.
@@ -27,37 +27,57 @@ public class ResumeHandler {
      * be handled. The memory consumption is wantedSize/8 bytes 
      * plus overhead.
      */
-    public ResumeHandler(byte[] key, long firstTicketIndex, int wantedBitSize) {
+    public ResumeHandler(byte[] ticketEncryptionKey, long firstTicketIndex, int wantedBitSize) {
         if (wantedBitSize < 0) {
             throw new IllegalArgumentException("negative wantedSize not allowed");
         }
         
-        this.ticketBits = new TicketBits(firstTicketIndex, wantedBitSize);
-        
-        if (key.length != KEY_SIZE) {
+        if (ticketEncryptionKey.length != KEY_SIZE) {
             throw new IllegalArgumentException("bad key size");
         }
         
-        this.key = key.clone();
+        if (firstTicketIndex < 1) {
+            throw new IllegalArgumentException("bad firstTicketIndex, must be larger than 0");
+        }
+        
+        this.ticketBits = new TicketBits(firstTicketIndex, wantedBitSize);
+        this.ticketEncryptionKey = ticketEncryptionKey.clone();
     }
     
-    public synchronized byte[] issueTicket(byte[] clientSigKey, byte[] sessionKey) {
+    public static class IssuedTicket {
+        public byte[] ticket;
+        public byte[] sessionNonce;
+    }
+    
+    /**
+     * Issues a new ticket. 
+     * First a new TicketId is created. It must never have been used before
+     * and it must be larger than 0.
+     */
+    public synchronized IssuedTicket issueTicket(byte[] clientSigKey, byte[] sessionKey) {
+        if (clientSigKey == null) {
+            throw new IllegalArgumentException("clientSigKey == null not allowed");
+        }
+        
         TicketEncryptedPacket p1 = new TicketEncryptedPacket();
         p1.ticketId = ticketBits.issue();
+        p1.sessionNonce = createSessionNonce(p1.ticketId);
         p1.sessionKey = sessionKey;
         p1.clientSigKey = clientSigKey;
         
         byte[] nonce24 = createNonce24(p1.ticketId);
-        byte[] encrypted = CryptoLib.encrypt(key, nonce24, p1.toBytes());
+        byte[] encrypted = CryptoLib.encrypt(ticketEncryptionKey, nonce24, p1.toBytes());
         
         TicketPacket p2 = new TicketPacket();
         p2.ticketType = TicketPacket.TICKET_TYPE_1;
-        p2.nonce = to10Bytes(nonce24);
+        p2.encryptedTicketNonce = to10Bytes(nonce24);
         p2.encrypted = encrypted;
         
-        byte[] totalBytes = p2.toBytes();
+        IssuedTicket t = new IssuedTicket();
+        t.ticket = p2.toBytes();
+        t.sessionNonce = p1.sessionNonce;
         
-        return totalBytes;
+        return t;
     }
 
     /**
@@ -81,7 +101,7 @@ public class ResumeHandler {
         byte[] clear;
         
         try {
-            clear = CryptoLib.decrypt(key, to24Bytes(p1.nonce), p1.encrypted);
+            clear = CryptoLib.decrypt(ticketEncryptionKey, to24Bytes(p1.encryptedTicketNonce), p1.encrypted);
         } catch (ComException e) {
             throw new BadTicket("could not decrypt");
         }
@@ -97,26 +117,27 @@ public class ResumeHandler {
         TicketSessionData result = new TicketSessionData();
         result.clientSigKey = p2.clientSigKey;
         result.sessionKey = p2.sessionKey;
+        result.sessionNonce = p2.sessionNonce;
         result.ticketId = p2.ticketId;
         
-        synchronized (this) {
-            boolean isValid = ticketBits.isValid(p2.ticketId);
-            if (!isValid) {
-                throw new BadTicket("invalid according to ticketBits");
-            }
-            
-            ticketBits.clear(p2.ticketId);
+        boolean isValid = ticketBits.isValid(p2.ticketId);
+        if (!isValid) {
+            throw new BadTicket("invalid according to ticketBits");
         }
+        
+        ticketBits.clear(p2.ticketId);
         
         return result;
     }
     
-    public static class InvalidTicket extends RuntimeException {
-        private static final long serialVersionUID = 1L;
+    private byte[] createSessionNonce(long ticketId) {
+        // We could do something more advanced if we want to hide
+        // the ticketId from the client. Client should only use this
+        // data for sessionNonce of the resumed session.
         
-        public InvalidTicket(String message) {
-            super(message);
-        }
+        byte[] result = new byte[TTPacket.SESSION_NONCE_SIZE];
+        Bytes.longToBytesLE(ticketId, result, 0);
+        return result;
     }
     
     /**

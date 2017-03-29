@@ -5,11 +5,15 @@ import saltchannel.util.Serializer;
 
 public class TicketPacket  implements Packet {
     public static final int PACKET_TYPE = Packet.TYPE_TICKET;
-    public static final int NONCE_SIZE = 10;
+    public static final int ENCRYPTED_NONCE_SIZE = 10;
     public static final int TICKET_TYPE_1 = 1;
+    public static final int SESSION_NONCE_SIZE = 8;
     public byte ticketType;
-    public byte[] nonce;
+    public byte[] encryptedTicketNonce;
     public byte[] encrypted;
+    
+    public TicketPacket() {
+    }
     
     public int getType() {
         return PACKET_TYPE;
@@ -21,7 +25,7 @@ public class TicketPacket  implements Packet {
     public int getSize() {
         return PacketHeader.SIZE
                 + 2
-                + NONCE_SIZE
+                + ENCRYPTED_NONCE_SIZE
                 + encrypted.length;
     }
     
@@ -30,8 +34,8 @@ public class TicketPacket  implements Packet {
         PacketHeader header = new PacketHeader(PACKET_TYPE);
         s.writeHeader(header);
         
-        if (nonce == null || nonce.length != NONCE_SIZE) {
-            throw new IllegalStateException("bad nonce, " + nonce.length);
+        if (encryptedTicketNonce == null || encryptedTicketNonce.length != ENCRYPTED_NONCE_SIZE) {
+            throw new IllegalStateException("bad nonce, " + encryptedTicketNonce.length);
         }
         
         if (encrypted == null) {
@@ -44,7 +48,7 @@ public class TicketPacket  implements Packet {
         
         s.writeByte(ticketType);
         s.writeByte(0);
-        s.writeBytes(nonce);
+        s.writeBytes(encryptedTicketNonce);
         s.writeBytes(encrypted);
         
         if (s.getOffset() != getSize()) {
@@ -78,12 +82,11 @@ public class TicketPacket  implements Packet {
             throw new BadTicket("expected zero, got " + zero);
         }
         
-        p.nonce = d.readBytes(NONCE_SIZE);
+        p.encryptedTicketNonce = d.readBytes(ENCRYPTED_NONCE_SIZE);
         
-        int left = source.length - (PacketHeader.SIZE + 2 + NONCE_SIZE);
+        int left = source.length - (PacketHeader.SIZE + 2 + ENCRYPTED_NONCE_SIZE);
         p.encrypted = d.readBytes(left);
         
         return p;
     }
-
 }

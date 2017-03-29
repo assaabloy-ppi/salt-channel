@@ -13,8 +13,10 @@ public class EncryptedChannelTest {
     public void testEncryptDecrypt() throws UnsupportedEncodingException {
         byte[] key = key1();
         Tunnel tunnel = new Tunnel();
-        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, EncryptedChannelV2.Role.CLIENT);
-        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, EncryptedChannelV2.Role.SERVER);
+        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, 
+                EncryptedChannelV2.Role.CLIENT);
+        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, 
+                EncryptedChannelV2.Role.SERVER);
         
         byte[] clear1 = "AAAA".getBytes("UTF-8");
         byte[] encrypted = e1.encrypt(clear1);
@@ -37,8 +39,10 @@ public class EncryptedChannelTest {
     public void testChannel() throws ComException, UnsupportedEncodingException {
         byte[] key = key1();
         Tunnel tunnel = new Tunnel();
-        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, EncryptedChannelV2.Role.CLIENT);
-        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, EncryptedChannelV2.Role.SERVER);
+        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, 
+                EncryptedChannelV2.Role.CLIENT);
+        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, 
+                EncryptedChannelV2.Role.SERVER);
         
         byte[] clear1 = "AAAA".getBytes("UTF-8");
         e1.write(clear1);
@@ -51,8 +55,10 @@ public class EncryptedChannelTest {
     public void testMultipleWrites() {
         byte[] key = key1();
         Tunnel tunnel = new Tunnel();
-        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, EncryptedChannelV2.Role.CLIENT);
-        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, EncryptedChannelV2.Role.SERVER);
+        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, 
+                EncryptedChannelV2.Role.CLIENT);
+        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, 
+                EncryptedChannelV2.Role.SERVER);
         
         byte[] m1 = new byte[]{1};
         byte[] m2 = new byte[]{2};
@@ -72,8 +78,10 @@ public class EncryptedChannelTest {
     public void testMultipleMessageInOneWrite() {
         byte[] key = key1();
         Tunnel tunnel = new Tunnel();
-        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, EncryptedChannelV2.Role.CLIENT);
-        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, EncryptedChannelV2.Role.SERVER);
+        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, 
+                EncryptedChannelV2.Role.CLIENT);
+        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, 
+                EncryptedChannelV2.Role.SERVER);
         
         byte[] m1 = new byte[]{1};
         byte[] m2 = new byte[]{2};
@@ -93,8 +101,10 @@ public class EncryptedChannelTest {
         
         byte[] key = key2();
         Tunnel tunnel = new Tunnel();
-        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, EncryptedChannelV2.Role.CLIENT);
-        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, EncryptedChannelV2.Role.SERVER);
+        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, 
+                EncryptedChannelV2.Role.CLIENT);
+        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, 
+                EncryptedChannelV2.Role.SERVER);
         
         byte[] m1 = new byte[]{1};
         byte[] m2 = new byte[]{2};
@@ -123,8 +133,10 @@ public class EncryptedChannelTest {
     public void testFirstMessageFromClient() {
         byte[] key = key2();
         Tunnel tunnel = new Tunnel();
-        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, EncryptedChannelV2.Role.CLIENT);
-        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, EncryptedChannelV2.Role.SERVER);
+        EncryptedChannelV2 e1 = new EncryptedChannelV2(tunnel.channel1(), key, 
+                EncryptedChannelV2.Role.CLIENT);
+        EncryptedChannelV2 e2 = new EncryptedChannelV2(tunnel.channel2(), key, 
+                EncryptedChannelV2.Role.SERVER);
         
         byte[] m1 = new byte[]{1};
         byte[] m2 = new byte[]{2};

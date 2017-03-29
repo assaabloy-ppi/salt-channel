@@ -6,6 +6,7 @@ import saltchannel.ComException;
 import saltchannel.TweetNaCl;
 import saltchannel.util.Bytes;
 import saltchannel.v2.packets.EncryptedPacket;
+import saltchannel.v2.packets.TTPacket;
 
 /**
  * An implementation of an encrypted channel using a shared symmetric 
@@ -20,6 +21,8 @@ public class EncryptedChannelV2 implements ByteChannel {
     private byte[] writeNonceBytes = new byte[TweetNaCl.BOX_NONCE_BYTES];
     private byte[] key;
     private final ByteChannel channel;
+    private byte[] pushbackMessage;
+    private byte[] sessionNonce;
     
     /**
      * Creates a new EncryptedChannel given the underlying channel to be 
@@ -28,14 +31,26 @@ public class EncryptedChannelV2 implements ByteChannel {
      * @param key  
      *      Shared symmetric encryption key for one session. 
      *      A new key must be used for every session.
+     * @param ticketId
+     *      This is zero for ordinary sessions and ticketId for resumed sessions.
+     *      ticketId is used to create nonce for encryption/decryption.
      */
     public EncryptedChannelV2(ByteChannel channel, byte[] key, Role role) {
+        this(channel, key, role, zeroSessionNonce());
+    }
+    
+    private static byte[] zeroSessionNonce() {
+        return new byte[TTPacket.SESSION_NONCE_SIZE];
+    }
+    
+    public EncryptedChannelV2(ByteChannel channel, byte[] key, Role role, byte[] sessionNonce) {
         if (key.length != TweetNaCl.BOX_SECRET_KEY_BYTES) {
             throw new IllegalArgumentException("bad key size, should be " + TweetNaCl.BOX_SECRET_KEY_BYTES);
         }
         
         this.channel = channel;
         this.key = key;
+        this.sessionNonce = sessionNonce;
         
         switch (role) {
         case CLIENT:
@@ -58,14 +73,31 @@ public class EncryptedChannelV2 implements ByteChannel {
     public static enum Role {
         CLIENT, SERVER
     }
+    
+    public void pushback(byte[] pushbackMessage) {
+        this.pushbackMessage = pushbackMessage;
+    }
 
     @Override
     public byte[] read() throws ComException {
-        byte[] encrypted = channel.read();
+        byte[] encrypted = readOrTakePushback();
         encrypted = unwrap(encrypted);
         byte[] clear = decrypt(encrypted);
         increaseReadNonce();
         return clear;
+    }
+    
+    private byte[] readOrTakePushback() {
+        byte[] bytes;
+        
+        if (this.pushbackMessage != null) {
+            bytes = this.pushbackMessage;
+            this.pushbackMessage = null;
+        } else {
+            bytes = channel.read();
+        }
+        
+        return bytes;
     }
 
     @Override
@@ -145,10 +177,12 @@ public class EncryptedChannelV2 implements ByteChannel {
     
     private void updateReadNonceBytes() {
         Bytes.longToBytesLE(readNonceInteger, readNonceBytes, 0);
+        System.arraycopy(sessionNonce, 0, readNonceBytes, 8, TTPacket.SESSION_NONCE_SIZE);
     }
     
     private void updateWriteNonceBytes() {
         Bytes.longToBytesLE(writeNonceInteger, writeNonceBytes, 0);
+        System.arraycopy(sessionNonce, 0, writeNonceBytes, 8, TTPacket.SESSION_NONCE_SIZE);
     }
     
     /**

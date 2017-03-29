@@ -2,7 +2,6 @@ package saltchannel.v2;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import a1a2.A1Client;
 import a1a2.A2Packet;
 import saltchannel.ByteChannel;
@@ -188,42 +187,5 @@ public class ChannelTest {
         Assert.assertEquals(2, a2b.prots.length);
         Assert.assertEquals("SC2-------", a2.prots[0].p1);
         Assert.assertEquals("MyProtV3--", a2.prots[0].p2);
-    }
-    
-    @Test
-    public void testTicketRequested() {
-        // Client requests a ticket from the server. A dummy ResumeHandler is used.
-        
-        Tunnel tunnel = new Tunnel();
-        ResumeHandler resumeHandler = new ResumeHandler(CryptoTestData.random32a, 0, 100*1000);
-        
-        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
-        client.setEncKeyPair(CryptoTestData.aEnc);
-        client.setTicketRequested(true);
-        
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
-        server.setEncKeyPair(CryptoTestData.bEnc);
-        server.setResumeHandler(resumeHandler);
-        
-        Thread thread = new Thread(new Runnable() {
-            public void run() {
-                server.handshake();
-                byte[] app1 = server.getChannel().read();
-                byte[] app2 = app1.clone();
-                server.getChannel().write(app2);
-            }
-        });
-        thread.start();
-        
-        client.handshake();
-        
-        byte[] app1 = new byte[]{120};
-        client.getChannel().write(app1);
-        byte[] app2 = client.getChannel().read();
-        byte[] ticket = client.getTicket();
-        
-        Assert.assertArrayEquals(app1, app2);
-        Assert.assertTrue(ticket != null);
-        Assert.assertTrue(ticket.length > 16);
     }
 }
