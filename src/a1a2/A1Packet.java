@@ -1,8 +1,10 @@
-package saltchannel.v2.packets;
+package a1a2;
 
 import saltchannel.BadPeer;
 import saltchannel.util.Deserializer;
 import saltchannel.util.Serializer;
+import saltchannel.v2.packets.Packet;
+import saltchannel.v2.packets.PacketHeader;
 
 /**
  * Data of A1 message, low-level serialization / deserialization.

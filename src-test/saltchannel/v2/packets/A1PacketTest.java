@@ -3,6 +3,8 @@ package saltchannel.v2.packets;
 import org.junit.Assert;
 import org.junit.Test;
 
+import a1a2.A1Packet;
+
 public class A1PacketTest {
 
     @Test

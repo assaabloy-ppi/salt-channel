@@ -1,9 +1,13 @@
-package saltchannel.v2.packets;
+package a1a2;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+
 import saltchannel.BadPeer;
 import saltchannel.util.Deserializer;
 import saltchannel.util.Serializer;
+import saltchannel.v2.packets.Packet;
+import saltchannel.v2.packets.PacketHeader;
 
 /**
  * Data of A2 message, low-level serialization / deserialization.
@@ -12,6 +16,10 @@ import saltchannel.util.Serializer;
  */
 public class A2Packet implements Packet {
     public static final int PACKET_TYPE = 9;
+    public static final int PROT_STRING_SIZE = Prot.P_SIZE;
+    public static final String SC2_PROT_STRING = "SC2-------";
+    public static final String UNSPECIFIED_PROT_STRING = "----------";
+    
     public Prot[] prots;
     
     public int getType() {
@@ -61,6 +69,9 @@ public class A2Packet implements Packet {
             if (p2.length != Prot.P_SIZE) {
                 throw new IllegalStateException("bad p2 size");
             }
+            
+            s.writeBytes(p1);
+            s.writeBytes(p2);
         }
     }
     
@@ -111,6 +122,54 @@ public class A2Packet implements Packet {
         public Prot(String p1, String p2) {
             this.p1 = p1;
             this.p2 = p2;
+        }
+    }
+    
+    public static class Builder {
+        private String p1 = SC2_PROT_STRING;
+        private ArrayList<Prot> prots = new ArrayList<Prot>();
+        
+        /**
+         * This must be SC2_PROT_STRING for Salt Channel v2.
+         * This is also the default value if this method is not called.
+         */
+        public Builder saltChannelProt(String p1) {
+            checkP(p1);
+            this.p1 = p1;
+            return this;
+        }
+        
+        /**
+         * Adds subprotocol 'p2' to the declared available protocols of the server.
+         */
+        public Builder prot(String p2) {
+            checkP(p2);
+            prots.add(new Prot(p1, p2));
+            return this;
+        }
+        
+        private void checkP(String p) {
+            if (p == null) {
+                throw new IllegalArgumentException("null not allowed for prot type");
+            }
+            
+            if (p.length() != PROT_STRING_SIZE) {
+                throw new IllegalArgumentException("bad length of prot type string" + p.length());
+            }
+        }
+        
+        public A2Packet build() {
+            if (prots.size() == 0) {
+                prot(UNSPECIFIED_PROT_STRING);
+            }
+            
+            A2Packet a2 = new A2Packet();
+            a2.prots = new A2Packet.Prot[prots.size()];
+            for (int i = 0; i < a2.prots.length; i++) {
+                a2.prots[i] = prots.get(i);
+            }
+            
+            return a2;
         }
     }
 }

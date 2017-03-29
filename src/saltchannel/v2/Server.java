@@ -1,10 +1,13 @@
 package saltchannel.v2;
 
 import java.util.Arrays;
+
+import a1a2.A2Packet;
 import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
 import saltchannel.TweetNaCl;
+import saltchannel.util.Deserializer;
 import saltchannel.util.KeyPair;
 import saltchannel.util.NullTimeChecker;
 import saltchannel.util.Rand;
@@ -12,13 +15,12 @@ import saltchannel.util.TimeChecker;
 import saltchannel.util.TimeKeeper;
 import saltchannel.util.NullTimeKeeper;
 import saltchannel.v2.EncryptedChannelV2.Role;
-import saltchannel.v2.packets.A2Packet;
 import saltchannel.v2.packets.M1Packet;
 import saltchannel.v2.packets.M2Packet;
 import saltchannel.v2.packets.M3Packet;
 import saltchannel.v2.packets.M4Packet;
-
-// TODO B. implement A1-A2.
+import saltchannel.v2.packets.Packet;
+import saltchannel.v2.packets.PacketHeader;
 
 /**
  * Server-side implementation of a Salt Channel v2 session.
@@ -50,6 +52,13 @@ public class Server {
         this.sigKeyPair = sigKeyPair;
         this.timeKeeper = NullTimeKeeper.INSTANCE;
         this.timeChecker = NullTimeChecker.INSTANCE;
+        initDefaultA2();
+    }
+    
+    private void initDefaultA2() {
+        this.a2Packet = new A2Packet();
+        a2Packet.prots = new A2Packet.Prot[1];
+        a2Packet.prots[0] = new A2Packet.Prot("SC2-------", "----------");
     }
     
     /**
@@ -80,13 +89,25 @@ public class Server {
     }
     
     /**
+     * Executes the salt channel handshake or returns the A2 packet
+     * given an A1 request.
+     * 
      * @throws NoSuchServer
      * @throws BadPeer
      */
     public void handshake() {
-        checkThatEncKeyPairWasSet();        
+        byte[] m1Bytes = clearChannel.read();
+        PacketHeader header = parseHeader(m1Bytes);
         
-        m1();
+        if (header.getType() == Packet.TYPE_A1) {
+            checkThatA2WasSet();
+            a2();
+            return;
+        }
+        
+        checkThatEncKeyPairWasSet();
+        
+        m1(m1Bytes);
         handleNoSuchServerIfNeeded();
         
         m2();
@@ -96,6 +117,12 @@ public class Server {
         
         m4();
         validateSignature2();
+    }
+
+    private void checkThatA2WasSet() {
+        if (a2Packet == null) {
+            throw new IllegalStateException("a2Packet was not set");
+        }
     }
 
     private void checkThatEncKeyPairWasSet() {
@@ -126,9 +153,21 @@ public class Server {
     public ByteChannel getChannel() {
         return this.appChannel;
     }
+    
+    private PacketHeader parseHeader(byte[] messageBytes) {
+        return new Deserializer(messageBytes, 0).readHeader();
+    }
+    
+    /**
+     * Writes the A2 response.
+     */
+    private void a2() {
+        byte[] buffer = new byte[a2Packet.getSize()];
+        a2Packet.toBytes(buffer, 0);
+        clearChannel.write(buffer);
+    }
 
-    private void m1() {
-        byte[] m1Bytes = clearChannel.read();
+    private void m1(byte[] m1Bytes) {
         this.m1Hash = CryptoLib.sha512(m1Bytes);
         this.m1 = M1Packet.fromBytes(m1Bytes, 0);
         timeChecker.reportFirstTime(m1.time);

@@ -2,6 +2,9 @@ package saltchannel.v2;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import a1a2.A1Client;
+import a1a2.A2Packet;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.CryptoLib;
@@ -141,5 +144,49 @@ public class ChannelTest {
         byte[] response = channel.read();
         
         Assert.assertArrayEquals(app1, response);
+    }
+    
+    @Test
+    public void testDefaultA2() {
+        Tunnel tunnel = new Tunnel();
+        
+        final A1Client client = new A1Client(tunnel.channel1());
+        final Server server = new Server(CryptoTestData.bSig, tunnel.channel2());
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                server.handshake();
+            }
+        });
+        thread.start();
+        
+        A2Packet a2 = client.go();
+        
+        Assert.assertEquals(1, a2.prots.length);
+        Assert.assertEquals("SC2-------", a2.prots[0].p1);
+        Assert.assertEquals("----------", a2.prots[0].p2);
+    }
+    
+    @Test
+    public void testCustomA2() {
+        Tunnel tunnel = new Tunnel();
+        A2Packet a2 = new A2Packet.Builder().prot("MyProtV3--").prot("NataliaV2-").build();
+        
+        final A1Client client = new A1Client(tunnel.channel1());
+        final Server server = new Server(CryptoTestData.bSig, tunnel.channel2());
+        server.setA2(a2);
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                server.handshake();
+            }
+        });
+        thread.start();
+        
+        A2Packet a2b = client.go();
+        
+        Assert.assertEquals(2, a2b.prots.length);
+        Assert.assertEquals("SC2-------", a2.prots[0].p1);
+        Assert.assertEquals("MyProtV3--", a2.prots[0].p2);
     }
 }
