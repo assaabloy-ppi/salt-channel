@@ -132,7 +132,7 @@ public class ServerSession {
     }
 
     private void handleNoSuchServerIfNeeded() {
-        if (m1.hasServerSigKey() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
+        if (m1.serverSigKeyIncluded() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
             clearChannel.write(noSuchServerM2Raw());
             throw new NoSuchServer();
         }

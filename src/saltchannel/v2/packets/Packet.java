@@ -13,6 +13,7 @@ public interface Packet {
     public static final int TYPE_TICKET = 7;
     public static final int TYPE_A1 = 8;
     public static final int TYPE_A2 = 9;
+    public static final int TYPE_TT = 10;
     
     /**
      * Returns byte size of packet when serialized to a byte array.

@@ -29,34 +29,34 @@ public class M1Packet implements Packet {
     public int getSize() {
         return 4 + PacketHeader.SIZE + 4
                 + 32
-                + (hasServerSigKey() ? 32 : 0)
-                + (hasTicket() ? (1 + ticket.length) : 0);
+                + (serverSigKeyIncluded() ? 32 : 0)
+                + (ticketIncluded() ? (1 + ticket.length) : 0);
     }
     
-    public boolean hasServerSigKey() {
+    public boolean serverSigKeyIncluded() {
         return serverSigKey != null;
     }
     
-    public boolean hasTicket() {
+    public boolean ticketIncluded() {
         return ticket != null;
     }
     
     public void toBytes(byte[] destination, int offset) {
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
-        header.setBit(BIT_INDEX_SERVER_SIG_KEY_INCLUDED, hasServerSigKey());
-        header.setBit(BIT_INDEX_TICKET_INCLUDED, hasTicket());
+        header.setBit(BIT_INDEX_SERVER_SIG_KEY_INCLUDED, serverSigKeyIncluded());
+        header.setBit(BIT_INDEX_TICKET_INCLUDED, ticketIncluded());
         
         s.writeString("SCv2");    // ProtocolIndicator
         s.writeHeader(header);
         s.writeInt32(time);
         s.writeBytes(clientEncKey);
         
-        if (hasServerSigKey()) {
+        if (serverSigKeyIncluded()) {
             s.writeBytes(serverSigKey);
         }
         
-        if (hasTicket()) {
+        if (ticketIncluded()) {
             if (ticket.length > 127) {
                 throw new IllegalStateException("bad ticket length, " + ticket.length);
             }

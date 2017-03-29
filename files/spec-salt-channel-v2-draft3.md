@@ -750,6 +750,9 @@ ticket. It is encrypted and sent wrapped in an EncryptedMessage.
     
     2   Header. 
         Packet type and flags.
+        
+    4   Time.
+        See separate documentation.
     
     2   Ticket, OPT.
         A Ticket (encrypted) from the server.
@@ -901,6 +904,9 @@ List of message types
 =====================
 
 This section is informative.
+TODO: consider changing packet types. Should A1, A2 be 0, 1? Or 14, 15 perhaps?
+TODO: consider having one whole byte as message type. 8 bits is enough anyway.
+    Simpler and allows more message types.
     
     PacketType   Name
     
