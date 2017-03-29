@@ -14,6 +14,11 @@ public class M2Packet implements Packet {
     public boolean noSuchServer;
     public int time;
     public byte[] serverEncKey;
+    public boolean resumeSupported;
+    
+    public M2Packet() {
+        resumeSupported = false;
+    }
     
     public int getType() {
         return PACKET_TYPE;
@@ -39,6 +44,7 @@ public class M2Packet implements Packet {
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
         header.setBit(0, noSuchServer);
+        header.setBit(1, resumeSupported);
         
         s.writeHeader(header);
         s.writeInt32(time);
@@ -62,6 +68,8 @@ public class M2Packet implements Packet {
         }
         
         p.noSuchServer = header.getBit(0);
+        p.resumeSupported = header.getBit(1);
+        
         p.time = d.readInt32();
         if (p.time < 0) {
             throw new BadPeer("bad time, " + p.time);

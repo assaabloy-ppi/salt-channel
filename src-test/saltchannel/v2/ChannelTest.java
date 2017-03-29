@@ -27,10 +27,10 @@ public class ChannelTest {
         
         Tunnel tunnel = new Tunnel();
         
-        final Client client = new Client(CryptoTestData.aSig, tunnel.channel1());
+        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         
-        final Server server = new Server(CryptoTestData.bSig, tunnel.channel2());
+        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setEncKeyPair(CryptoTestData.bEnc);
         
         Thread thread = new Thread(new Runnable() {
@@ -75,11 +75,11 @@ public class ChannelTest {
             }
         };
         
-        final Client client = new Client(CryptoTestData.aSig, tunnel.channel1());
+        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         client.setTimeChecker(testChecker);
         
-        final Server server = new Server(CryptoTestData.bSig, tunnel.channel2());
+        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setEncKeyPair(CryptoTestData.bEnc);
         
         Thread thread = new Thread(new Runnable() {
@@ -121,10 +121,10 @@ public class ChannelTest {
         final KeyPair serverKeyPair = CryptoLib.createSigKeys(rand);
         final Tunnel tunnel = new Tunnel();
         
-        final Server server = new Server(serverKeyPair, tunnel.channel2());
+        final ServerSession server = new ServerSession(serverKeyPair, tunnel.channel2());
         server.setEncKeyPair(rand);
         
-        final Client client = new Client(clientKeyPair, tunnel.channel1());
+        final ClientSession client = new ClientSession(clientKeyPair, tunnel.channel1());
         client.setEncKeyPair(rand);
         
         Thread thread = new Thread(new Runnable() {
@@ -151,7 +151,7 @@ public class ChannelTest {
         Tunnel tunnel = new Tunnel();
         
         final A1Client client = new A1Client(tunnel.channel1());
-        final Server server = new Server(CryptoTestData.bSig, tunnel.channel2());
+        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
         
         Thread thread = new Thread(new Runnable() {
             public void run() {
@@ -173,7 +173,7 @@ public class ChannelTest {
         A2Packet a2 = new A2Packet.Builder().prot("MyProtV3--").prot("NataliaV2-").build();
         
         final A1Client client = new A1Client(tunnel.channel1());
-        final Server server = new Server(CryptoTestData.bSig, tunnel.channel2());
+        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setA2(a2);
         
         Thread thread = new Thread(new Runnable() {

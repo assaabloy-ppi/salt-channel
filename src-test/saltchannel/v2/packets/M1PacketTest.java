@@ -18,4 +18,19 @@ public class M1PacketTest {
         
         Assert.assertArrayEquals(bytes1, bytes2);
     }
+    
+    @Test
+    public void testWithTicket() {
+        M1Packet p = new M1Packet();
+        p.clientEncKey = new byte[32];
+        p.serverSigKey = null;
+        p.ticket = new byte[20];    // dummy data
+        
+        byte[] bytes1 = new byte[p.getSize()];
+        p.toBytes(bytes1, 0);
+        byte[] bytes2 = new byte[bytes1.length];
+        M1Packet.fromBytes(bytes1, 0).toBytes(bytes2, 0);
+        
+        Assert.assertArrayEquals(bytes1, bytes2);
+    }
 }

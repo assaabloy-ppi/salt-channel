@@ -17,7 +17,7 @@ import saltchannel.v2.packets.M3Packet;
 import saltchannel.v2.packets.M4Packet;
 
 /**
- * Client-side implementation of Salt Channel v2.
+ * Client-side implementation of a Salt Channel v2 session.
  * Usage: create object, set or create ephemeral key, 
  * call handshake(), get resulting encrypted channel (getChannel()) 
  * to use by application layer. Use getServerSigKey() to get the server's pubkey.
@@ -27,7 +27,7 @@ import saltchannel.v2.packets.M4Packet;
  * 
  * @author Frans Lundberg
  */
-public class Client {
+public class ClientSession {
     private final ByteChannel clearChannel;
     private EncryptedChannelV2 encryptedChannel;
     private TimeKeeper timeKeeper;
@@ -43,7 +43,7 @@ public class Client {
     private M4Packet m4;
     private AppChannelV2 appChannel;
 
-    public Client(KeyPair sigKeyPair, ByteChannel clearChannel) {
+    public ClientSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
         this.timeKeeper = NullTimeKeeper.INSTANCE;

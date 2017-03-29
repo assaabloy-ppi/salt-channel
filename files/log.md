@@ -3,6 +3,13 @@ log.md
 
 Log and general notes.
 
+2017-03-29
+==========
+
+New approach: we will add the resume feature in v2
+(not wait until v3).
+
+
 2017-02-27
 ==========
 
@@ -25,6 +32,6 @@ Decisions:
   No special Salt Channel messages are used. Just terminate Salt Channel 
   session.
 * Time between two consecutive messages must not exceed 10 days (24x2600x10 s).
-* M1: protHeader ("SCv2", header, time, ...
+* M1: protHeader ("SC2-------", header, time, ...
 * Simon: test host, test client (manual Telnet style) is useful.
   Built-in to salt-channel.jar perhaps.

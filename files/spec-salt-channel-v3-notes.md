@@ -211,14 +211,14 @@ Details:
 
     1   TicketSize, OPT.
         The size of the following ticket encoded in one byte.
-        Allowed range: 1-127.
+        Allowed value range: 1-127.
 
     x   Ticket, OPT.
         A resume ticket received from the server in a previous
         session between this particular client and server.
-        The bytes of the ticket MUST NOT be interprented by the client.
-        The exact interprentation of the bytes is entirely up to
-        the server. See separate section.
+        The bytes of the ticket MUST NOT be interpreted by the client.
+        The exact interpretation of the bytes is entirely up to
+        the server. See separate documentation.
 
 
     **** M1/Header ****
@@ -449,37 +449,36 @@ However, the server SHOULD follow the specification here. The resume
 ticket specification here is the one that will be audited and should
 have the highest possible security.
 
-The resume feature is OPTIONAL. Servers may not implemement it. In that
+The resume feature is OPTIONAL. Servers may not implement it. In that
 case a server MUST always set the M2/ResumeSupported bit to 0.
 
 
 Idea
 ----
 
-The idea with the resume tickets is to support session-resume to signicantly
+The idea with the resume tickets is to support session-resume to significantly
 reduce the overhead of the Salt Channel handshake. A resumed session uses
-less communication data and a zero-way overhead. Also, the handshake of
-a resumed session does not require computationally heavy asymmetric 
-cryptography operations.
+less communication data and a zero round-trip overhead. Also, the handshake of
+a resumed session does not require CPU intensive asymmetric cryptography.
 
 Salt Channel resume allows a server to support the resume feature using only
 one single bit of memory for each created ticket. This allows the server to 
-have all sensitive data related to this feature in memory. Also the ticket
-encryption key can be stored in memory only. If it is lost due to power 
-failure the only affect is that outstanding tickets will become invalid
-and a full handshake will required when client connect.
+have all data related to this feature in memory. The ticket
+encryption key can be stored in memory. If it is lost due to power 
+failure, the only affect is that outstanding tickets will become invalid
+and a full handshake will required when a client connects.
 
-The clients store one ticket per server. A client can choose whether to use
-the resume feature or not. It can do this per-server if it choses to.
+A client stores one ticket per server. The client can choose whether to use
+the resume feature or not. It can do this on a per-server basis.
 
-A unique ticket index (Ticket/Encrypted/TicketIndex) is given to every 
-ticket that is issued by the server. The first such index may, for example,
-be the number of microseconds since Unix Epoch (1 January 1970 UTC).
-After that, each issued ticket is given an index that equals the previously
-issued index plus one.
+A unique ticket index (message field: Ticket/Encrypted/TicketId) is 
+given to every ticket that is issued by the server. The first such 
+index may, for example, be the number of microseconds since 
+Unix Epoch (1 January 1970 UTC). After that, each issued ticket is 
+given an index that equals the previously issued index plus one.
 
-A bitmap is used to protect agains replay attacks. The bitmap stores one bit
-per non-experied ticket that is issued. The bit is set to 1 when a
+A bitmap is used to protect against replay attacks. The bitmap stores one bit
+per non-expired ticket that is issued. The bit is set to 1 when a
 ticket is issued and to 0 when it is used. Thus, a ticket can only be used
 once. Of course, the bitmap cannot be of infinite size. In fact, the server
 implementation can use a fixed size circular bit buffer. Using one megabyte 
@@ -530,13 +529,13 @@ Ticket details
         The server MUST consider the ticket invalid if Ticket/Encrypted/Header
         differs from Ticket/Header.
 
-    2   KeyIndex.
-        The KeyIndex bytes repeated. For authentication purposes.
-        The server MUST consider the ticket invalid if Ticket/Encrypted/KeyIndex
-        differs from Ticket/KeyIndex.
+    2   KeyId.
+        The KeyId bytes; repeated for data authentication purposes.
+        The server MUST consider the ticket invalid if Ticket/Encrypted/KeyId
+        differs from Ticket/KeyId.
 
-    8   TicketIndex
-        The ticket index of the ticket.
+    8   TicketId
+        The ID of the ticket.
         A 8-byte integer in the range: 0 to 2^63-1 (inclusive).
 
     32  ClientSigKey.

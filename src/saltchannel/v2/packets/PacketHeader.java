@@ -34,6 +34,9 @@ public class PacketHeader {
         return Bytes.unsigned(bytes[0]) & TYPE_MASK;
     }
     
+    /**
+     * Sets a bit indexed from 0 to 11.
+     */
     public void setBit(int index, boolean value) {
         checkBitIndex(index);
         int index2 = index + 4;

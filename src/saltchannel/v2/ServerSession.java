@@ -32,7 +32,7 @@ import saltchannel.v2.packets.PacketHeader;
  * 
  * @author Frans Lundberg
  */
-public class Server {
+public class ServerSession {
     private final ByteChannel clearChannel;
     private EncryptedChannelV2 encryptedChannel;
     private TimeKeeper timeKeeper;
@@ -47,7 +47,7 @@ public class Server {
     private M4Packet m4;
     private AppChannelV2 appChannel;
     
-    public Server(KeyPair sigKeyPair, ByteChannel clearChannel) {
+    public ServerSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
         this.timeKeeper = NullTimeKeeper.INSTANCE;
