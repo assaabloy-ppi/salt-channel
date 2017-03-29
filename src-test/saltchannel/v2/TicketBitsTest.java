@@ -1,9 +1,9 @@
-package saltchannel.v3;
+package saltchannel.v2;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import saltchannel.v3.TicketBits;
+import saltchannel.v2.TicketBits;
 
 public class TicketBitsTest {
 

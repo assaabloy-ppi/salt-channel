@@ -1,4 +1,4 @@
-package saltchannel.v3;
+package saltchannel.util;
 
 /**
  * Simple bit field implementation, fixed size.

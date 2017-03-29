@@ -1,4 +1,6 @@
-package saltchannel.v3;
+package saltchannel.v2;
+
+import saltchannel.util.BitField;
 
 /**
  * A instance of this class keeps track of all issued tickets 
