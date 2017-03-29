@@ -27,6 +27,7 @@ import static org.libsodium.jni.crypto.Util.checkLength;
 import static org.libsodium.jni.crypto.Util.isValid;
 import static org.libsodium.jni.crypto.Util.removeZeros;
 
+@SuppressWarnings("static-access")
 public class SecretBox {
 
     private byte[] key;

@@ -15,6 +15,7 @@ import saltchannel.v2.packets.M1Packet;
 import saltchannel.v2.packets.M2Packet;
 import saltchannel.v2.packets.M3Packet;
 import saltchannel.v2.packets.M4Packet;
+import saltchannel.v2.packets.TTPacket;
 
 /**
  * Client-side implementation of a Salt Channel v2 session.
@@ -41,13 +42,16 @@ public class ClientSession {
     private byte[] m2Hash;
     private M3Packet m3;
     private M4Packet m4;
+    private TTPacket tt;
     private AppChannelV2 appChannel;
+    private boolean ticketRequested;
 
     public ClientSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
         this.timeKeeper = NullTimeKeeper.INSTANCE;
         this.timeChecker = NullTimeChecker.INSTANCE;
+        this.ticketRequested = false;
     }
     
     public void setWantedServer(byte[] wantedServerSigKey) {
@@ -67,6 +71,10 @@ public class ClientSession {
      */
     public void setEncKeyPair(Rand rand) {
         this.encKeyPair = CryptoLib.createEncKeys(rand);
+    }
+    
+    public void setTicketRequested(boolean requestTicket) {
+        this.ticketRequested = requestTicket;
     }
     
     public void setTimeKeeper(TimeKeeper timeKeeper) {
@@ -93,6 +101,8 @@ public class ClientSession {
         validateSignature1();
         
         m4();
+        
+        tt();
     }
     
     /**
@@ -107,6 +117,14 @@ public class ClientSession {
     }
     
     /**
+     * Returns ticket from server or null if ticket was sent from
+     * server.
+     */
+    public byte[] getTicket() {
+        return tt == null ? null : tt.ticket;
+    }
+    
+    /**
      * Creates and writes M1 message.
      */
     private void m1() {
@@ -114,6 +132,7 @@ public class ClientSession {
         m1.time = timeKeeper.getFirstTime();
         m1.clientEncKey = this.encKeyPair.pub();
         m1.serverSigKey = this.wantedServerSigKey;
+        m1.ticketRequested = this.ticketRequested;
         
         byte[] m1Bytes = m1.toBytes();
         this.m1Hash = CryptoLib.sha512(m1Bytes);
@@ -147,6 +166,16 @@ public class ClientSession {
         m4.clientSigKey = this.sigKeyPair.pub();
         m4.signature2 = signature2();
         encryptedChannel.write(m4.toBytes());
+    }
+    
+    /**
+     * Reads TT packet from server if expected.
+     */
+    private void tt() {
+        if (m1.ticketRequested && m2.resumeSupported) {
+            byte[] bytes = encryptedChannel.read();
+            this.tt = TTPacket.fromBytes(bytes, 0);
+        }
     }
     
     /**

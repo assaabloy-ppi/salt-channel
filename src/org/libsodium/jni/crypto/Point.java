@@ -23,6 +23,7 @@ import static org.libsodium.jni.NaCl.sodium;
 import static org.libsodium.jni.crypto.Util.zeros;
 import static org.libsodium.jni.encoders.Encoder.HEX;
 
+@SuppressWarnings("static-access")
 public class Point {
 
     private static final String STANDARD_GROUP_ELEMENT = "0900000000000000000000000000000000000000000000000000000000000000";

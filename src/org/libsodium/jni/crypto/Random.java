@@ -18,6 +18,7 @@ package org.libsodium.jni.crypto;
 
 import static org.libsodium.jni.NaCl.sodium;
 
+@SuppressWarnings("static-access")
 public class Random {
 
     private static final int DEFAULT_SIZE = 32;

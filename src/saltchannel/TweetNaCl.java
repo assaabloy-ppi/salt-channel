@@ -18,11 +18,10 @@
 package saltchannel;
 
 import java.util.Arrays;
-
 import org.libsodium.jni.Sodium;
-
 import static org.libsodium.jni.NaCl.sodium;
 
+@SuppressWarnings("static-access")
 public class TweetNaCl {
     public static final int crypto_auth_hmacsha512256_tweet_BYTES = 32;
     public static final int crypto_auth_hmacsha512256_tweet_KEYBYTES = 32;
@@ -1363,9 +1362,7 @@ public class TweetNaCl {
         //}
     }
 
-*/
-    
-    //@SuppressWarnings("unused")
+*/    
     private static void randombytes(byte[] b, int len) {
         sodium().randombytes(b, len);
 

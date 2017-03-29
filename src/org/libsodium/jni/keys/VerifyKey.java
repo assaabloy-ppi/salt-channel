@@ -24,6 +24,7 @@ import static org.libsodium.jni.SodiumConstants.PUBLICKEY_BYTES;
 import static org.libsodium.jni.SodiumConstants.SIGNATURE_BYTES;
 import static org.libsodium.jni.NaCl.sodium;
 
+@SuppressWarnings("static-access")
 public class VerifyKey {
 
     private byte[] key;

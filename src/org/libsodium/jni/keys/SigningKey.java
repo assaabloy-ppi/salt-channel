@@ -26,6 +26,7 @@ import static org.libsodium.jni.SodiumConstants.SECRETKEY_BYTES;
 import static org.libsodium.jni.SodiumConstants.SIGNATURE_BYTES;
 import static org.libsodium.jni.NaCl.sodium;
 
+@SuppressWarnings("static-access")
 public class SigningKey {
 
     private final byte[] seed;

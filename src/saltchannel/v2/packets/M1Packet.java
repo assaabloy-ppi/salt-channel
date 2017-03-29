@@ -13,11 +13,13 @@ public class M1Packet implements Packet {
     public static final int PACKET_TYPE = 1;
     public static final int BIT_INDEX_SERVER_SIG_KEY_INCLUDED = 0;
     public static final int BIT_INDEX_TICKET_INCLUDED = 1;
+    public static final int BIT_INDEX_TICKET_REQUESTED = 2;
     
     public int time;
     public byte[] clientEncKey;
     public byte[] serverSigKey;
     public byte[] ticket;
+    public boolean ticketRequested;
     
     public int getType() {
         return PACKET_TYPE;
@@ -46,6 +48,7 @@ public class M1Packet implements Packet {
         PacketHeader header = new PacketHeader(PACKET_TYPE);
         header.setBit(BIT_INDEX_SERVER_SIG_KEY_INCLUDED, serverSigKeyIncluded());
         header.setBit(BIT_INDEX_TICKET_INCLUDED, ticketIncluded());
+        header.setBit(BIT_INDEX_TICKET_REQUESTED, ticketRequested);
         
         s.writeString("SCv2");    // ProtocolIndicator
         s.writeHeader(header);
@@ -98,6 +101,7 @@ public class M1Packet implements Packet {
         
         boolean serverSigKeyIncluded = header.getBit(BIT_INDEX_SERVER_SIG_KEY_INCLUDED);
         boolean ticketIncluded = header.getBit(BIT_INDEX_TICKET_INCLUDED);
+        data.ticketRequested = header.getBit(BIT_INDEX_TICKET_REQUESTED);
         
         data.clientEncKey = d.readBytes(32);
         

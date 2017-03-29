@@ -1,6 +1,7 @@
 package saltchannel;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Random;
 import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
@@ -124,8 +125,6 @@ public class CryptoLib {
      */
     public static KeyPair createSigKeysFromSec(byte[] sec) {
         byte[] pub = new byte[TweetNaCl.SIGN_PUBLIC_KEY_BYTES];
-        boolean isSeeded = true;
-
         //TweetNaCl.crypto_sign_keypair(pub, sec, isSeeded);
         // fix of bug #2. Now use deterministic version of KeyPair derivation (deriving from 3rd parameter)
         TweetNaCl.crypto_sign_seed_keypair(pub, sec, sec);  
@@ -228,4 +227,35 @@ public class CryptoLib {
         }
     };
 
+    public static byte[] encrypt(byte[] key, byte[] nonce, byte[] clear) {
+        byte[] m = new byte[TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES + clear.length];
+        byte[] c = new byte[m.length];
+        System.arraycopy(clear, 0, m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, clear.length);
+        TweetNaCl.crypto_box_afternm(c, m, m.length, nonce, key);
+        return Arrays.copyOfRange(c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, c.length);
+    }
+    
+    /**
+     * @throws ComException
+     */
+    public static byte[] decrypt(byte[] key, byte[] nonce, byte[] encrypted) {
+        if (encrypted == null) {
+            throw new Error("encrypted == null");
+        }
+        
+        byte[] clear;
+        byte[] c = new byte[TweetNaCl.SECRETBOX_OVERHEAD_BYTES + encrypted.length];
+        byte[] m = new byte[c.length];
+        System.arraycopy(encrypted, 0, c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, encrypted.length);
+        if (c.length < 32) {
+            throw new ComException("ciphertext too small");
+        }
+        
+        if (TweetNaCl.crypto_box_open_afternm(m, c, c.length, nonce, key) != 0) {
+            throw new ComException("invalid encryption");
+        }
+        
+        clear = Arrays.copyOfRange(m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, m.length);
+        return clear;
+    }
 }

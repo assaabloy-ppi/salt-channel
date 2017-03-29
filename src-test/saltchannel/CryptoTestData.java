@@ -1,5 +1,6 @@
 package saltchannel;
 
+import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
 
 public class CryptoTestData {
@@ -65,5 +66,12 @@ public class CryptoTestData {
     public static final KeyPair dEnc = KeyPair.fromHex(
             "8903129d8b421a93aaf189e30f3f8691a02ffe638adf9734fda8ac1ce9c510a6", 
             "6230d0df1a5069548447978c107b378ca88179c3799fb99df1007141fc173712");
+    
+    public static final byte[] random32a = Hex.toBytes(
+            "491cbc6d62351b396c8121a077e739f7764992f30be24a9b25ddedc3d68388c6");
+    
+    public static final byte[] random16a = Hex.toBytes(
+            "d69e8040a8f8a22c39071060211845bd");
+    
 }
 

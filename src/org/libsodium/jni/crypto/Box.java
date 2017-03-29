@@ -34,6 +34,7 @@ import static org.libsodium.jni.crypto.Util.removeZeros;
 /**
  * Based on Curve25519XSalsa20Poly1305 and Box classes from rbnacl
  */
+@SuppressWarnings("static-access")
 public class Box {
 
     private final byte[] privateKey;
@@ -67,6 +68,7 @@ public class Box {
         return encrypt(encoder.decode(nonce), encoder.decode(message));
     }
 
+    
     public byte[] decrypt(byte[] nonce, byte[] ciphertext) {
         checkLength(nonce, NONCE_BYTES);
         byte[] ct = prependZeros(BOXZERO_BYTES, ciphertext);

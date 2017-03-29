@@ -14,6 +14,10 @@ frans.lundberg@assaabloy.com, phone: +46707601861.
 *Thanks*: 
 To Simon Johansson and Håkan Olsson for valuable comments and discussions.
 
+*Temp notes*:
+
+* Check TODO markers in text.
+
 
 Document history
 ----------------
@@ -392,18 +396,9 @@ once M2 has been sent and received.
         it was specified in M1 (to keep things simple).
     
     64  Signature1
-        Signature of the following elements concatenated:
-        ServerEncKey + ClientEncKey + hash(M1) + hash(M2).
+        Signature of the following elements concatenated: hash(M1) + hash(M2).
         hash() is used to denote the SHA512 checksum.
         Only the actual signature (64 bytes) is included in the field.
-    
-    1   TicketSize, OPT.
-        Size of the following ticket in bytes. 
-        Allowed value range: 0-127.
-        
-    x   Ticket, OPT.
-        A newly created ticket that the client can use in M1 the next time 
-        it connects to the server.
     
     
     **** M3/Header ****
@@ -411,11 +406,8 @@ once M2 has been sent and received.
     4b  PacketType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 3 for this packet.
-        
-    1b  TicketIncluded.
-        Set to 1 when TicketSize+Ticket are included in the message.
     
-    11b Zero.
+    12b Zero.
         Bits set to 0.
     
 
@@ -442,8 +434,7 @@ message from the client to the server.
         The client's public signature key.
         
     64  Signature2.
-        Signature of the following elements concatenated:
-        ClientEncKey + ServerEncKey + hash(M1) + hash(M2).
+        Signature of the following elements concatenated: hash(M1) + hash(M2).
         hash() is used to denote the SHA512 checksum.
         Only the actual signature (64 bytes) is included in the field.
     
@@ -619,16 +610,24 @@ layer.
     ---> M1
     <--- M2, M3
     ---> M4, App1
-    <--- App2
+    <--- TT, App2
     
-    Figure: The message flow for Case A. The client does not have a ticket.
+    Figure: The message flow for Case A. The client does not have a ticket, but requests one.
     
-The client does not have a ticket for the server and the normal
-three-way handshake is used. 
-In case the client requests a ticket
-(M1/Header/TicketRequested is set to 1) and the server supports resume, 
-the server will include a newly created ticket in M3.
-The messages M3, M4, App1, App2 are encrypted (EncryptedMessage).
+The client does not have a ticket, but requests one. 
+The normal three-way handshake is used with an additional message
+TT that is sent together with the first application message from the
+server to the client.
+The client requests a ticket (M1/Header/TicketRequested is set to 1)
+and the server supports resume, so the server will include a 
+newly created ticket in TT.
+The messages M3, M4, App1, TT, App2 are encrypted (EncryptedMessage).
+The new ticket cannot be issued until after M4.
+Before that, the server does not know the identity (ClientSigKey)
+of the client.
+
+If the client does not request a new ticket, the server sends
+no TT message.
 
 *Case B, valid ticket*, is shown in the figure below.
     
@@ -676,10 +675,6 @@ Ticket details
 
     2   Header. 
         Packet type and flags.
-    
-    1   Size.
-        Total ticket size including the header and this field.
-        Value range: 3-127.
         
     2   KeyId.
         The server can used KeyId to choose one among multiple 
@@ -709,16 +704,12 @@ Ticket details
     **** Ticket/Encrypted ****
 
     This is an encrypted packet.
+    TODO Should we have ticket version? Perhaps different PacketType values for that?
 
     2   Header.
         The Ticket/Header repeated. For authentication purposes.
         The server MUST consider the ticket invalid if Ticket/Encrypted/Header
         differs from Ticket/Header.
-        
-    1   Size.
-        Repeated for data authentication purposes.
-        The server MUST consider the ticket invalid if Ticket/Encrypted/Size
-        differs from Ticket/Size.
 
     2   KeyId.
         Repeated for data authentication purposes.
@@ -727,7 +718,7 @@ Ticket details
 
     8   TicketId
         The ID of the ticket.
-        A 8-byte integer in the range: 0 to 2^63-1 inclusive.
+        A 8-byte integer in the range: 0 to 2^63-1.
 
     32  ClientSigKey.
         The client's public signature key. Used to identify the client.
@@ -740,8 +731,9 @@ Ticket details
 Message TT
 ----------
 
-This message is sent in response to M1 from client with a valid
-ticket. It is encrypted and sent wrapped in an EncryptedMessage.
+This message is sent in response to a message M1 that includes a 
+valid ticket. The TT message includes a new ticket if the client
+requested one.
 
     **** TT ****
 

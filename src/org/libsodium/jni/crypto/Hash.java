@@ -20,10 +20,10 @@ import org.libsodium.jni.encoders.Encoder;
 import org.libsodium.jni.SodiumConstants;
 import static org.libsodium.jni.NaCl.sodium;
 
+@SuppressWarnings("static-access")
 public class Hash {
 
     private static final int KEY_LEN = 64;
-    private static final int SALTBYTES = 32;
     private byte[] buffer;
 
     public byte[] sha256(byte[] message) {

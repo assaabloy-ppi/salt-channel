@@ -21,10 +21,11 @@ import saltchannel.v2.packets.M3Packet;
 import saltchannel.v2.packets.M4Packet;
 import saltchannel.v2.packets.Packet;
 import saltchannel.v2.packets.PacketHeader;
+import saltchannel.v2.packets.TTPacket;
 
 /**
  * Server-side implementation of a Salt Channel v2 session.
- * Usage: create object, set or create ephemeral key, 
+ * Usage: create object, set or create ephemeral key, use other setX methods,
  * call handshake(), get resulting encrypted ByteChannel to use by
  * application layer. Use getClientSig() to get client's pubkey.
  * Do not reuse the object for more than one Salt Channel session.
@@ -46,12 +47,17 @@ public class ServerSession {
     private byte[] m2Hash;
     private M4Packet m4;
     private AppChannelV2 appChannel;
+    private ResumeHandler resumeHandler;
+    private byte[] m1Bytes;
+    private PacketHeader m1Header;
+    private byte[] sessionKey;
     
     public ServerSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
         this.timeKeeper = NullTimeKeeper.INSTANCE;
         this.timeChecker = NullTimeChecker.INSTANCE;
+        this.resumeHandler = null;
         initDefaultA2();
     }
     
@@ -87,6 +93,10 @@ public class ServerSession {
     public void setTimeChecker(TimeChecker timeChecker) {
         this.timeChecker = timeChecker;
     }
+
+    public void setResumeHandler(ResumeHandler resumeHandler) {
+        this.resumeHandler = resumeHandler;
+    }
     
     /**
      * Executes the salt channel handshake or returns the A2 packet
@@ -96,18 +106,15 @@ public class ServerSession {
      * @throws BadPeer
      */
     public void handshake() {
-        byte[] m1Bytes = clearChannel.read();
-        PacketHeader header = parseHeader(m1Bytes);
+        readM1();
         
-        if (header.getType() == Packet.TYPE_A1) {
-            checkThatA2WasSet();
+        if (m1Header.getType() == Packet.TYPE_A1) {
             a2();
             return;
         }
         
         checkThatEncKeyPairWasSet();
-        
-        m1(m1Bytes);
+        processM1();
         handleNoSuchServerIfNeeded();
         
         m2();
@@ -117,6 +124,13 @@ public class ServerSession {
         
         m4();
         validateSignature2();
+        
+        tt();
+    }
+    
+    private void readM1() {
+        m1Bytes = clearChannel.read();
+        m1Header = parseHeader(m1Bytes);
     }
 
     private void checkThatA2WasSet() {
@@ -131,6 +145,9 @@ public class ServerSession {
         }
     }
 
+    /**
+     * @throws NoSuchServer
+     */
     private void handleNoSuchServerIfNeeded() {
         if (m1.serverSigKeyIncluded() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
             clearChannel.write(noSuchServerM2Raw());
@@ -154,20 +171,17 @@ public class ServerSession {
         return this.appChannel;
     }
     
-    private PacketHeader parseHeader(byte[] messageBytes) {
-        return new Deserializer(messageBytes, 0).readHeader();
-    }
-    
     /**
      * Writes the A2 response.
      */
     private void a2() {
+        checkThatA2WasSet();
         byte[] buffer = new byte[a2Packet.getSize()];
         a2Packet.toBytes(buffer, 0);
         clearChannel.write(buffer);
     }
 
-    private void m1(byte[] m1Bytes) {
+    private void processM1() {
         this.m1Hash = CryptoLib.sha512(m1Bytes);
         this.m1 = M1Packet.fromBytes(m1Bytes, 0);
         timeChecker.reportFirstTime(m1.time);
@@ -178,20 +192,11 @@ public class ServerSession {
         m2.time = timeKeeper.getFirstTime();
         m2.noSuchServer = false;
         m2.serverEncKey = this.encKeyPair.pub();
+        m2.resumeSupported = this.resumeHandler != null;
+        
         byte[] m2Bytes = m2.toBytes();
         this.m2Hash = CryptoLib.sha512(m2Bytes);
         clearChannel.write(m2Bytes);
-    }
-    
-    private void m4() {
-        this.m4 = M4Packet.fromBytes(encryptedChannel.read(), 0);
-        this.timeChecker.checkTime(m4.time);
-    }
-    
-    private void createEncryptedChannel() {
-        byte[] sharedKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m1.clientEncKey);
-        this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sharedKey, Role.SERVER);
-        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
     }
 
     private void m3() {
@@ -200,6 +205,43 @@ public class ServerSession {
         p.serverSigKey = this.sigKeyPair.pub();
         p.signature1 = signature1();
         encryptedChannel.write(p.toBytes());
+    }
+    
+    private void m4() {
+        this.m4 = M4Packet.fromBytes(encryptedChannel.read(), 0);
+        this.timeChecker.checkTime(m4.time);
+    }
+    
+    /**
+     * Sends TT message if this server supports resume and 
+     * the client requested a ticket.
+     */
+    private void tt() {
+        if (!resumeSupported()) {
+            return;
+        }
+        
+        if (m1.ticketRequested) {
+            byte[] ticket = resumeHandler.issueTicket(m4.clientSigKey, sessionKey);
+            TTPacket p = new TTPacket();
+            p.time = timeKeeper.getTime();
+            p.ticket = ticket;
+            encryptedChannel.write(p.toBytes());
+        }
+    }
+
+    private void createEncryptedChannel() {
+        this.sessionKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m1.clientEncKey);
+        this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, Role.SERVER);
+        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
+    }
+    
+    private PacketHeader parseHeader(byte[] messageBytes) {
+        return new Deserializer(messageBytes, 0).readHeader();
+    }
+    
+    private boolean resumeSupported() {
+        return resumeHandler != null;
     }
     
     /**
