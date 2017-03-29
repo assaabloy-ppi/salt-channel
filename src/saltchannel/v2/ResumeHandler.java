@@ -2,19 +2,12 @@ package saltchannel.v2;
 
 import java.util.Arrays;
 
+import saltchannel.ComException;
 import saltchannel.CryptoLib;
 import saltchannel.util.Bytes;
+import saltchannel.v2.packets.BadTicket;
 import saltchannel.v2.packets.TicketEncryptedPacket;
 import saltchannel.v2.packets.TicketPacket;
-
-//
-// IDEA. Have step value. For example, increase ticketIndex by 1000 each time a 
-// ticket is issued. If last three digits are random this could provide some security 
-// against problem with clock set wrong so time repeats according to the host clock. 
-// For time-based firstTicketIndex, we cannot increase faster than time increases. 
-// If we assume max 1000 issued tickets per second, we can use a step size of 1000 
-// when time is measured in microseconds.
-//
 
 /** 
  * Handles the resume feature on the server-side.
@@ -25,7 +18,7 @@ import saltchannel.v2.packets.TicketPacket;
  */
 public class ResumeHandler {
     public static final int KEY_SIZE = 32;
-    private final TicketBits ticketIndexes;
+    private final TicketBits ticketBits;
     private byte[] key;
     
     /**
@@ -39,7 +32,7 @@ public class ResumeHandler {
             throw new IllegalArgumentException("negative wantedSize not allowed");
         }
         
-        this.ticketIndexes = new TicketBits(firstTicketIndex, wantedBitSize);
+        this.ticketBits = new TicketBits(firstTicketIndex, wantedBitSize);
         
         if (key.length != KEY_SIZE) {
             throw new IllegalArgumentException("bad key size");
@@ -50,7 +43,7 @@ public class ResumeHandler {
     
     public synchronized byte[] issueTicket(byte[] clientSigKey, byte[] sessionKey) {
         TicketEncryptedPacket p1 = new TicketEncryptedPacket();
-        p1.ticketId = ticketIndexes.issue();
+        p1.ticketId = ticketBits.issue();
         p1.sessionKey = sessionKey;
         p1.clientSigKey = clientSigKey;
         
@@ -68,12 +61,54 @@ public class ResumeHandler {
     }
 
     /**
-     * Validates ticket, decrypts, returns crypto session data.
+     * Validates ticket, decrypts, checks with bitmap, returns the resulting session data.
+     * If the ticket is valid the corresponding replay-protection bit is cleared.
      * 
-     * @throws InvalidTicket if the ticket is not valid.
+     * @throws BadTicket if the ticket is not valid.
      */
     public synchronized TicketSessionData validateTicket(byte[] ticket) {
-        throw new IllegalStateException("NOT implemented");    // TODO D. implement checkTicket
+        TicketPacket p1;
+        TicketEncryptedPacket p2;
+        
+        try {
+            p1 = TicketPacket.fromBytes(ticket);
+        } catch (BadTicket e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadTicket(e.getMessage());
+        }
+        
+        byte[] clear;
+        
+        try {
+            clear = CryptoLib.decrypt(key, to24Bytes(p1.nonce), p1.encrypted);
+        } catch (ComException e) {
+            throw new BadTicket("could not decrypt");
+        }
+        
+        try {
+            p2 = TicketEncryptedPacket.fromBytes(clear, 0);
+        } catch (BadTicket e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadTicket(e.getMessage());
+        }
+        
+        TicketSessionData result = new TicketSessionData();
+        result.clientSigKey = p2.clientSigKey;
+        result.sessionKey = p2.sessionKey;
+        result.ticketId = p2.ticketId;
+        
+        synchronized (this) {
+            boolean isValid = ticketBits.isValid(p2.ticketId);
+            if (!isValid) {
+                throw new BadTicket("invalid according to ticketBits");
+            }
+            
+            ticketBits.clear(p2.ticketId);
+        }
+        
+        return result;
     }
     
     public static class InvalidTicket extends RuntimeException {
@@ -97,5 +132,11 @@ public class ResumeHandler {
     
     private byte[] to10Bytes(byte[] nonce24) {
         return Arrays.copyOfRange(nonce24, 0, 10);
+    }
+    
+    private byte[] to24Bytes(byte[] nonce10) {
+        byte[] result = new byte[24];
+        System.arraycopy(nonce10, 0, result, 0, nonce10.length);
+        return result;
     }
 }

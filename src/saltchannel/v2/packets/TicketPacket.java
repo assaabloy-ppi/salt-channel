@@ -1,6 +1,5 @@
 package saltchannel.v2.packets;
 
-import saltchannel.BadPeer;
 import saltchannel.util.Deserializer;
 import saltchannel.util.Serializer;
 
@@ -66,7 +65,7 @@ public class TicketPacket  implements Packet {
         
         PacketHeader header = d.readHeader();
         if (header.getType() != PACKET_TYPE) {
-            throw new BadPeer("bad message type, " + header.getType());
+            throw new BadTicket("bad message type, " + header.getType());
         }
         
         p.ticketType = d.readByte();

@@ -667,9 +667,46 @@ Message App1A is encrypted with the (invalid) ticket encryption key.
 Messages M3, M4, App1B, App2 are encrypted with the session encryption key.
 
 
+Message TT
+----------
+
+This message is sent in response to a message M1 that includes a 
+valid ticket. The TT message includes a new ticket if the client
+requested one.
+
+    **** TT ****
+
+    This packet is encrypted. The packet is sent within the body of 
+    EncryptedMessage (EncryptedMessage/Body).
+    
+    2   Header. 
+        Packet type and flags.
+        
+    4   Time.
+        See separate documentation.
+    
+    2   Ticket, OPT.
+        A Ticket (encrypted) from the server.
+    
+    
+    **** TT/Header ****
+
+    4b  PacketType.
+        Four bits that encodes an integer in range 0-15.
+        The integer value is 10 for this packet.
+
+    1b  TicketIncluded.
+        Set to 1 when Ticket is included in the message.
+        
+    11b Zero.
+        Bits set to 0.
+    
+
 Ticket details
 --------------
 
+The details of the RECOMMENDED ticket format.
+TODO: update this.
 
     **** Ticket ****
 
@@ -727,42 +764,6 @@ Ticket details
         The symmetric encryption key to use to encrypt and decrypt messages
         of this session.
     
-
-Message TT
-----------
-
-This message is sent in response to a message M1 that includes a 
-valid ticket. The TT message includes a new ticket if the client
-requested one.
-
-    **** TT ****
-
-    This packet is encrypted. The packet is sent within the body of 
-    EncryptedMessage (EncryptedMessage/Body).
-    
-    2   Header. 
-        Packet type and flags.
-        
-    4   Time.
-        See separate documentation.
-    
-    2   Ticket, OPT.
-        A Ticket (encrypted) from the server.
-    
-    
-    **** TT/Header ****
-
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 10 for this packet.
-
-    1b  TicketIncluded.
-        Set to 1 when Ticket is included in the message.
-        
-    11b Zero.
-        Bits set to 0.
-    
-
 
 Messages A1 and A2
 ==================

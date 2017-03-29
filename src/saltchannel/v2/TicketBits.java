@@ -2,6 +2,15 @@ package saltchannel.v2;
 
 import saltchannel.util.BitField;
 
+//
+// IDEA. Have step value. For example, increase ticketIndex by 1000 each time a 
+// ticket is issued. If last three digits are random this could provide some security 
+// against problem with clock set wrong so time repeats according to the host clock. 
+// For time-based firstTicketIndex, we cannot increase faster than time increases. 
+// If we assume max 1000 issued tickets per second, we can use a step size of 1000 
+// when time is measured in microseconds.
+//
+
 /**
  * A instance of this class keeps track of all issued tickets 
  * that are valid using their ticket index.
@@ -33,7 +42,7 @@ public class TicketBits {
     }
     
     /**
-     * Issues a new ticket index, set the corresponding bit to true.
+     * Issues a new ticket index and sets the corresponding bit to true.
      */
     public long issue() {
         long result = next;
