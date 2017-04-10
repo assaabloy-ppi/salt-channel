@@ -19,7 +19,7 @@ Do not use Java, mainly due to Android limitations.
        
     </path>
 
-    <javac srcdir="src" destdir="out/classes" source="1.7" target="1.7">
+    <javac srcdir="src" destdir="out/classes" source="1.7" target="1.7"  debug="on">
         <classpath refid="classpath" />
     </javac>
     
@@ -74,7 +74,7 @@ Do not use Java, mainly due to Android limitations.
         <pathelement path="out/classes-test"/>
     </path>
 
-    <javac srcdir="src-test" destdir="out/classes-test" source="1.7" target="1.7">
+    <javac srcdir="src-test" destdir="out/classes-test" source="1.7" target="1.7" debug="on">
         <classpath refid="classpath-test" />
     </javac>
 
