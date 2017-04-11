@@ -7,6 +7,8 @@ import java.util.Arrays;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.TweetNaCl;
+import saltaa.*;
+
 import saltchannel.util.Bytes;
 
 /**
@@ -22,6 +24,7 @@ public class EncryptedChannelV1 implements ByteChannel {
     private byte[] writeNonceBytes = new byte[TweetNaCl.BOX_NONCE_BYTES];
     private byte[] key;
     private ByteChannel channel;
+    private SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.JAVA);
     
     /**
      * Creates a new EncryptedChannel given the underlying channel to be 
@@ -95,9 +98,14 @@ public class EncryptedChannelV1 implements ByteChannel {
             throw new ComException("ciphertext too small");
         }
         
-        if (TweetNaCl.crypto_box_open_afternm(m, c, c.length, readNonceBytes, key) != 0) {
-            throw new ComException("invalid encryption");
+        //if (TweetNaCl.crypto_box_open_afternm(m, c, c.length, readNonceBytes, key) != 0) {
+        try {
+            salt.crypto_box_open_afternm(m, c, readNonceBytes, key);            
         }
+        catch(BadEncryptedDataException e)
+        {
+            throw new ComException("invalid encryption");
+        }        
         
         clear = Arrays.copyOfRange(m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, m.length);
         return clear;
@@ -116,7 +124,8 @@ public class EncryptedChannelV1 implements ByteChannel {
         byte[] m = new byte[TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES + clear.length];
         byte[] c = new byte[m.length];
         System.arraycopy(clear, 0, m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, clear.length);
-        TweetNaCl.crypto_box_afternm(c, m, m.length, writeNonceBytes, key);
+        //TweetNaCl.crypto_box_afternm(c, m, m.length, writeNonceBytes, key);
+        salt.crypto_box_afternm(c, m, writeNonceBytes, key);
         return Arrays.copyOfRange(c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, c.length);
     }
     

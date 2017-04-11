@@ -4,6 +4,8 @@ import java.util.Arrays;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.TweetNaCl;
+import saltaa.*;
+
 import saltchannel.util.Bytes;
 import saltchannel.v2.packets.EncryptedPacket;
 import saltchannel.v2.packets.TTPacket;
@@ -24,6 +26,8 @@ public class EncryptedChannelV2 implements ByteChannel {
     private byte[] pushbackMessage;
     private byte[] sessionNonce;
     
+    private SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.NATIVE);
+
     /**
      * Creates a new EncryptedChannel given the underlying channel to be 
      * encrypted, the key and the role of the peer (client or server).
@@ -129,10 +133,14 @@ public class EncryptedChannelV2 implements ByteChannel {
             throw new ComException("ciphertext too small");
         }
         
-        if (TweetNaCl.crypto_box_open_afternm(m, c, c.length, readNonceBytes, key) != 0) {
-            throw new ComException("invalid encryption");
+        try {
+            salt.crypto_box_open_afternm(m, c, readNonceBytes, key);            
         }
-        
+        catch(BadEncryptedDataException e)
+        {
+            throw new ComException("invalid encryption");
+        }         
+
         clear = Arrays.copyOfRange(m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, m.length);
         return clear;
     }
@@ -149,8 +157,8 @@ public class EncryptedChannelV2 implements ByteChannel {
     byte[] encrypt(byte[] clear) {
         byte[] m = new byte[TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES + clear.length];
         byte[] c = new byte[m.length];
-        System.arraycopy(clear, 0, m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, clear.length);
-        TweetNaCl.crypto_box_afternm(c, m, m.length, writeNonceBytes, key);
+        System.arraycopy(clear, 0, m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, clear.length);        
+        salt.crypto_box_afternm(c, m, writeNonceBytes, key);
         return Arrays.copyOfRange(c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, c.length);
     }
     

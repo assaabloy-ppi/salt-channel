@@ -4,6 +4,8 @@ import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
 import saltchannel.TweetNaCl;
+import saltaa.*;
+
 import saltchannel.util.Deserializer;
 import saltchannel.util.KeyPair;
 import saltchannel.util.NullTimeChecker;
@@ -53,6 +55,8 @@ public class ClientSession {
     private byte[] sessionKey;
     private ClientTicketData ticketData;     // ticket data to use
     private ClientTicketData newTicketData;  // new ticket from server
+
+    private SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.NATIVE);
 
     public ClientSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -244,11 +248,13 @@ public class ClientSession {
      */
     private void validateSignature1() {        
         byte[] signedMessage = V2Util.concat(
-                m3.signature1, m2.serverEncKey, m1.clientEncKey, m1Hash, m2Hash);
-        
+                m3.signature1, m2.serverEncKey, m1.clientEncKey, m1Hash, m2Hash);    
+
         try {
-            TweetNaCl.crypto_sign_open(signedMessage, m3.serverSigKey);
-        } catch (TweetNaCl.InvalidSignatureException e) {
+            //byte[] m = new byte[signedMessage.length-TweetNaCl.SIGNATURE_SIZE_BYTES]; //buggy, work only in Native
+            byte[] m = new byte[signedMessage.length]; // workaround            
+            salt.crypto_sign_open(m, signedMessage, m3.serverSigKey);
+        } catch (BadSignatureException e) {
             throw new BadPeer("invalid signature");
         }
     }

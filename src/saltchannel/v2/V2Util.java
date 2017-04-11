@@ -1,13 +1,18 @@
 package saltchannel.v2;
 
 import saltchannel.TweetNaCl;
+import saltaa.*;
 import saltchannel.util.KeyPair;
 
 public class V2Util {
-    
+    private static SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.JAVA);
+
     public static byte[] createSignature(KeyPair sigKeyPair, byte[]... arrays) {
         byte[] message = concat(arrays);
-        byte[] signedMessage = TweetNaCl.crypto_sign(message, sigKeyPair.sec());
+        //byte[] signedMessage = TweetNaCl.crypto_sign(message, sigKeyPair.sec());
+        byte[] signedMessage = new byte[message.length + 64];
+        salt.crypto_sign(signedMessage, message, sigKeyPair.sec());
+
         byte[] signature = new byte[64];
         System.arraycopy(signedMessage, 0, signature, 0, 64);
         return signature;
