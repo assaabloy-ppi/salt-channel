@@ -310,8 +310,7 @@ public class ServerSession {
                 m1Hash, m2Hash);
         
         try {
-            //byte[] m = new byte[signedMessage.length-TweetNaCl.SIGNATURE_SIZE_BYTES]; //buggy, work only in Native
-            byte[] m = new byte[signedMessage.length]; // workaround
+            byte[] m = new byte[signedMessage.length];
             salt.crypto_sign_open(m, signedMessage, m4.clientSigKey);
         } catch (BadSignatureException e) {
             throw new BadPeer("invalid signature");

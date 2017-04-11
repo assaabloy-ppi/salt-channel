@@ -26,10 +26,15 @@ public class JavaSaltLib implements SaltLib {
     @Override
     public void crypto_sign_open(byte[] m, byte[] sm, byte[] pk) {
         long dummy = 0;
+        if (m.length < sm.length) {
+            throw new IllegalArgumentException("m is too short");
+        }
+
         int res = TweetNaclFast.crypto_sign_open(m, dummy, sm, 0, sm.length, pk);
         if (res != 0) {
             throw new BadSignatureException();
         }
+        
         System.arraycopy(m, SaltLib.crypto_sign_BYTES, m, 0, sm.length-SaltLib.crypto_sign_BYTES);
     }
 
