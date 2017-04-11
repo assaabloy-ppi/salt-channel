@@ -6,7 +6,7 @@ import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.CryptoLib;
-import saltchannel.TweetNaCl;
+//import saltchannel.TweetNaCl;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
 import saltchannel.v1.BinsonLight.Parser;
@@ -120,7 +120,7 @@ public class ServerChannelV1 implements ByteChannel {
     }
     
     private void checkM1E(byte[] eField) {
-        if (eField.length != TweetNaCl.BOX_PUBLIC_KEY_BYTES) {
+        if (eField.length != CryptoLib.BOX_PUBLIC_KEY_BYTES) {
             throw new BadPeer("client encryption key of bad length, " + eField.length);
         }
     }

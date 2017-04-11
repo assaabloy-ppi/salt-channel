@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
-import saltchannel.TweetNaCl;
 import saltaa.*;
 
 import saltchannel.util.Bytes;
@@ -19,9 +18,9 @@ import saltchannel.util.Bytes;
  */
 public class EncryptedChannelV1 implements ByteChannel {
     private long readNonceInteger;
-    private byte[] readNonceBytes = new byte[TweetNaCl.BOX_NONCE_BYTES];
+    private byte[] readNonceBytes = new byte[SaltLib.crypto_box_NONCEBYTES];
     private long writeNonceInteger;
-    private byte[] writeNonceBytes = new byte[TweetNaCl.BOX_NONCE_BYTES];
+    private byte[] writeNonceBytes = new byte[SaltLib.crypto_box_NONCEBYTES];
     private byte[] key;
     private ByteChannel channel;
     private SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.JAVA);
@@ -35,8 +34,8 @@ public class EncryptedChannelV1 implements ByteChannel {
      *      A new key must be used for every session.
      */
     public EncryptedChannelV1(ByteChannel channel, byte[] key, Role role) {
-        if (key.length != TweetNaCl.BOX_SECRET_KEY_BYTES) {
-            throw new IllegalArgumentException("bad key size, should be " + TweetNaCl.BOX_SECRET_KEY_BYTES);
+        if (key.length != SaltLib.crypto_box_SECRETKEYBYTES) {
+            throw new IllegalArgumentException("bad key size, should be " + SaltLib.crypto_box_SECRETKEYBYTES);
         }
         
         this.channel = channel;
@@ -91,14 +90,13 @@ public class EncryptedChannelV1 implements ByteChannel {
      */
     private byte[] decrypt(byte[] encrypted) {
         byte[] clear;
-        byte[] c = new byte[TweetNaCl.SECRETBOX_OVERHEAD_BYTES + encrypted.length];
+        byte[] c = new byte[SaltLib.crypto_secretbox_OVERHEAD_BYTES + encrypted.length];
         byte[] m = new byte[c.length];
-        System.arraycopy(encrypted, 0, c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, encrypted.length);
+        System.arraycopy(encrypted, 0, c, SaltLib.crypto_secretbox_OVERHEAD_BYTES, encrypted.length);
         if (c.length < 32) {
             throw new ComException("ciphertext too small");
         }
         
-        //if (TweetNaCl.crypto_box_open_afternm(m, c, c.length, readNonceBytes, key) != 0) {
         try {
             salt.crypto_box_open_afternm(m, c, readNonceBytes, key);            
         }
@@ -107,7 +105,7 @@ public class EncryptedChannelV1 implements ByteChannel {
             throw new ComException("invalid encryption");
         }        
         
-        clear = Arrays.copyOfRange(m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, m.length);
+        clear = Arrays.copyOfRange(m, SaltLib.crypto_secretbox_INTERNAL_OVERHEAD_BYTES, m.length);
         return clear;
     }
     
@@ -121,12 +119,11 @@ public class EncryptedChannelV1 implements ByteChannel {
     }
     
     private byte[] encrypt(byte[] clear) {
-        byte[] m = new byte[TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES + clear.length];
+        byte[] m = new byte[SaltLib.crypto_secretbox_INTERNAL_OVERHEAD_BYTES + clear.length];
         byte[] c = new byte[m.length];
-        System.arraycopy(clear, 0, m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, clear.length);
-        //TweetNaCl.crypto_box_afternm(c, m, m.length, writeNonceBytes, key);
+        System.arraycopy(clear, 0, m, SaltLib.crypto_secretbox_INTERNAL_OVERHEAD_BYTES, clear.length);
         salt.crypto_box_afternm(c, m, writeNonceBytes, key);
-        return Arrays.copyOfRange(c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, c.length);
+        return Arrays.copyOfRange(c, SaltLib.crypto_secretbox_OVERHEAD_BYTES, c.length);
     }
     
     private void setWriteNonce(long nonceInteger) {

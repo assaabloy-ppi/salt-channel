@@ -16,11 +16,31 @@ import saltaa.*;
  * @author Frans Lundberg
  */
 public class CryptoLib {
-    //public static final int SIGN_PUBLIC_KEY_BYTES = TweetNaCl.SIGN_PUBLIC_KEY_BYTES;
-    //public static final int SIGNATURE_SIZE_BYTES = TweetNaCl.SIGNATURE_SIZE_BYTES;    
+
+    // maybe need to privatize some of next constants 
+    public static final int SIGN_PUBLIC_KEY_BYTES = SaltLib.crypto_sign_PUBLICKEYBYTES;
+    public static final int SIGN_SECRET_KEY_BYTES = SaltLib.crypto_sign_SECRETKEYBYTES;
+    public static final int SIGNATURE_BYTES = SaltLib.crypto_sign_BYTES;
+    public static final int SIGN_SEED_BYTES = SaltLib.crypto_sign_SEEDBYTES;   
+    public static final int BOX_PUBLIC_KEY_BYTES = SaltLib.crypto_box_PUBLICKEYBYTES;
+    public static final int BOX_SECRET_KEY_BYTES = SaltLib.crypto_box_SECRETKEYBYTES;
+    public static final int BOX_SHARED_KEY_BYTES = SaltLib.crypto_box_SHAREDKEYBYTES;
+    public static final int BOX_BEFORENM_BYTES = SaltLib.crypto_box_BEFORENMBYTES;
+    public static final int BOX_NONCE_BYTES = SaltLib.crypto_box_NONCEBYTES;
+    public static final int BOX_ZERO_BYTES = SaltLib.crypto_box_ZEROBYTES;
+    public static final int BOX_BOXZEROBYTES = SaltLib.crypto_box_BOXZEROBYTES;
+    public static final int BOX_OVERHEADBYTES = SaltLib.crypto_box_OVERHEADBYTES;
+    public static final int BOX_INTERNALOVERHEADBYTES = SaltLib.crypto_box_INTERNALOVERHEADBYTES;
+    public static final int HASH_BYTES = SaltLib.crypto_hash_BYTES;
+
+    // grabbed from TweetNaCl.java
+    public static final int SECRETBOX_KEY_BYTES = 32;
+    public static final int SECRETBOX_NONCE_BYTES = 24;
+    public static final int SECRETBOX_OVERHEAD_BYTES = 16;
+    public static final int SECRETBOX_INTERNAL_OVERHEAD_BYTES = 32;
 
     private Rand rand;
-    private static SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.JAVA);
+    private static SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.NATIVE);
     
     private CryptoLib(Rand rand) {
         this.rand = rand;
@@ -90,7 +110,6 @@ public class CryptoLib {
         return rand;
     }
     
-    // [passed: JAVA + NATIVE]
     public static KeyPair createEncKeys(Rand rand) {
         byte[] sec = new byte[SaltLib.crypto_box_SECRETKEYBYTES];
         byte[] pub = new byte[SaltLib.crypto_box_PUBLICKEYBYTES];
@@ -102,7 +121,6 @@ public class CryptoLib {
     /**
      * @deprecated Use function instead.
      */
-    // [passed: JAVA + NATIVE]
     public KeyPair createEncKeys() {
         byte[] sec = new byte[SaltLib.crypto_box_SECRETKEYBYTES];
         byte[] pub = new byte[SaltLib.crypto_box_PUBLICKEYBYTES];
@@ -114,7 +132,6 @@ public class CryptoLib {
     /**
      * Creates a random signing KeyPair.
      */
-    // [passed: JAVA + NATIVE ]    
     public static KeyPair createSigKeys(Rand rand) {
         byte[] sec = new byte[SaltLib.crypto_sign_SECRETKEYBYTES];
         byte[] pub = new byte[SaltLib.crypto_sign_PUBLICKEYBYTES];
@@ -126,7 +143,6 @@ public class CryptoLib {
     /**
      * Creates a deterministic signing KeyPair given the secret key.
      */
-    // [passed: JAVA + NATIVE]
     public static KeyPair createSigKeysFromSec(byte[] sec) {
         byte[] pub = new byte[SaltLib.crypto_sign_PUBLICKEYBYTES];
         salt.crypto_sign_keypair_not_random(pub, sec);
@@ -135,8 +151,7 @@ public class CryptoLib {
     
     /**
      * Signs a message using TweetNaCl signing.
-     */
-    // [passed: JAVA + NATIVE]    
+     */ 
     public static byte[] sign(byte[] messageToSign, byte[] sigSecKey) {
         byte[] sm = new byte[messageToSign.length + SaltLib.crypto_sign_BYTES];
         salt.crypto_sign(sm, messageToSign, sigSecKey);
@@ -147,8 +162,7 @@ public class CryptoLib {
      * Opens a signed messages, returns message.
      *
      * @throws BadSignatureException
-     */
-    // [passed: JAVA + NATIVE]        
+     */       
     public static byte[] signOpen(byte[] signedMsg, byte[] sigSecKey) {
         byte[] m = new byte[signedMsg.length];
         byte[] m2 = new byte[signedMsg.length - SaltLib.crypto_sign_BYTES];
@@ -159,15 +173,13 @@ public class CryptoLib {
 
     /**
      * Computes SHA-512 of message.
-     */
-    // [passed: JAVA + NATIVE]    
+     */ 
     public static byte[] sha512(byte[] message) {
         byte[] hash = new byte[SaltLib.crypto_hash_BYTES];
         salt.crypto_hash(hash, message);
         return hash;
     }
 
-    // [passed: JAVA + NATIVE]  
      public static byte[] computeSharedKey(byte[] myPriv, byte[] peerPub) {
         if (myPriv.length != SaltLib.crypto_box_SECRETKEYBYTES) {
             throw new IllegalArgumentException("bad length of myPriv, " + myPriv.length);
@@ -181,8 +193,7 @@ public class CryptoLib {
         salt.crypto_box_beforenm(sharedKey, peerPub, myPriv);
         return sharedKey;
     }
-    
-    // [passed: JAVA + NATIVE]      
+        
     public static byte[] createSaltChannelV1Signature(KeyPair sigKeyPair, byte[] myEk, byte[] peerEk) {
         byte[] secretSigningKey = sigKeyPair.sec();
         
@@ -197,7 +208,7 @@ public class CryptoLib {
         byte[] signedMessage = new byte[messageToSign.length + SaltLib.crypto_sign_BYTES];
         salt.crypto_sign(signedMessage, messageToSign, secretSigningKey);
 
-        byte[] mySignature = new byte[SaltLib.crypto_sign_SIGNATUREBYTES];
+        byte[] mySignature = new byte[SaltLib.crypto_sign_BYTES];
         System.arraycopy(signedMessage, 0, mySignature, 0, mySignature.length);
         
         return mySignature;
@@ -207,14 +218,13 @@ public class CryptoLib {
      * Checks a signature. peerEk and myEk concatenated is the message that was signed.
      * 
      * @throws ComException if signature not valid.
-     */
-    // [passed: JAVA + NATIVE]     
+     */  
     public static void checkSaltChannelV1Signature(byte[] peerSigPubKey, byte[] myEk,
             byte[] peerEk, byte[] signature) {
         // To use NaCl's crypto_sign_open, we create 
         // a signed message: signature+message concatenated.
         
-        byte[] signedMessage = new byte[SaltLib.crypto_sign_SIGNATUREBYTES + 2 * SaltLib.crypto_box_PUBLICKEYBYTES];
+        byte[] signedMessage = new byte[SaltLib.crypto_sign_BYTES + 2 * SaltLib.crypto_box_PUBLICKEYBYTES];
         int offset = 0;
         System.arraycopy(signature, 0, signedMessage, offset, signature.length);
         offset += signature.length;
@@ -243,8 +253,7 @@ public class CryptoLib {
             super(message);
         }
     };
-
-    // [passed: JAVA + NATIVE]   
+  
     public static byte[] encrypt(byte[] key, byte[] nonce, byte[] clear) {
         byte[] m = new byte[SaltLib.crypto_box_INTERNALOVERHEADBYTES + clear.length];
         byte[] c = new byte[m.length];
@@ -255,8 +264,7 @@ public class CryptoLib {
     
     /**
      * @throws ComException
-     */
-    // [passed: JAVA + NATIVE]       
+     */      
     public static byte[] decrypt(byte[] key, byte[] nonce, byte[] encrypted) {
         if (encrypted == null) {
             throw new Error("encrypted == null");

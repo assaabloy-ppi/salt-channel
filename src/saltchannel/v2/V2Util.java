@@ -1,6 +1,6 @@
 package saltchannel.v2;
 
-import saltchannel.TweetNaCl;
+//import saltchannel.TweetNaCl;
 import saltaa.*;
 import saltchannel.util.KeyPair;
 

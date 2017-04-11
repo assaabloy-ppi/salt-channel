@@ -8,7 +8,6 @@ import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.CryptoLib;
 import saltchannel.NoSuchServerException;
-import saltchannel.TweetNaCl;
 import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
@@ -173,7 +172,7 @@ public class ClientChannelV1 implements ByteChannel {
     }
 
     private void checkWantedServerParam(byte[] wantedServer) {
-        if (wantedServer != null && wantedServer.length != TweetNaCl.SIGN_PUBLIC_KEY_BYTES) {
+        if (wantedServer != null && wantedServer.length != CryptoLib.SIGN_PUBLIC_KEY_BYTES) {
             throw new IllegalArgumentException("bad length of wantedServer parameter");
         }
     }
@@ -263,7 +262,7 @@ public class ClientChannelV1 implements ByteChannel {
         
         byte[] gField = p.getBytes().toByteArray();
         
-        if (gField.length != TweetNaCl.SIGNATURE_SIZE_BYTES) {
+        if (gField.length != CryptoLib.SIGNATURE_BYTES) {
             throw new BadPeer("bad signature size, " + gField.length);
         }
         

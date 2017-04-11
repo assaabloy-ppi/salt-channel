@@ -6,7 +6,7 @@ import a1a2.A2Packet;
 import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
-import saltchannel.TweetNaCl;
+//import saltchannel.TweetNaCl;
 import saltaa.*;
 
 import saltchannel.util.Deserializer;
