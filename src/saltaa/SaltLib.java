@@ -24,9 +24,11 @@ public interface SaltLib {
     // ======== crypto_sign ========
 
     public static final int crypto_sign_PUBLICKEYBYTES = 32;
-    public static final int crypto_sign_SECRETKEYBYTES = 32;
+    public static final int crypto_sign_SECRETKEYBYTES = 64;   // changed to 64.  TweetNaCl.SIGN_SECRET_KEY_BYTES == 64
+    public static final int crypto_sign_SIGNATUREBYTES = 64;   // originaly was required by TweetNaCl.java
     public static final int crypto_sign_BYTES = 64;
-    
+    public static final int crypto_sign_SEEDBYTES = 32;
+
     /**
      * The crypto_sign_keypair_not_random function takes a secret key and generates 
      * a corresponding public key. The secret key is in sk[0], sk[1], ..., sk[crypto_sign_SECRETKEYBYTES-1]
@@ -71,10 +73,14 @@ public interface SaltLib {
     
     public static final int crypto_box_PUBLICKEYBYTES = 32;
     public static final int crypto_box_SECRETKEYBYTES = 32;
+    public static final int crypto_box_SHAREDKEYBYTES = 32;
     public static final int crypto_box_BEFORENMBYTES = 32;
     public static final int crypto_box_NONCEBYTES = 24;
     public static final int crypto_box_ZEROBYTES = 32;
     public static final int crypto_box_BOXZEROBYTES = 16;
+    public static final int crypto_box_OVERHEADBYTES = 16;
+    public static final int crypto_box_INTERNALOVERHEADBYTES = 32;
+
     
     /**
      * The crypto_box_keypair_not_random function takes a secret key and generates 

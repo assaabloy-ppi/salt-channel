@@ -33,7 +33,8 @@ public class NativeSaltLib implements SaltLib {
 
     @Override
     public void crypto_sign_keypair_not_random(byte[] pk, byte[] sk) {
-		SodiumJNI.crypto_sign_seed_keypair(pk, sk, sk);   
+        byte[] seed = sk.clone();
+		SodiumJNI.crypto_sign_seed_keypair(pk, sk, seed);   
     }
 
     @Override

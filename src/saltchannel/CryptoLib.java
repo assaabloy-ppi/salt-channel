@@ -10,14 +10,14 @@ import saltchannel.util.Rand;
 import saltaa.*;
 
 /**
- * Salt Channel crypto lib, a thin layer on top of TweetNaCl.
+ * Salt Channel crypto lib, a thin layer on top of ....
  * Note: implementation is moving from stateful object to a set of functions (static).
  * 
  * @author Frans Lundberg
  */
 public class CryptoLib {
-    public static final int SIGN_PUBLIC_KEY_BYTES = TweetNaCl.SIGN_PUBLIC_KEY_BYTES;
-    public static final int SIGNATURE_SIZE_BYTES = TweetNaCl.SIGNATURE_SIZE_BYTES;    
+    //public static final int SIGN_PUBLIC_KEY_BYTES = TweetNaCl.SIGN_PUBLIC_KEY_BYTES;
+    //public static final int SIGNATURE_SIZE_BYTES = TweetNaCl.SIGNATURE_SIZE_BYTES;    
 
     private Rand rand;
     private static SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.JAVA);
@@ -92,8 +92,8 @@ public class CryptoLib {
     
     // [passed: JAVA + NATIVE]
     public static KeyPair createEncKeys(Rand rand) {
-        byte[] sec = new byte[TweetNaCl.BOX_SECRET_KEY_BYTES];
-        byte[] pub = new byte[TweetNaCl.BOX_PUBLIC_KEY_BYTES];
+        byte[] sec = new byte[SaltLib.crypto_box_SECRETKEYBYTES];
+        byte[] pub = new byte[SaltLib.crypto_box_PUBLICKEYBYTES];
         rand.randomBytes(sec);
         salt.crypto_box_keypair_not_random(pub, sec);
         return new KeyPair(sec, pub);
@@ -104,8 +104,8 @@ public class CryptoLib {
      */
     // [passed: JAVA + NATIVE]
     public KeyPair createEncKeys() {
-        byte[] sec = new byte[TweetNaCl.BOX_SECRET_KEY_BYTES];
-        byte[] pub = new byte[TweetNaCl.BOX_PUBLIC_KEY_BYTES];
+        byte[] sec = new byte[SaltLib.crypto_box_SECRETKEYBYTES];
+        byte[] pub = new byte[SaltLib.crypto_box_PUBLICKEYBYTES];
         this.rand.randomBytes(sec);
         salt.crypto_box_keypair_not_random(pub, sec);
         return new KeyPair(sec, pub);
@@ -114,14 +114,12 @@ public class CryptoLib {
     /**
      * Creates a random signing KeyPair.
      */
-    // [passed: JAVA ]    
+    // [passed: JAVA + NATIVE ]    
     public static KeyPair createSigKeys(Rand rand) {
-        byte[] sec = new byte[TweetNaCl.SIGN_SECRET_KEY_BYTES];
-        byte[] pub = new byte[TweetNaCl.SIGN_PUBLIC_KEY_BYTES];
+        byte[] sec = new byte[SaltLib.crypto_sign_SECRETKEYBYTES];
+        byte[] pub = new byte[SaltLib.crypto_sign_PUBLICKEYBYTES];
         rand.randomBytes(sec);
-        boolean isSeeded = true;
-        //salt.crypto_sign_keypair_not_random(pub, sec);
-        TweetNaCl.crypto_sign_keypair(pub, sec, isSeeded);
+        salt.crypto_sign_keypair_not_random(pub, sec);
         return new KeyPair(sec, pub);
     }
     
@@ -148,7 +146,7 @@ public class CryptoLib {
     /**
      * Opens a signed messages, returns message.
      *
-     * @throws TweetNaCl.InvalidSignatureException
+     * @throws BadSignatureException
      */
     // [passed: JAVA + NATIVE]        
     public static byte[] signOpen(byte[] signedMsg, byte[] sigSecKey) {
@@ -171,15 +169,15 @@ public class CryptoLib {
 
     // [passed: JAVA + NATIVE]  
      public static byte[] computeSharedKey(byte[] myPriv, byte[] peerPub) {
-        if (myPriv.length != TweetNaCl.BOX_SECRET_KEY_BYTES) {
+        if (myPriv.length != SaltLib.crypto_box_SECRETKEYBYTES) {
             throw new IllegalArgumentException("bad length of myPriv, " + myPriv.length);
         }
         
-        if (peerPub.length != TweetNaCl.BOX_PUBLIC_KEY_BYTES) {
+        if (peerPub.length != SaltLib.crypto_box_PUBLICKEYBYTES) {
             throw new IllegalArgumentException("bad length of peerPub, " + peerPub.length);
         }
         
-        byte[] sharedKey = new byte[TweetNaCl.BOX_SHARED_KEY_BYTES];
+        byte[] sharedKey = new byte[SaltLib.crypto_box_SHAREDKEYBYTES];
         salt.crypto_box_beforenm(sharedKey, peerPub, myPriv);
         return sharedKey;
     }
@@ -188,18 +186,18 @@ public class CryptoLib {
     public static byte[] createSaltChannelV1Signature(KeyPair sigKeyPair, byte[] myEk, byte[] peerEk) {
         byte[] secretSigningKey = sigKeyPair.sec();
         
-        if (secretSigningKey.length != TweetNaCl.SIGN_SECRET_KEY_BYTES) {
+        if (secretSigningKey.length != SaltLib.crypto_sign_SECRETKEYBYTES) {
             throw new IllegalArgumentException("bad signing key length, " + secretSigningKey.length);
         }
         
-        byte[] messageToSign = new byte[2 * TweetNaCl.BOX_PUBLIC_KEY_BYTES];
+        byte[] messageToSign = new byte[2 * SaltLib.crypto_box_PUBLICKEYBYTES];
         System.arraycopy(myEk, 0, messageToSign, 0, myEk.length);
         System.arraycopy(peerEk, 0, messageToSign, myEk.length, peerEk.length);
         
         byte[] signedMessage = new byte[messageToSign.length + SaltLib.crypto_sign_BYTES];
         salt.crypto_sign(signedMessage, messageToSign, secretSigningKey);
 
-        byte[] mySignature = new byte[TweetNaCl.SIGNATURE_SIZE_BYTES];
+        byte[] mySignature = new byte[SaltLib.crypto_sign_SIGNATUREBYTES];
         System.arraycopy(signedMessage, 0, mySignature, 0, mySignature.length);
         
         return mySignature;
@@ -216,7 +214,7 @@ public class CryptoLib {
         // To use NaCl's crypto_sign_open, we create 
         // a signed message: signature+message concatenated.
         
-        byte[] signedMessage = new byte[TweetNaCl.SIGNATURE_SIZE_BYTES + 2 * TweetNaCl.BOX_PUBLIC_KEY_BYTES];
+        byte[] signedMessage = new byte[SaltLib.crypto_sign_SIGNATUREBYTES + 2 * SaltLib.crypto_box_PUBLICKEYBYTES];
         int offset = 0;
         System.arraycopy(signature, 0, signedMessage, offset, signature.length);
         offset += signature.length;
@@ -248,11 +246,11 @@ public class CryptoLib {
 
     // [passed: JAVA + NATIVE]   
     public static byte[] encrypt(byte[] key, byte[] nonce, byte[] clear) {
-        byte[] m = new byte[TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES + clear.length];
+        byte[] m = new byte[SaltLib.crypto_box_INTERNALOVERHEADBYTES + clear.length];
         byte[] c = new byte[m.length];
-        System.arraycopy(clear, 0, m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, clear.length);
+        System.arraycopy(clear, 0, m, SaltLib.crypto_box_INTERNALOVERHEADBYTES, clear.length);
         salt.crypto_box_afternm(c, m, nonce, key);
-        return Arrays.copyOfRange(c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, c.length);
+        return Arrays.copyOfRange(c, SaltLib.crypto_box_OVERHEADBYTES, c.length);
     }
     
     /**
@@ -265,9 +263,9 @@ public class CryptoLib {
         }
         
         byte[] clear;
-        byte[] c = new byte[TweetNaCl.SECRETBOX_OVERHEAD_BYTES + encrypted.length];
+        byte[] c = new byte[SaltLib.crypto_box_OVERHEADBYTES + encrypted.length];
         byte[] m = new byte[c.length];
-        System.arraycopy(encrypted, 0, c, TweetNaCl.SECRETBOX_OVERHEAD_BYTES, encrypted.length);
+        System.arraycopy(encrypted, 0, c, SaltLib.crypto_box_OVERHEADBYTES, encrypted.length);
         if (c.length < 32) {
             throw new ComException("ciphertext too small");
         }
@@ -280,7 +278,7 @@ public class CryptoLib {
           throw new ComException("invalid encryption");
         }
         
-        clear = Arrays.copyOfRange(m, TweetNaCl.SECRETBOX_INTERNAL_OVERHEAD_BYTES, m.length);
+        clear = Arrays.copyOfRange(m, SaltLib.crypto_box_INTERNALOVERHEADBYTES, m.length);
         return clear;
     }
 }
