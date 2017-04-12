@@ -5,7 +5,7 @@ import saltaa.*;
 import saltchannel.util.KeyPair;
 
 public class V2Util {
-    private static SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.JAVA);
+    private static SaltLib salt = SaltLibFactory.getLib();
 
     public static byte[] createSignature(KeyPair sigKeyPair, byte[]... arrays) {
         byte[] message = concat(arrays);

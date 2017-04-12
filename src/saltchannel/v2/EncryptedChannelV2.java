@@ -27,7 +27,7 @@ public class EncryptedChannelV2 implements ByteChannel {
     private byte[] pushbackMessage;
     private byte[] sessionNonce;
     
-    private SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.NATIVE);
+    private SaltLib salt = SaltLibFactory.getLib();
 
     /**
      * Creates a new EncryptedChannel given the underlying channel to be 

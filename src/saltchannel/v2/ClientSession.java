@@ -56,7 +56,7 @@ public class ClientSession {
     private ClientTicketData ticketData;     // ticket data to use
     private ClientTicketData newTicketData;  // new ticket from server
 
-    private SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.NATIVE);
+    private SaltLib salt = SaltLibFactory.getLib();
 
     public ClientSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;

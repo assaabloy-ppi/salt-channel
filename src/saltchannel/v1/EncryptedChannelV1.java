@@ -23,7 +23,7 @@ public class EncryptedChannelV1 implements ByteChannel {
     private byte[] writeNonceBytes = new byte[SaltLib.crypto_box_NONCEBYTES];
     private byte[] key;
     private ByteChannel channel;
-    private SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.JAVA);
+    private SaltLib salt = SaltLibFactory.getLib();
     
     /**
      * Creates a new EncryptedChannel given the underlying channel to be 

@@ -56,7 +56,7 @@ public class ServerSession {
     private byte[] sessionKey;
     private byte[] clientSigKey;
     
-    private SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.NATIVE);
+    private SaltLib salt = SaltLibFactory.getLib();
 
     public ServerSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;

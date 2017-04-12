@@ -40,7 +40,7 @@ public class CryptoLib {
     public static final int SECRETBOX_INTERNAL_OVERHEAD_BYTES = 32;
 
     private Rand rand;
-    private static SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.NATIVE);
+    private static SaltLib salt = SaltLibFactory.getLib();
     
     private CryptoLib(Rand rand) {
         this.rand = rand;
