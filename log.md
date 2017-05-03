@@ -1,3 +1,14 @@
+Log 2017-05-03
+==============
+
+Frans Lundberg:
+The code of repo:salt-aa is currently duplicated in this project.
+Repo:salt-aa is the primary source for the "saltaa" package.
+To do: we should fix build process to either copy source from 
+repo:salt-aa or to have a salt-aa.jar output from repo:salt-aa and use
+this jar in repo:salt-channel (no jar dependence, but exploded/merged approach).
+
+
 Log 2017-03-13
 ==============
 
