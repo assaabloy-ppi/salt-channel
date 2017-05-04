@@ -7,7 +7,7 @@ import java.util.Arrays;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltaa.*;
-
+import saltchannel.util.BinsonLight;
 import saltchannel.util.Bytes;
 
 /**

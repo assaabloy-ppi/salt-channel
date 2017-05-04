@@ -6,10 +6,11 @@ import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.CryptoLib;
+import saltchannel.util.BinsonLight;
 //import saltchannel.TweetNaCl;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
-import saltchannel.v1.BinsonLight.Parser;
+import saltchannel.util.BinsonLight.Parser;
 
 /**
  * Server-side implementation of Salt Channel.

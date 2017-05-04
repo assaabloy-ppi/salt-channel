@@ -8,10 +8,11 @@ import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.CryptoLib;
 import saltchannel.NoSuchServerException;
+import saltchannel.util.BinsonLight;
 import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
-import saltchannel.v1.BinsonLight.Parser;
+import saltchannel.util.BinsonLight.Parser;
 
 /**
  * The client-side of a Salt Channel.

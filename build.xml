@@ -19,7 +19,9 @@ Do not use Java, mainly due to Android limitations.
        
     </path>
 
-    <javac srcdir="src" destdir="out/classes" source="1.7" target="1.7">
+    <javac destdir="out/classes" source="1.7" target="1.7">
+        <src path="src"/>
+        <src path="src-in"/>
         <classpath refid="classpath" />
     </javac>
     
