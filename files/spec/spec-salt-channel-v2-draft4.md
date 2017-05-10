@@ -111,9 +111,7 @@ Not in final spec.
 
 * Notation: use style: "M1/Header".
 
-* TODO: include example session in appendix. Generate from code. 
-  HandshakeExampleData.java (v1 spec) is missing, create new class
-  for v2 example output. Use same example key pairs.
+* TODO: include example session in appendix. Generate from code.
 
 
 Protocol design
@@ -127,14 +125,13 @@ Priorities
 
 The following priorities were used when designing the protocol.
 
-1. The first priority is to achieve high security. 
+1. The first priority is to achieve *high security*. 
 
-2. The second priority is to achieve a low network overhead; 
+2. The second priority is to achieve a *low network overhead*; 
    that is, few round-trips and a small data overhead.
    
-3. The third priority is to allow for low code complexity, 
-   low CPU requirements, and low memory requirements of the 
-   communicating peers.
+3. The third priority is to allow for *low code complexity*, 
+   and *low CPU requirements* of the communicating peers.
 
 Low complexity is always important to achieve high security.
 
@@ -144,22 +141,24 @@ Goals
 
 The following are the main goals and limitations of the protocol.
 
-* 128-bit security. 
+* **128-bit security**. 
     The best attack should be a 2^128 brute force attack. 
     No attack should be possible until there are (if there ever will be) 
     large-enough quantum computers.
 
-* Forward secrecy.
+* **Forward secrecy**.
+    Old recorded communication data will not be possible to 
+    decrypt even if one or both peer's private keys are compromised.
 
-* Client ID hidden.
-    An attacker cannot tell whether the same client key pair (long-term signing
-    key pair) is used in two sessions.
+* **Secret client identity**.
+    An active or passive attacker cannot retrieve the long-term 
+    public key of the client. Tracking of the client is impossible.
     
-* Simple protocol.
+* **Simple protocol**.
     Should be possible to implement in few lines of code. Should be auditable 
     just like TweetNaCl.
 
-* Compact protocol (few bytes).
+* **Compact protocol** (few bytes).
     Designed for Bluetooth low energy and other low-bandwidth channels.
     
 * Limitation: No certificates.

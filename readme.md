@@ -11,12 +11,12 @@ Salt Channel is more efficient than TLS. It is simple and
 works well on small embedded processors. It has a lower handshake overhead.
 See [this comparison](files/salt-channel-vs-tls-2017-05.md).
 Salt Channel *always* supports mutual authentication and forward secrecy.
-The protocol supports secret client IDs. TLS does not support this.
+The protocol supports secret client IDs. TLS does not.
 
-This protocol and the code in this repository has been developed 
-by ASSA ABLOY AB -- the global leader in door opening solutions.
-Thank you for supporting this.
+The development of the code in this repository and the protocol 
+itself has been financed by [ASSA ABLOY AB](http://www.assaabloy.com/) 
+-- the global leader in door opening solutions. Thank you for 
+supporting this.
 
-We thank Daniel Bernstein for developing the underlying 
-algorithms that are used. Our contribution is completely based on 
-his work.
+We thank Daniel Bernstein for developing the underlying cryptography 
+algorithms. Our work here is completely based on his work.
