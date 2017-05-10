@@ -52,8 +52,8 @@ public class ClientSession {
     private byte[] sessionKey;
     private ClientTicketData ticketData;     // ticket data to use
     private ClientTicketData newTicketData;  // new ticket from server
-
     private SaltLib salt = SaltLibFactory.getLib();
+    private boolean bufferM4 = false;
 
     public ClientSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -80,6 +80,10 @@ public class ClientSession {
      */
     public void setEncKeyPair(Rand rand) {
         this.encKeyPair = CryptoLib.createEncKeys(rand);
+    }
+    
+    public void setBufferM4(boolean bufferM4) {
+        this.bufferM4 = bufferM4;
     }
     
     public void setTicketRequested(boolean requestTicket) {
@@ -126,7 +130,7 @@ public class ClientSession {
     }
     
     /**
-     * Returns a channel to be used by upper layer (application layer).
+     * Returns a channel to be used by layer above (application layer).
      * 
      * @throws IllegalStateException 
      *          If the channel is not available, has not been created yet.
@@ -206,7 +210,12 @@ public class ClientSession {
         m4.time = timeKeeper.getTime();
         m4.clientSigKey = this.sigKeyPair.pub();
         m4.signature2 = signature2();
-        encryptedChannel.write(m4.toBytes());
+        
+        if (this.bufferM4) {
+            appChannel.setBufferedMessage(m4);
+        } else {
+            encryptedChannel.write(m4.toBytes());
+        }
     }
     
     /**
