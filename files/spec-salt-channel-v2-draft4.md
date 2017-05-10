@@ -4,11 +4,11 @@ spec-salt-channel-v2-draft3.md
 About this document
 -------------------
 
-*Date*: 2017-03-29
+*Date*: 2017-05-10
 
-*Status*: Work on progress for Salt Channel v2.
+*Status*: Work in progress, specification for Salt Channel v2.
 
-*Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
+*Author*: Frans Lundberg. ASSA ABLOY AB, Stockholm, 
 frans.lundberg@assaabloy.com, phone: +46707601861.
 
 *Thanks*: 
@@ -21,6 +21,8 @@ To Simon Johansson and Håkan Olsson for valuable comments and discussions.
 
 Document history
 ----------------
+
+* 2017-05-xx. DRAFT4. 1-byte messages types instead of 4 bits.
 
 * 2017-03-29. DRAFT3. Work in progress with adding resume feature.
 
@@ -36,22 +38,26 @@ Introduction
 
 Salt Channel is a secure channel protocol based on the TweetNaCl 
 ("tweet salt") cryptography library by Daniel Bernstein et al 
-[TWEET-1, TWEET-2]. Like TweetNaCl itself, Salt Channel is small och
-simple.
+[TWEET-1, TWEET-2]. Like TweetNaCl itself, Salt Channel is simple, small,
+and auditable.
 
 The protocol is essentially an implementation of the station-to-station [STS] 
 protocol using the cryptography primitives of TweetNaCl.
 Salt Channel relies on an underlying reliable bidirectional communication 
-channel between two peers. TCP is an important example of such a channel, 
-but Salt Channel is in no way restricted to TCP. In fact, Salt Channel 
-has been successfully implemented on top of WebSocket, RS485, 
-and Bluetooth Low Energy.
+channel between the two peers communicating. TCP is an important example 
+of such an underlying channel, but Salt Channel is in no way restricted to 
+TCP. In fact, Salt Channel has been successfully implemented on top of 
+WebSocket, RS485, Bluetooth, and Bluetooth Low Energy.
 
 This is the second version of the protocol, called *Salt Channel v2*. 
-The major changes from v1 is the removal of the Binson dependency and 
-the addition of the resume feature.
+The major changes from v1 is the removal of the Binson dependency,
+the addition of the resume feature, and the protection against 
+delay attackds.
 
-Salt Channel is "Powered by Curve25519".
+Salt Channel is *Powered by Curve25519*. The cryptographic algorithms used
+are those provided by TweetNaCl: ed25519 with sha512 for signatures, 
+x25519+xsalsa20+poly1305 for authenticated public-key encryption, and
+sha512 for secure hashing.
 
 
 Changes from v1
@@ -62,10 +68,10 @@ with v1.
 
 The major changes are: 
 
-1. Binson dependency removed.
+1. The Binson dependency is removed.
 2. The resume feature is added.
-3. Signature1, Signature2 modified to include sha512(M1) + sha512(M2).
-4. Server protocol info added.
+3. Signature1, Signature2 are modified to include sha512(M1) + sha512(M2).
+4. The server protocol info is added.
 
 The Binson dependency is removed to make the protocol independent 
 of that specification. Also, it means more fixed sizes and offsets
@@ -78,18 +84,16 @@ is initiated by the client. This allows easy future Salt Channel version
 upgrades since both the client and the server may support multiple
 versions in parallel.
 
-The Signatures changed to follow recommendations in Cryptography Enginnering
-[SCHNEIER]. It does make sense to add integrity checks to M1, M2. This way
-all messages have integrity protection and all but M1, M2 have confidentiality
-protection.
+The signatures changed to follow recommendations in Cryptography Enginnering
+[SCHNEIER]. It does make sense to add integrity checks to messages M1, M2. 
+This way all messages have integrity protection and all but M1, M2 have 
+confidentiality protection.
 
 
-Temporary notes
-===============
+Author's notes
+==============
 
 Not in final spec, of course.
-
-* v2 does not include the resume feature?
 
 * v2 uses CloseFlag.
 
@@ -122,10 +126,11 @@ The following priorities were used when designing the protocol.
 2. The second priority is to achieve a low network overhead; 
    that is, few round-trips and a small data overhead.
    
-3. The third priority is to allow for low code complexity, low CPU requirements, 
-   and low memory requirements of the communicating peers.
+3. The third priority is to allow for low code complexity, 
+   low CPU requirements, and low memory requirements of the 
+   communicating peers.
 
- Low complexity is always important to achieve high security.
+Low complexity is always important to achieve high security.
 
 
 Goals
@@ -149,20 +154,72 @@ The following are the main goals and limitations of the protocol.
     just like TweetNaCl.
 
 * Compact protocol (few bytes).
-    Designed for Bluetooth low energy, for example. Low bandwith, in the order
-    of 1 kB/s.
+    Designed for Bluetooth low energy and other low-bandwidth channels.
     
-* It is a goal of Salt Channel to work well together with TCP Fast Open.
-
 * Limitation: No certificates.
     Simplicity and compactness are preferred.
+    The use of certificates together with the public keys of Salt Channel
+    is a possibility, but not included in the protocol. It could be included
+    in an upper layer.
     
 * Limitation: the protocol is not intended to be secure for an 
-    attacker with a large quantum computer. This is a limitation of 
-    the underlying TweetNaCl library.
+    attacker with a large quantum computer. Such a computer does not exist.
+    This is a limitation of the underlying TweetNaCl library.
     
 * Limitation: no attempt is made to hide the length, sequence, or timing
   of the communicated messages.
+
+* Limitation: no attempt is made to protect against denial-of-service 
+  attacks. This is an important topic. Perhaps large enough to 
+  warrant a special protocol for that. Anyway, the possibility of 
+  denial-of-service attacks varies greatly with the situation, such as
+  the type of the underlying reliable channel. Solving this in a generic way
+  is too complex to be considered for Salt Channel.
+
+
+Layer below
+===========
+
+Salt Channel can be implemented on top of any underlying channel that provides
+reliable, order-preserving, bidirectional communication. This section 
+describes how Salt Channel is implemented on top of a stream-type of 
+channel such as TCP, and how it is implemented on top of a Web Socket.
+
+Excluding this section, this specification only deals with byte arrays 
+*of known size*. The underlying layer provides an order-preserving 
+exchange of byte arrays with a known size.
+
+
+Salt Channel over a stream
+--------------------------
+
+When Salt Channel is implemented on top of a stream, such as TCP, the following
+format is used:
+
+    Stream = (Size Message)+
+    
+*Size* is a 32-bit integer with the byte size of 
+the following Message. Its valid range is (0, 2^31-1), so either
+an unsigned or signed 32-bit integer work for storing it in computer memory.
+Little-endian byte order is used. *Message* is the raw message bytes. 
+The format of these Message:s is defined in this document.
+
+
+Salt Channel over Web Socket
+----------------------------
+
+Binary Web Socket [WS] connections are already in the "chunked" format. 
+Applications send byte arrays of know sizes rather than a stream of bytes.
+The byte arrays arrive at the receiver application as a byte arrays with
+know sizes. A binary web socket communicates using a stream of byte arrays
+rather than a stream of bytes.
+
+When Salt Channel is implemented over a binary Web Socket, the "Size" prefix 
+(32-bit), used when Salt Channel is implementation over TCP, is unnecessary.
+It is already provided by the Web Socket layer. So Salt Channel over Web Socket 
+is very simple. Each web socket message is a Binson object as specified in 
+this document.
+
 
 
 Session
@@ -170,24 +227,26 @@ Session
 
 The message order of an ordinary successful Salt Channel session is:
  
-    Session = M1 M2 M3 M4 AppMessage*
+    Session = M1 M2 E(M3) E(M4) E(AppMessage)*
 
 The M1, and M4 messages are sent by the client and M2, M3 by the server.
 So, we have a three-way handshake (M1 from client, M2+M3 from server, and 
-M4 from client). When the first application message is from the client, this
-message can be sent together with M4 to achieve a two-way (one round-trip) 
-Salt Channel overhead. Application layer messages (AppMessage*) are sent by 
-either the client or the server in any order. The notation "E()" is used 
-to indicate authenticated encryption; see EncryptedMessage.
+M4 from client). In the common case when the first application message 
+is from the client, this message should normally be sent together with M4
+to achieve a one round-trip overhead (instead of two). Application layer 
+messages (AppMessage*) are sent by either the client or the server in 
+any order. The notation "E()" is used to indicate authenticated encryption; 
+see the section on EncryptedMessage. This may be omitted for clarity; 
+messages following M1, M2 are always encrypted.
 
 A Salt Channel session can also exist of an A1-A2 session allowing the client
-to ask the server about what protocols it supports:
+to ask the server about its public server information (not encrypted).
 
     Session = A1 A2
 
 After A2, the session is finished.
 
-Overview of a typical Salt Channel session:
+An overview of a typical Salt Channel session is shown below.
 
     
     CLIENT                                                 SERVER
@@ -207,57 +266,61 @@ Overview of a typical Salt Channel session:
     AppMessage                   <--E(App)-->          AppMessage
     
             Figure 1: Salt Channel messages. "E()" is 
-            used to indicate that a message is authenticated
-            and encrypted.
+            used to indicate that a message is encrypted and
+            authenticated.
     
 When the client holds a resume ticket, he can use it to achieve a
-zero-way overhead session resume.
+zero-round-trip overhead session. More about that later. See the
+figure below for an overview.
 
+    
     CLIENT                                                 SERVER
     
     Header
     ClientEncKey
     [ServerSigKey]
-    Ticket                       ---M1----->
-                
-                                 <--M2------         ServerEncKey
-                                   
-                                                     ServerSigKey
-                                 <--E(M3)---           Signature1
+    Ticket
+    AppMessage                   ---M1, App -->
+                                                             Ticket
+                                 <--TT, App ---          AppMessage
+        
+    AppMessage                   <--App------->          AppMessage
+
+            Figure 2: Salt Channel messages for the resume
+            case. First application message is sent with no
+            round-trip overhead.
     
-    ClientSigKey
-    Signature2                   ---E(M4)--->
-    
-    AppMessage                   <--E(App)-->          AppMessage
-    
-            Figure 1: Salt Channel messages. "E()" is 
-            used to indicate that a message is authenticated
-            and encrypted.
+Later section will describe these messages in detail.
 
 
 Message details
 ===============
 
-This section describes how a message is represented as an array
-of bytes. The size of a message is known by the layer above.
-The term *message* is used for a whole byte array message and
-*packet* is used to refer to a byte array -- either a full message
-or a part of a message.
+The message detail sections that follow describe how a message is 
+represented as an array of bytes. The size of a message is known 
+from the layer below. When the layer below is a stream (like TCP
+for example) each message is prefixed with the byte size of the 
+message as described in the section "Salt Channel over a stream".
+
+The term *message* is used for a whole byte array message of the 
+protocol (encrypted or not) and *packet* is used to refer to any
+byte array -- either a full message or a part of a message.
 
 Packets are presented below with fields of specified sizes.
-If the size number has a "b" suffix, the size is in bits, otherwise
-it is the byte size.
+If the size number has a "b" suffix, the size is in bits, 
+otherwise it is in bytes.
 
-Byte order: little-endian byte order is used. The first byte is the 
-least significant one. Bit order: the "first" bit (Bit 0) of a 
-byte is the least-significant bit.
+Regarding *byte order* and bit order; a *little-end-first* approach is 
+used. Little-endian byte order is used. 
+The first byte (Byte 0) is the least significant one of an integer.
+Bit order: the first bit (Bit 0) of a byte is the least-significant bit.
 
-Unless otherwise stated explicitely, bits are set to 0.
+Unless otherwise stated explicitly, bits are set to 0.
 
 The word "OPT" is used to mark a field that may or may not exist
-in the packet. It does not necesserily indicate a an optional field 
-in the sense that it independently can exist or not. Whether its existance
-is optional, mandatory or forbidden may dependend on other fields and/or
+in the packet. It does not necessarily indicate a an optional field 
+in the sense that it independently may exist or not. Whether its existence
+is optional, mandatory or forbidden may depend on other fields and/or
 the state of the communication so far.
 
 
@@ -267,7 +330,7 @@ Message M1
 The first message of a Salt Channel session is always the M1 message.
 It is sent from the client to the server. It includes a protocol indicator, 
 the client's public ephemeral encryption key and optionally the server's
-public signing key.
+public signing key. It may also include a resume ticket.
 
 Details:
 

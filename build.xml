@@ -2,7 +2,7 @@
 <!-- 
 Build file to build jar file and javadoc. 
 NOTE: compile with Java 7!
-Do not use Java, mainly due to Android limitations.
+Do not use Java (mainly due to Android).
 -->
 
 <project name="salt-channel" default="build" basedir=".">
@@ -57,11 +57,16 @@ Do not use Java, mainly due to Android limitations.
             windowtitle="Salt Channel API"
             encoding="utf-8"
 	        classpath="lib/*:out">
-    	
+        <arg line="-Xmaxwarns 1"/><!-- Removes all but one warning. Using "0" did not work. -->
+        
         <packageset dir="src" defaultexcludes="yes">
             <include name="**"/>
         </packageset>
-    </javadoc>	
+        
+        <packageset dir="src-in" defaultexcludes="yes">
+            <include name="**"/>
+        </packageset>
+    </javadoc>
 </target>
 
 <target name="compileTest"  depends="compile" description="compiles files, copies resources, output to out/classes">
@@ -90,7 +95,6 @@ Do not use Java, mainly due to Android limitations.
 
 
 <target name="test" depends="compileTest">
-<!--  <property name="arch" value="x86_64" /> -->
   <junit fork="yes" printsummary="on" haltonerror="on" haltonfailure="on" showoutput="true">
     <classpath>
       <pathelement location="lib-dev/junit-4.12.jar"/>
@@ -107,7 +111,7 @@ Do not use Java, mainly due to Android limitations.
   </junit>
 </target>   
 
-<target name="build" depends="clean, compile, jar" description="cleans, compiles and builds pot.jar">
+<target name="build" depends="clean, compile, jar, javadoc" description="cleans, compiles and builds jar, javadoc">
 </target>
 
 </project>
