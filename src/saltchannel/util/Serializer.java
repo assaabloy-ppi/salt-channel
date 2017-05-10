@@ -64,7 +64,7 @@ public class Serializer {
     
     public Serializer writeHeader(PacketHeader header) {
         int size = PacketHeader.SIZE;
-        System.arraycopy(header.bytes, 0, this.buffer, offset, size);
+        System.arraycopy(header.bytes(), 0, this.buffer, offset, size);
         offset += size;
         return this;
     }
