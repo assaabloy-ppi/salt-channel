@@ -2,7 +2,6 @@ package saltchannel;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import saltchannel.util.Hex;
 import saltaa.*;
 
@@ -15,7 +14,6 @@ public class SaltLibTest {
         SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.JAVA);
 
         byte[] m = new byte[0];
-        int n = 0;
         byte[] out = new byte[64];
         
         salt.crypto_hash(out, m);
@@ -32,7 +30,6 @@ public class SaltLibTest {
         SaltLib salt = SaltLibFactory.getLib(SaltLibFactory.LibType.NATIVE);
 
         byte[] m = new byte[0];
-        int n = 0;
         byte[] out = new byte[64];
         
         salt.crypto_hash(out, m);
@@ -41,5 +38,4 @@ public class SaltLibTest {
         
         Assert.assertArrayEquals(expected, out);
     }
-
 }

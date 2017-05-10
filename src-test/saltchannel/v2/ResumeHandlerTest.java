@@ -2,7 +2,8 @@ package saltchannel.v2;
 
 import org.junit.Assert;
 import org.junit.Test;
-import saltchannel.CryptoTestData;
+
+import saltchannel.util.CryptoTestData;
 import saltchannel.v2.packets.BadTicket;
 
 public class ResumeHandlerTest {

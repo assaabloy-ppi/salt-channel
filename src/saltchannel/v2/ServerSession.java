@@ -8,8 +8,6 @@ import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
 //import saltchannel.TweetNaCl;
 import saltaa.*;
-
-import saltchannel.util.Deserializer;
 import saltchannel.util.KeyPair;
 import saltchannel.util.NullTimeChecker;
 import saltchannel.util.Rand;
@@ -139,7 +137,7 @@ public class ServerSession {
     
     private void readM1() {
         m1Bytes = clearChannel.read();
-        m1Header = parseHeader(m1Bytes);
+        m1Header = V2Util.parseHeader(m1Bytes);
     }
 
     private void checkThatA2WasSet() {
@@ -278,10 +276,6 @@ public class ServerSession {
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, 
                 Role.SERVER, data.sessionNonce);
         this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
-    }
-    
-    private PacketHeader parseHeader(byte[] messageBytes) {
-        return new Deserializer(messageBytes, 0).readHeader();
     }
     
     private boolean resumeSupported() {

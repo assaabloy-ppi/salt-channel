@@ -4,18 +4,20 @@ import org.junit.Assert;
 import org.junit.Test;
 import a1a2.A1Client;
 import a1a2.A2Packet;
+import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.CryptoLib;
-import saltchannel.CryptoTestData;
 import saltchannel.TimeException;
 import saltchannel.Tunnel;
+import saltchannel.testutil.ToWaitFor;
+import saltchannel.util.CryptoTestData;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
 import saltchannel.util.TimeChecker;
 
 /**
- * Testing full client-server channels.
+ * Testing full client-server channels. In-memory.
  */
 public class ChannelTest {
 
@@ -55,7 +57,6 @@ public class ChannelTest {
         Assert.assertArrayEquals(CryptoTestData.bSig.pub(), client.getServerSigKey());
     }
     
-
     @Test
     public void testSample1WithTimeChecker() {
         Tunnel tunnel = new Tunnel();
@@ -187,5 +188,100 @@ public class ChannelTest {
         Assert.assertEquals(2, a2b.prots.length);
         Assert.assertEquals("SC2-------", a2.prots[0].p1);
         Assert.assertEquals("MyProtV3--", a2.prots[0].p2);
+    }
+    
+    @Test
+    public void testBadM1_1() throws InterruptedException {
+        testBadM1Internal(0);
+    }
+    
+    @Test
+    public void testBadM1_2() throws InterruptedException {
+        testBadM1Internal(1);
+    }
+    
+    @Test
+    public void testBadM1_3() throws InterruptedException {
+        testBadM1Internal(1000);
+    }
+    
+    private void testBadM1Internal(int size) throws InterruptedException {
+        Tunnel tunnel = new Tunnel();
+        final MyEvent myEvent = new MyEvent();
+        byte[] badM1 = new byte[size];
+        
+        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        client.setEncKeyPair(CryptoTestData.aEnc);
+        
+        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        server.setEncKeyPair(CryptoTestData.bEnc);
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    server.handshake();
+                } catch (BadPeer e) {
+                    myEvent.ex = e;
+                }
+                
+                myEvent.reportHappened();
+            }
+        });
+        thread.start();
+        
+        tunnel.channel1().write(badM1);
+        
+        myEvent.waitForIt(1000);
+        
+        Assert.assertTrue(myEvent.ex != null);
+        Assert.assertEquals(myEvent.ex.getClass(), BadPeer.class);
+    }
+    
+    @Test
+    public void testBadM2_1() throws InterruptedException {
+        testBadM2Internal(0);
+    }
+    
+    @Test
+    public void testBadM2_2() throws InterruptedException {
+        testBadM2Internal(1);
+    }
+    
+    @Test
+    public void testBadM2_3() throws InterruptedException {
+        testBadM2Internal(1000);
+    }
+    
+    private void testBadM2Internal(int size) throws InterruptedException {
+        final Tunnel tunnel = new Tunnel();
+        final byte[] badM2 = new byte[size];
+        
+        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        client.setEncKeyPair(CryptoTestData.aEnc);
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                ByteChannel ch = tunnel.channel2();
+                
+                ch.read();
+                ch.write(badM2);
+            }
+        });
+        thread.start();
+        
+        Exception ex = null;
+        
+        try {
+            client.handshake();
+        } catch (Exception e) {
+            ex = e;
+        }
+        
+        Assert.assertTrue("ex not null", ex != null);
+        Assert.assertEquals(ex.getClass(), BadPeer.class);
+    }
+    
+    private static class MyEvent extends ToWaitFor {
+        public Exception ex;
     }
 }

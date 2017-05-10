@@ -6,7 +6,10 @@ import saltchannel.v2.packets.PacketHeader;
 
 /**
  * A deserializer that can deserialize (read) bytes created with 
- * Serializer.
+ * Serializer. Note, this class does not throw BadPeer. Its methods
+ * throw IllegalArgumentException, ArrayIndexOutOfBoundsException and such.
+ * This caller should either make sure such exceptions are not thrown
+ * or catch them to detect a bad peer.
  * 
  * @author Frans Lundberg
  */

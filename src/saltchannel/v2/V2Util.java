@@ -1,15 +1,16 @@
 package saltchannel.v2;
 
-//import saltchannel.TweetNaCl;
 import saltaa.*;
+import saltchannel.BadPeer;
+import saltchannel.util.Deserializer;
 import saltchannel.util.KeyPair;
+import saltchannel.v2.packets.PacketHeader;
 
 public class V2Util {
     private static SaltLib salt = SaltLibFactory.getLib();
 
     public static byte[] createSignature(KeyPair sigKeyPair, byte[]... arrays) {
         byte[] message = concat(arrays);
-        //byte[] signedMessage = TweetNaCl.crypto_sign(message, sigKeyPair.sec());
         byte[] signedMessage = new byte[message.length + 64];
         salt.crypto_sign(signedMessage, message, sigKeyPair.sec());
 
@@ -34,5 +35,12 @@ public class V2Util {
         }
         
         return result;
+    }
+
+    public static PacketHeader parseHeader(byte[] messageBytes) {
+        if (messageBytes.length < PacketHeader.SIZE) {
+            throw new BadPeer("cannot read header, message too small, " + messageBytes.length);
+        }
+        return new Deserializer(messageBytes, 0).readHeader();
     }
 }

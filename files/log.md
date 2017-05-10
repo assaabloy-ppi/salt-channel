@@ -3,6 +3,13 @@ log.md
 
 Log and general notes.
 
+2017-05-10
+==========
+
+Frans: Work on Salt Channel v2. Draft 4.
+Resume *will* be included in v2.
+
+
 2017-03-29
 ==========
 

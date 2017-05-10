@@ -1,7 +1,4 @@
-package saltchannel;
-
-import saltchannel.util.Hex;
-import saltchannel.util.KeyPair;
+package saltchannel.util;
 
 public class CryptoTestData {
     /**

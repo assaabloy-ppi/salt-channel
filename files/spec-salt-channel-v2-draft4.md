@@ -1,4 +1,4 @@
-spec-salt-channel-v2-draft3.md
+spec-salt-channel-v2-draft4.md
 ==============================
 
 About this document
@@ -14,15 +14,11 @@ frans.lundberg@assaabloy.com, phone: +46707601861.
 *Thanks*: 
 To Simon Johansson and Håkan Olsson for valuable comments and discussions.
 
-*Temp notes*:
-
-* Check TODO markers in text.
-
 
 Document history
 ----------------
 
-* 2017-05-xx. DRAFT4. 1-byte messages types instead of 4 bits.
+* 2017-05-xx. DRAFT4. 1-byte message types instead of 4 bits. Improved text.
 
 * 2017-03-29. DRAFT3. Work in progress with adding resume feature.
 
@@ -52,12 +48,17 @@ WebSocket, RS485, Bluetooth, and Bluetooth Low Energy.
 This is the second version of the protocol, called *Salt Channel v2*. 
 The major changes from v1 is the removal of the Binson dependency,
 the addition of the resume feature, and the protection against 
-delay attackds.
+delay attacks.
 
 Salt Channel is *Powered by Curve25519*. The cryptographic algorithms used
 are those provided by TweetNaCl: ed25519 with sha512 for signatures, 
 x25519+xsalsa20+poly1305 for authenticated public-key encryption, and
 sha512 for secure hashing.
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", 
+"SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this 
+document are to be interpreted as described in [RFC2119];
+
 
 
 Changes from v1
@@ -93,7 +94,9 @@ confidentiality protection.
 Author's notes
 ==============
 
-Not in final spec, of course.
+Not in final spec.
+
+* Check TODO markers in text.
 
 * v2 uses CloseFlag.
 
@@ -106,8 +109,11 @@ Not in final spec, of course.
     There is not special reason to have 2, or 4-byte alignment of
     fields in this protocol. Compactness is preferred.
 
-* Notation. Use style: "M1/Header".
+* Notation: use style: "M1/Header".
 
+* TODO: include example session in appendix. Generate from code. 
+  HandshakeExampleData.java (v1 spec) is missing, create new class
+  for v2 example output. Use same example key pairs.
 
 
 Protocol design
@@ -201,8 +207,8 @@ format is used:
 *Size* is a 32-bit integer with the byte size of 
 the following Message. Its valid range is (0, 2^31-1), so either
 an unsigned or signed 32-bit integer work for storing it in computer memory.
-Little-endian byte order is used. *Message* is the raw message bytes. 
-The format of these Message:s is defined in this document.
+*Message* is the raw message bytes. The format of these Message:s is 
+defined in this document.
 
 
 Salt Channel over Web Socket
@@ -310,12 +316,16 @@ Packets are presented below with fields of specified sizes.
 If the size number has a "b" suffix, the size is in bits, 
 otherwise it is in bytes.
 
-Regarding *byte order* and bit order; a *little-end-first* approach is 
-used. Little-endian byte order is used. 
-The first byte (Byte 0) is the least significant one of an integer.
+Regarding byte order and bit order; a *little-end-first* approach is 
+used. *Little-endian byte order MUST be used*.
+The first byte (Byte 0) is the least significant byte of an integer.
 Bit order: the first bit (Bit 0) of a byte is the least-significant bit.
 
 Unless otherwise stated explicitly, bits are set to 0.
+
+Unless otherwise described, a range of an integer is expressed 
+using an *inclusive* range, for example:
+"0 to 127" means any integer between 0 and 127 including 0 and 127.
 
 The word "OPT" is used to mark a field that may or may not exist
 in the packet. It does not necessarily indicate a an optional field 
@@ -368,9 +378,9 @@ Details:
     
     **** M1/Header ****
     
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 1 for this packet type.
+    1   PacketType.
+        The packet type, an integer in the range 0 to 127.
+        The value is 1 for this packet.
     
     1b  ServerSigKeyIncluded.
         Set to 1 when ServerSigKey is included in the message.
@@ -382,7 +392,7 @@ Details:
         Set to 1 to request a new resume ticket to use in the future to 
         connect quickly with the server.
         
-    9b  Zero.
+    5b  Zero.
         Bits set to 0.
     
 
@@ -421,9 +431,9 @@ multiple protocols at the same endpoint.
     
     **** M2/Header ****
     
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 2 for this type of packet.
+    1   PacketType.
+        The packet type, an integer in the range 0 to 127.
+        The value is 2 for this packet.
         
     1b  NoSuchServer.
         Set to 1 if ServerSigKey was included in M1 but a server with such a
@@ -435,7 +445,7 @@ multiple protocols at the same endpoint.
     1b  ResumeSupported.
         Set to 1 if the server supports resume tickets.
     
-    10b Zero.
+    6b  Zero.
         Bits set to zero.
         
 
@@ -467,11 +477,11 @@ once M2 has been sent and received.
     
     **** M3/Header ****
     
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 3 for this packet.
+    1   PacketType.
+        The packet type, an integer in the range 0 to 127.
+        The value is 3 for this packet.
     
-    12b Zero.
+    8b  Zero.
         Bits set to 0.
     
 
@@ -479,8 +489,8 @@ Message M4
 ==========
 
 Message M4 is sent by the client. It finishes a three-way handshake.
-If can (and often should be) be sent together with a first application 
-message from the client to the server.
+If can (and typically should be) be sent together with a first application 
+message (or messages) from the client to the server.
 
     
     **** M4 ****
@@ -505,11 +515,11 @@ message from the client to the server.
     
     **** M4/Header ****
     
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 4 for this packet.
+    1   PacketType.
+        The packet type, an integer in the range 0 to 127.
+        The value is 4 for this packet.
     
-    12b Zero.
+    8b  Zero.
         Bits set to 0.
     
 
@@ -533,11 +543,11 @@ They are included in the field EncryptedMessage/Body.
     
     **** EncryptedMessage/Header ****
     
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 6 for this packet.
+    1   PacketType.
+        The packet type, an integer in the range 0 to 127.
+        The value is 6 for this packet.
     
-    12b Zero.
+    8b  Zero.
         Bits set to 0.
         
 
@@ -565,11 +575,11 @@ are sent between the client and the server in any order.
     
     **** AppMessage/Header ****
     
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 5 for this packet type.
+    1   PacketType.
+        The packet type, an integer in the range 0 to 127.
+        The value is 5 for this packet.
     
-    12b Zero.
+    8b  Zero.
         Bits set to 0.
 
 
@@ -583,35 +593,33 @@ measured in milliseconds. The Time field MUST have the value 1 for the first
 message sent (M1 for the client and M2 for the server) when the Time field
 is supported by the peer.
 
-The main reason to introduce these timestamps is to protect against 
+The main reason to introduce these time-stamps is to protect against 
 *delay attacks*; that is, a man-in-the-middle attacker that affects the 
-behavior by delaying a message sent between the two peers.
+application behavior by delaying a message sent between the two peers.
 The blog post at [DELAY-ATTACK] describes this type of attack.
 
 A peer that is capable of measuring relative time in milliseconds SHOULD
-support the the Time field in the messages. A peer that does not support
+support the Time field in the messages. A peer that does not support
 the Time field MUST set the value of the Time field to zero (four zero-valued
 bytes) of *all* messages in a Salt Channel session.
 
-Format: The Time field consists of an integer in the range of 0 to 2^31-1 
-inclusive. This means that either a signed or an unsigned 32-bit integer can
-be used to represent the time. Little-endian byte order is used.
-
-Note: 2^31-1 milliseconds is more than 24 days.
+Format: The Time field consists of an integer in the range 0 to 2^31-1.
+This means that either a signed or an unsigned 32-bit integer can
+be used to represent the time. Note: 2^31-1 milliseconds is more than 24 days.
 
 
 Resume
 ======
 
 The resume feature is implemented mostly on the server-side.
-To the client, a resume ticket is just an arbitrary array of bytes
-that can be used to improve handshake performance.
+To the client, a resume ticket is just an arbitrary array of encrypted bytes
+that can be used to improve Salt Channel performance.
 The client MUST allow changes to the format of resume tickets.
 However, the server SHOULD follow the specification here. The resume
-ticket specification here is the one that will be audited and should
-have the highest possible security.
+ticket specification here is the one that is audited and it is conjectured
+to be secure.
 
-The resume feature is OPTIONAL. Servers may not implement it. In that
+The resume feature is OPTIONAL. Servers MAY NOT implement it. In that
 case a server MUST always set the M2/ResumeSupported bit to 0.
 Also for a client, the resume feature is OPTIONAL. If a client does not
 support resume, it MUST set never request a ticket from the server.
@@ -953,17 +961,15 @@ A Salt Channel session ends when one the the following conditions occur:
 Encryption
 ==========
 
-TODO: write about the how messages are encrypted.
-How Signatures are computed.
+TODO: write about the how messages are encrypted in detail. With reference to TweetNaCl/NaCl.
+
+TODO: write about how signatures are computed in detail. With reference to TweetNaCl/NaCl.
 
 
 List of message types
 =====================
 
 This section is informative.
-TODO: consider changing packet types. Should A1, A2 be 0, 1? Or 14, 15 perhaps?
-TODO: consider having one whole byte as message type. 8 bits is enough anyway.
-    Simpler and allows more message types.
     
     PacketType   Name
     
@@ -978,7 +984,7 @@ TODO: consider having one whole byte as message type. 8 bits is enough anyway.
     8            A1
     9            A2
     10           TT
-    11-15        Not used
+    11-127      Not used
     
 
 
@@ -1005,3 +1011,5 @@ References
 * **WS**, RFC 7936, *The WebSocket Protocol*. December 2011.
 
 * **DELAY-ATTACK**, http://blog.franslundberg.com/2017/02/delay-attacks-forgotten-attack.html.
+
+* **RFC2119**, RFC 2119 by S. Bradner, https://www.ietf.org/rfc/rfc2119.txt

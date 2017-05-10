@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import saltchannel.util.CryptoTestData;
 import saltchannel.util.KeyPair;
 
 public class CryptoLibTest {

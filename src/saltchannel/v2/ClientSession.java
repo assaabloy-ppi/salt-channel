@@ -3,10 +3,7 @@ package saltchannel.v2;
 import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
-//import saltchannel.TweetNaCl;
 import saltaa.*;
-
-import saltchannel.util.Deserializer;
 import saltchannel.util.KeyPair;
 import saltchannel.util.NullTimeChecker;
 import saltchannel.util.Rand;
@@ -181,7 +178,7 @@ public class ClientSession {
     
     private void readM2Bytes() {
         this.m2Bytes = clearChannel.read();
-        this.m2Header = parseHeader(m2Bytes);
+        this.m2Header = V2Util.parseHeader(m2Bytes);
     }
     
     /**
@@ -283,9 +280,5 @@ public class ClientSession {
         if (encKeyPair == null) {
             throw new IllegalStateException("encKeyPair must be set before calling handshake()");
         }
-    }
-    
-    private PacketHeader parseHeader(byte[] messageBytes) {
-        return new Deserializer(messageBytes, 0).readHeader();
     }
 }

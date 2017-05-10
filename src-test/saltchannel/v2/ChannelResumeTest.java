@@ -2,16 +2,14 @@ package saltchannel.v2;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import saltchannel.ByteChannel;
-import saltchannel.CryptoTestData;
 import saltchannel.Tunnel;
-import saltchannel.util.Hex;
+import saltchannel.util.CryptoTestData;
 
 /**
  * Testing full client-server sessions with resume tickets.
  */
-public class ChannelTestResume {
+public class ChannelResumeTest {
     
     @Test
     public void testTicketRequested() {
