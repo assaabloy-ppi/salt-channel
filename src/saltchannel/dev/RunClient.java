@@ -48,7 +48,7 @@ public class RunClient {
 
 WIRESHARK ANALYSIS 2017-05-10
 
-402 bytes total
+Total: 402 bytes and 3 turns.
 
     C       S
     46 ----->
