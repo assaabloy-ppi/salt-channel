@@ -3,10 +3,12 @@ package saltchannel.util;
 public class CryptoTestData {
     /**
      * aSig, bSig generated 2016-08-10 by Frans.
+     * Used in many places including spec-salt-channel-v1.md.
      */
     public static final KeyPair aSig = KeyPair.fromHex(
             "55f4d1d198093c84de9ee9a6299e0f6891c2e1d0b369efb592a9e3f169fb0f795529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b", 
             "5529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b");
+    
     public static final KeyPair bSig = KeyPair.fromHex(
             "7a772fa9014b423300076a2ff646463952f141e2aa8d98263c690c0d72eed52d07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b", 
             "07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b");

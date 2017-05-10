@@ -12,24 +12,24 @@ import saltchannel.util.KeyPair;
 import saltchannel.v2.ClientSession;
 
 /**
- * Runs an echo client. Connects to echo server at localhost.
+ * Runs an echo client; connects to echo server at localhost and DEFAULT_PORT.
  * 
  * @author Frans Lundberg
  */
 public class RunClient {
-    private KeyPair keyPair = CryptoTestData.aSig;
+    private KeyPair keyPair = CryptoTestData.bSig; 
+        // Client is "Bob".
     
     private void go() throws UnknownHostException, IOException {
         Socket socket = new Socket("localhost", TestTcpServer.DEFAULT_PORT);
         ByteChannel clear = new SocketChannel(socket);
         ClientSession session = new ClientSession(keyPair, clear);
-        session.setEncKeyPair(CryptoTestData.aEnc);
+        session.setEncKeyPair(CryptoTestData.bEnc);
         session.handshake();
         ByteChannel appChannel = session.getChannel();
         
         byte[] request = new byte[]{1, 4, 4, 4, 4};
         appChannel.write(request);
-        
         byte[] response = appChannel.read();
         
         System.out.println("Request: " + Hex.create(request));
