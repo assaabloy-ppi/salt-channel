@@ -128,8 +128,14 @@ Do not use Java (mainly due to Android).
 </target>
 
 
-<target name="test" depends="compileTest">
-  <junit fork="yes" printsummary="on" haltonerror="on" haltonfailure="on" showoutput="true">
+<!-- <target name="test" depends="compileTest"> -->
+<target name="test">
+
+    <junit fork="yes" 
+        printsummary="on" 
+        haltonerror="on" 
+        haltonfailure="on" 
+        showoutput="false">
     <classpath>
       <pathelement location="lib-dev/junit-4.12.jar"/>
       <pathelement location="lib-dev/hamcrest-core-1.3.jar"/>

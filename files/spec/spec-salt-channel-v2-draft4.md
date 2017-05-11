@@ -8,11 +8,12 @@ About this document
 
 *Status*: Work in progress, specification for Salt Channel v2.
 
-*Author*: Frans Lundberg. ASSA ABLOY AB, Stockholm, 
+*Authors*: Frans Lundberg. ASSA ABLOY AB, Stockholm, 
 frans.lundberg@assaabloy.com, phone: +46707601861.
+Simon Johansson, Tritech AB, Stockholm.
 
 *Thanks*: 
-To Simon Johansson and Håkan Olsson for valuable comments and discussions.
+To Håkan Olsson for valuable comments and discussions.
 
 
 Document history

@@ -30,7 +30,7 @@ Results:
     Round-trips:                 4               2    
     Forward secrecy:           yes             yes    For this cipher suite.
     Client authenticated:      yes             yes    For this scenario.
-    Client ID hidden:           no             yes    Perhaps in TLS 1.3.
+    Client ID hidden:           no             yes    Supported in TLS1.3 draft.
     EC curve:                P-256      Curve25519
     ECC key size (bits)        256             256
     Symmetric key size (bits)  128             128
@@ -49,6 +49,10 @@ Comments:
 * 3 round-trips were expected for the TLS case. However, 
     no investigation has been made to explain this 
     unexpected behavior.
+
+* The [TLS1.3] draft has protection of client ID from an active attacker.
+  Ref: personal email to frans.lundberg@assaabloy.com from 
+  Eric Rescorla (2017-05-11).
     
 * ed25519 signature is included in the current TLS 1.3 draft.
 
