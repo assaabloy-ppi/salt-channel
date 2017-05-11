@@ -7,7 +7,32 @@ Do not use Java (mainly due to Android).
 
 <project name="salt-channel" default="build" basedir=".">
 
-<target name="compile" 
+<target name="init" description="Initializess properties">
+    <tstamp>
+        <format property="date" pattern="yyyyMMdd" />
+    </tstamp>
+
+    <tstamp>
+        <format property="dateAndMinute" pattern="yyyyMMdd.HHmm" />
+    </tstamp>
+
+    <property name="version" value="${date}"/>
+    <property name="time" value="${dateAndMinute}"/>
+
+    <!-- BuildInfo.java is generated from its template. -->
+    <copy file="src/saltchannel/dev/BuildInfoTemplate.txt" 
+            toFile="src/saltchannel/dev/BuildInfo.java"
+            overwrite="true">
+        <filterset begintoken="{{" endtoken="}}">
+            <filter token="version" value="${version}"/>
+            <filter token="time" value="${time}"/>
+        </filterset>
+    </copy>
+
+    <echo>version: ${version}, time: ${time}</echo>
+</target>
+    
+<target name="compile" depends="init"
     description="compiles files, copies resources, output to out/classes">
     
     <mkdir dir="out/classes"/>
@@ -40,14 +65,19 @@ Do not use Java (mainly due to Android).
 </target>
 
 <target name="jar" description="creates jar file, includes libs in it" depends="compile">
-	<delete file="out/salt-channel.jar"/>	
-	<jar destfile="out/salt-channel.jar">
+	<delete file="out/salt-channel-${version}.jar"/>	
+	<jar destfile="out/salt-channel-${version}.jar">
 	    <fileset dir="out/classes"/>    <!-- This should be first to allow replacing classes in libs. -->
 	    <zipgroupfileset dir="lib" includes="*.jar" />
             <fileset dir=".">
               <include name="**/lib/**"/>
            </fileset>
 	</jar>
+    
+    <copy file="out/salt-channel-${version}.jar" 
+            toFile="out/salt-channel.jar"
+            overwrite="true">
+    </copy>
 </target>
 
 <target name="javadoc" description="Creates javadoc.">
