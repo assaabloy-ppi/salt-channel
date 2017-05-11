@@ -97,6 +97,10 @@ Do not use Java (mainly due to Android).
             <include name="**"/>
         </packageset>
     </javadoc>
+    
+    <jar destfile="out/salt-channel-${version}-javadoc.jar">
+        <fileset dir="out/javadoc"/>
+    </jar>
 </target>
 
 <target name="compileTest"  depends="compile" description="compiles files, copies resources, output to out/classes">
