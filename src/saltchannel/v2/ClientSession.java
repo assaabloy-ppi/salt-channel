@@ -254,7 +254,7 @@ public class ClientSession {
      */
     private void validateSignature1() {        
         byte[] signedMessage = V2Util.concat(
-                m3.signature1, m2.serverEncKey, m1.clientEncKey, m1Hash, m2Hash);    
+                m3.signature1, m1Hash, m2Hash);    
 
         try {
             byte[] m = new byte[signedMessage.length];
@@ -268,8 +268,7 @@ public class ClientSession {
      * Computes Signature2.
      */
     private byte[] signature2() {
-        return V2Util.createSignature(sigKeyPair, 
-                encKeyPair.pub(), m2.serverEncKey, m1Hash, m2Hash);
+        return V2Util.createSignature(sigKeyPair, m1Hash, m2Hash);
     }
     
     private void createEncryptedChannelForNewSession() {
