@@ -4,16 +4,18 @@ spec-salt-channel-v2-draft4.md
 About this document
 -------------------
 
-*Date*: 2017-05-10
+*Date*: 2017-05-15
 
-*Status*: Work in progress, specification for Salt Channel v2.
+*Status*: Draft specification for Salt Channel v2.
 
-*Authors*: Frans Lundberg. ASSA ABLOY AB, Stockholm, 
-frans.lundberg@assaabloy.com, phone: +46707601861.
-Simon Johansson, Tritech AB, Stockholm.
+*Authors*:
+ 
+    - Frans Lundberg. ASSA ABLOY AB, Stockholm, frans.lundberg@assaabloy.com, phone: +46707601861.
+    - Simon Johansson, Tritech AB, Stockholm.
 
-*Thanks*: 
-To Håkan Olsson for valuable comments and discussions.
+*Thanks*:
+ 
+    - To Håkan Olsson for valuable comments and discussions.
 
 
 Document history
@@ -450,7 +452,11 @@ multiple protocols at the same endpoint.
         
 
 If the NoSuchServer condition occurs, the session is considered closed
-once M2 has been sent and received.
+once M2 has been sent and received. Furthermore, the client's behavior 
+MUST NOT be affected be the value of M2/ServerEncKey when NoSuchServer
+occurs. When the NoSuchServer bit is set the server MUST send 32 zero-valued
+bytes in the field M2/ServerEncKey.
+
 
     
     **** M3 ****
