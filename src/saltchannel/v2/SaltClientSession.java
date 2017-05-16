@@ -222,6 +222,10 @@ public class SaltClientSession {
      * Reads expected TT message.
      */
     private void tt1() {
+        if (encryptedChannel == null) {
+            throw new BadPeer("got Packet.TYPE_ENCRYPTED_MESSAGE but not resumed channel exists");
+        }
+        
         encryptedChannel.pushback(this.m2Bytes);
         
         byte[] bytes = encryptedChannel.read();
