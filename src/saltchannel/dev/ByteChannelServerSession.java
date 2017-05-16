@@ -1,5 +1,6 @@
 package saltchannel.dev;
 
+import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 
 /**

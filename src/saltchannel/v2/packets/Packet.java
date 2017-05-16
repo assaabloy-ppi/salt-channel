@@ -17,17 +17,24 @@ public interface Packet {
     public static final int TYPE_TICKET_ENCRYPTED = 11;
     
     /**
-     * Returns byte size of packet when serialized to a byte array.
+     * Returns size of packet when serialized to a byte array.
+     * 
+     * @return The number of bytes of the packet.
      */
     public int getSize();
     
     /**
      * Serializes packet to bytes.
+     * 
+     * @param destination  Buffer to write the packet to.
+     * @param offset  Offset in buffer to start at.
      */
     public void toBytes(byte[] destination, int offset);
     
     /**
      * Returns the packet type.
+     * 
+     * @return Packet type.
      */
     public int getType();
 }

@@ -18,7 +18,7 @@ public class TypicalTimeChecker implements TimeChecker {
      * 
      * @param clock
      *          The clock to use.
-     * @param maxDiff
+     * @param tolerance
      *          Max allowed clock difference in milliseconds.
      */
     public TypicalTimeChecker(MillisClock clock, int tolerance) {

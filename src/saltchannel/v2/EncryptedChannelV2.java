@@ -36,9 +36,6 @@ public class EncryptedChannelV2 implements ByteChannel {
      * @param key  
      *      Shared symmetric encryption key for one session. 
      *      A new key must be used for every session.
-     * @param ticketId
-     *      This is zero for ordinary sessions and ticketId for resumed sessions.
-     *      ticketId is used to create nonce for encryption/decryption.
      */
     public EncryptedChannelV2(ByteChannel channel, byte[] key, Role role) {
         this(channel, key, role, zeroSessionNonce());

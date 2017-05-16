@@ -1,5 +1,7 @@
 package saltchannel.util;
 
+import saltchannel.TimeException;
+
 public interface TimeChecker {
 
     /**

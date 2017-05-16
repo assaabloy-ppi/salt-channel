@@ -9,12 +9,12 @@ public class BuildInfo {
     
     private BuildInfo() {}
     
-    public static final String VERSION = identity("20170511");
+    public static final String VERSION = identity("20170516");
     
     /**
      * Build time, for example: "160508.1435".
      */
-    public static final String TIME = identity("20170511.1033");
+    public static final String TIME = identity("20170516.1255");
         
     /**
      * Returns 's'; useful for avoiding compiler inlining of a final field.
