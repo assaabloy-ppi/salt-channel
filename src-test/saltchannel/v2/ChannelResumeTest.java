@@ -18,11 +18,11 @@ public class ChannelResumeTest {
         Tunnel tunnel = new Tunnel();
         ResumeHandler resumeHandler = new ResumeHandler(CryptoTestData.random32a, 10, 100*1000);
         
-        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         client.setTicketRequested(true);
         
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setEncKeyPair(CryptoTestData.bEnc);
         server.setResumeHandler(resumeHandler);
         
@@ -59,12 +59,12 @@ public class ChannelResumeTest {
         Assert.assertTrue(ticketData != null);
         
         Tunnel tunnel = new Tunnel();
-        ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         client.setTicketRequested(true);
         client.setTicketData(ticketData);
         
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setEncKeyPair(CryptoTestData.bEnc);
         server.setResumeHandler(resumeHandler);
         
@@ -90,11 +90,11 @@ public class ChannelResumeTest {
     private ClientTicketData runSession1(ResumeHandler resumeHandler) {
         Tunnel tunnel = new Tunnel();
         
-        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         client.setTicketRequested(true);
         
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setEncKeyPair(CryptoTestData.bEnc);
         server.setResumeHandler(resumeHandler);
         

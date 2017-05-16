@@ -30,7 +30,7 @@ import saltchannel.v2.packets.TTPacket;
  * 
  * @author Frans Lundberg
  */
-public class ClientSession {
+public class SaltClientSession {
     private final ByteChannel clearChannel;
     private EncryptedChannelV2 encryptedChannel;
     private TimeKeeper timeKeeper;
@@ -55,7 +55,7 @@ public class ClientSession {
     private SaltLib salt = SaltLibFactory.getLib();
     private boolean bufferM4 = false;
 
-    public ClientSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
+    public SaltClientSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
         this.timeKeeper = NullTimeKeeper.INSTANCE;

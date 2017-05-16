@@ -8,7 +8,7 @@ import saltchannel.SocketChannel;
 import saltchannel.util.CryptoTestData;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Util;
-import saltchannel.v2.ServerSession;
+import saltchannel.v2.SaltServerSession;
 
 /**
  * A test TCP server running Salt Channel and a user-specified protocol
@@ -135,7 +135,7 @@ public class TestTcpServer {
             throw new ComException(e.getMessage());
         }
         
-        ServerSession session = new ServerSession(keyPair, clearChannel);
+        SaltServerSession session = new SaltServerSession(keyPair, clearChannel);
         session.setEncKeyPair(CryptoTestData.aEnc);
         session.handshake();
         

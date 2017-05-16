@@ -28,10 +28,10 @@ public class ChannelTest {
         
         Tunnel tunnel = new Tunnel();
         
-        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setEncKeyPair(CryptoTestData.bEnc);
         
         Thread thread = new Thread(new Runnable() {
@@ -61,10 +61,10 @@ public class ChannelTest {
     public void testSample1WithM4Buffered() {
         Tunnel tunnel = new Tunnel();
         
-        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setEncKeyPair(CryptoTestData.bEnc);
         
         Thread thread = new Thread(new Runnable() {
@@ -109,11 +109,11 @@ public class ChannelTest {
             }
         };
         
-        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         client.setTimeChecker(testChecker);
         
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setEncKeyPair(CryptoTestData.bEnc);
         
         Thread thread = new Thread(new Runnable() {
@@ -155,10 +155,10 @@ public class ChannelTest {
         final KeyPair serverKeyPair = CryptoLib.createSigKeys(rand);
         final Tunnel tunnel = new Tunnel();
         
-        final ServerSession server = new ServerSession(serverKeyPair, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(serverKeyPair, tunnel.channel2());
         server.setEncKeyPair(rand);
         
-        final ClientSession client = new ClientSession(clientKeyPair, tunnel.channel1());
+        final SaltClientSession client = new SaltClientSession(clientKeyPair, tunnel.channel1());
         client.setEncKeyPair(rand);
         
         Thread thread = new Thread(new Runnable() {
@@ -185,7 +185,7 @@ public class ChannelTest {
         Tunnel tunnel = new Tunnel();
         
         final A1Client client = new A1Client(tunnel.channel1());
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         
         Thread thread = new Thread(new Runnable() {
             public void run() {
@@ -207,7 +207,7 @@ public class ChannelTest {
         A2Packet a2 = new A2Packet.Builder().prot("MyProtV3--").prot("NataliaV2-").build();
         
         final A1Client client = new A1Client(tunnel.channel1());
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setA2(a2);
         
         Thread thread = new Thread(new Runnable() {
@@ -244,10 +244,10 @@ public class ChannelTest {
         final MyEvent myEvent = new MyEvent();
         byte[] badM1 = new byte[size];
         
-        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         
-        final ServerSession server = new ServerSession(CryptoTestData.bSig, tunnel.channel2());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setEncKeyPair(CryptoTestData.bEnc);
         
         Thread thread = new Thread(new Runnable() {
@@ -290,7 +290,7 @@ public class ChannelTest {
         final Tunnel tunnel = new Tunnel();
         final byte[] badM2 = new byte[size];
         
-        final ClientSession client = new ClientSession(CryptoTestData.aSig, tunnel.channel1());
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
         client.setEncKeyPair(CryptoTestData.aEnc);
         
         Thread thread = new Thread(new Runnable() {

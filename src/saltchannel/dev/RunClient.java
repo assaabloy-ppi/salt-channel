@@ -9,7 +9,7 @@ import saltchannel.SocketChannel;
 import saltchannel.util.CryptoTestData;
 import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
-import saltchannel.v2.ClientSession;
+import saltchannel.v2.SaltClientSession;
 
 /**
  * Runs an echo client; connects to echo server at localhost and DEFAULT_PORT.
@@ -25,7 +25,7 @@ public class RunClient {
     private void go() throws UnknownHostException, IOException {
         Socket socket = new Socket("localhost", TestTcpServer.DEFAULT_PORT);
         ByteChannel clear = new SocketChannel(socket);
-        ClientSession session = new ClientSession(keyPair, clear);
+        SaltClientSession session = new SaltClientSession(keyPair, clear);
         session.setEncKeyPair(CryptoTestData.bEnc);
         session.setBufferM4(true);
         session.handshake();

@@ -34,7 +34,7 @@ import saltchannel.v2.packets.TTPacket;
  * 
  * @author Frans Lundberg
  */
-public class ServerSession {
+public class SaltServerSession {
     private final ByteChannel clearChannel;
     private EncryptedChannelV2 encryptedChannel;
     private TimeKeeper timeKeeper;
@@ -56,7 +56,7 @@ public class ServerSession {
     
     private SaltLib salt = SaltLibFactory.getLib();
 
-    public ServerSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
+    public SaltServerSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
         this.sigKeyPair = sigKeyPair;
         this.timeKeeper = NullTimeKeeper.INSTANCE;
