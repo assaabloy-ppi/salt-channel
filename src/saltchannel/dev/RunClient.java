@@ -23,7 +23,7 @@ public class RunClient {
         // Client is "Bob".
     
     private void go() throws UnknownHostException, IOException {
-        Socket socket = new Socket("localhost", TestTcpServer.DEFAULT_PORT);
+        Socket socket = new Socket("localhost", TcpTestServer.DEFAULT_PORT);
         ByteChannel clear = new SocketChannel(socket);
         SaltClientSession session = new SaltClientSession(keyPair, clear);
         session.setEncKeyPair(CryptoTestData.bEnc);

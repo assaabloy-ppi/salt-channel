@@ -10,7 +10,7 @@ import java.io.IOException;
 public class RunServer {
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        TestTcpServer s = TestTcpServer.createEchoServer();
+        TcpTestServer s = TcpTestServer.createEchoServer();
         
         s.start();
         

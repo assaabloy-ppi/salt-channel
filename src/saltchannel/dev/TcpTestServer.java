@@ -19,7 +19,7 @@ import saltchannel.v2.SaltServerSession;
  * 
  * @author Frans Lundberg
  */
-public class TestTcpServer {    
+public class TcpTestServer {    
     public static final int DEFAULT_PORT = 2033;
     private final int port;
     private final Thread thread;
@@ -28,7 +28,7 @@ public class TestTcpServer {
     private ServerSessionFactory sessionFactory;
     private KeyPair keyPair;
     
-    public TestTcpServer(int port, ServerSessionFactory sessionFactory) {
+    public TcpTestServer(int port, ServerSessionFactory sessionFactory) {
         // Inits things.
         // Prepares a thread.
         
@@ -39,7 +39,7 @@ public class TestTcpServer {
         
         this.thread = new Thread(new Runnable() {
             public void run() {
-                TestTcpServer.this.run();
+                TcpTestServer.this.run();
             }
         });
         thread.setName("Server-" + thread.getId());
@@ -49,14 +49,14 @@ public class TestTcpServer {
      * Helper function that creates an echo server based on the implementation
      * in EchoServerSession.
      */
-    public static TestTcpServer createEchoServer() {
+    public static TcpTestServer createEchoServer() {
         ServerSessionFactory sessionFactory = new ServerSessionFactory() {
             public ByteChannelServerSession createSession() {
                 return new EchoServerSession();
             }
         };
         
-        return new TestTcpServer(DEFAULT_PORT, sessionFactory);
+        return new TcpTestServer(DEFAULT_PORT, sessionFactory);
     }
     
     /**
