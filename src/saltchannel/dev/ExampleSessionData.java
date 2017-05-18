@@ -59,6 +59,7 @@ public class ExampleSessionData {
     private void runServer() {
         SaltServerSession session = new SaltServerSession(serverSigKeyPair, tunnel.channel2());
         session.setEncKeyPair(serverEncKeyPair);
+        session.setBufferM2(true);
         session.handshake();
         ByteChannel appChannel = session.getChannel();
         appChannel.write(appChannel.read());    // echo once

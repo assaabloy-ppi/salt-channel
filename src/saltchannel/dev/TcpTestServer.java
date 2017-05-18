@@ -137,6 +137,7 @@ public class TcpTestServer {
         
         SaltServerSession session = new SaltServerSession(keyPair, clearChannel);
         session.setEncKeyPair(CryptoTestData.aEnc);
+        session.setBufferM2(true);
         session.handshake();
         
         ByteChannelServerSession s = this.sessionFactory.createSession();

@@ -212,7 +212,7 @@ public class SaltClientSession {
         m4.signature2 = signature2();
         
         if (this.bufferM4) {
-            appChannel.setBufferedMessage(m4);
+            appChannel.setBufferedM4(m4);
         } else {
             encryptedChannel.write(m4.toBytes());
         }
@@ -224,6 +224,10 @@ public class SaltClientSession {
     private void tt1() {
         if (encryptedChannel == null) {
             throw new BadPeer("got Packet.TYPE_ENCRYPTED_MESSAGE but not resumed channel exists");
+        }
+        
+        if (!m1.ticketRequested) {
+            throw new BadPeer("got a ticket, but none was requested");
         }
         
         encryptedChannel.pushback(this.m2Bytes);

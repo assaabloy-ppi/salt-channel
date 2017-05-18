@@ -53,8 +53,8 @@ public class SaltServerSession {
     private PacketHeader m1Header;
     private byte[] sessionKey;
     private byte[] clientSigKey;
-    
     private SaltLib salt = SaltLibFactory.getLib();
+    private boolean bufferM2 = false;
 
     public SaltServerSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -96,6 +96,16 @@ public class SaltServerSession {
     
     public void setTimeChecker(TimeChecker timeChecker) {
         this.timeChecker = timeChecker;
+    }
+    
+    /**
+     * Set to true to buffer M2; that is, M2+M3 will be written together
+     * in one write. This is likely more performant when crypto is fast 
+     * compared to IO. When the peer's crypto computations are slow relative
+     * to IO, do not buffer M2.
+     */
+    public void setBufferM2(boolean bufferM2) {
+        this.bufferM2 = bufferM2;
     }
 
     public void setResumeHandler(ResumeHandler resumeHandler) {
@@ -219,17 +229,42 @@ public class SaltServerSession {
         m2.serverEncKey = this.encKeyPair.pub();
         m2.resumeSupported = this.resumeHandler != null;
         
-        byte[] m2Bytes = m2.toBytes();
-        this.m2Hash = CryptoLib.sha512(m2Bytes);
-        clearChannel.write(m2Bytes);
+        if (!bufferM2) {
+            m2.time = timeKeeper.getFirstTime();
+            byte[] m2Bytes = m2.toBytes();
+            this.m2Hash = CryptoLib.sha512(m2Bytes);
+            clearChannel.write(m2Bytes);
+        }
     }
 
     private void m3() {
+        int time;
+        byte[] m2Bytes = null;
+        
+        if (bufferM2) {
+            time = timeKeeper.getFirstTime();
+            m2.time = time;
+            m2Bytes = m2.toBytes();
+            this.m2Hash = CryptoLib.sha512(m2Bytes);
+        } else {
+            time = timeKeeper.getTime();
+        }
+        
         M3Packet p = new M3Packet();
-        p.time = timeKeeper.getTime();
+        p.time = time;
         p.serverSigKey = this.sigKeyPair.pub();
         p.signature1 = signature1();
-        encryptedChannel.write(p.toBytes());
+        
+        byte[] m3Bytes = p.toBytes();
+        byte[] m3Encrypted = encryptedChannel.encryptAndIncreaseWriteNonce(m3Bytes);
+        
+        if (bufferM2) {
+            clearChannel.write(m2Bytes, m3Encrypted);
+        } else {
+            clearChannel.write(m3Encrypted);
+        }
+        
+        //encryptedChannel.write(p.toBytes());
     }
     
     private void m4() {

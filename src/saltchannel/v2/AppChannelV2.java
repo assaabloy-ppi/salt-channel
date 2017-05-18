@@ -15,7 +15,7 @@ public class AppChannelV2 implements ByteChannel {
     private ByteChannel channel;
     private TimeKeeper timeKeeper;
     private TimeChecker timeChecker;
-    private M4Packet buffered = null;
+    private M4Packet bufferedM4 = null;
     
     public AppChannelV2(ByteChannel channel, TimeKeeper timeKeeper, TimeChecker timeChecker) {
         this.channel = channel;
@@ -36,13 +36,13 @@ public class AppChannelV2 implements ByteChannel {
         byte[][] appMessages;
         int firstIndex;
         
-        if (this.buffered == null) {
+        if (this.bufferedM4 == null) {
             appMessages = new byte[messages1.length][];
             firstIndex = 0;
         } else {
             appMessages = new byte[1 + messages1.length][];
-            this.buffered.time = timeKeeper.getTime();
-            appMessages[0] = this.buffered.toBytes();
+            this.bufferedM4.time = timeKeeper.getTime();
+            appMessages[0] = this.bufferedM4.toBytes();
             firstIndex = 1;
         }
         
@@ -59,9 +59,9 @@ public class AppChannelV2 implements ByteChannel {
     
     /**
      * Used by framework to set M4, so M4 can be sent together with 
-     * first application mesages.
+     * first application messages.
      */
-    void setBufferedMessage(M4Packet m4) {
-        this.buffered = m4;
+    void setBufferedM4(M4Packet m4) {
+        this.bufferedM4 = m4;
     }
 }

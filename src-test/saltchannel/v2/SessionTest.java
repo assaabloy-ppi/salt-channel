@@ -17,9 +17,9 @@ import saltchannel.util.Rand;
 import saltchannel.util.TimeChecker;
 
 /**
- * Testing full client-server channels. In-memory.
+ * Testing full client-server sessions; in-memory.
  */
-public class ChannelTest {
+public class SessionTest {
 
     @Test
     public void testSample1() {
@@ -77,6 +77,40 @@ public class ChannelTest {
         thread.start();
         
         client.setBufferM4(true);
+        client.handshake();
+        
+        byte[] app1 = new byte[3000];
+        app1[2999] = 99;
+        
+        ByteChannel channel = client.getChannel();
+        channel.write(app1);
+        byte[] response = channel.read();
+        
+        Assert.assertArrayEquals(app1, response);
+        Assert.assertArrayEquals(CryptoTestData.aSig.pub(), server.getClientSigKey());
+        Assert.assertArrayEquals(CryptoTestData.bSig.pub(), client.getServerSigKey());
+    }
+    
+    @Test
+    public void testSample1WithM2Buffered() {
+        Tunnel tunnel = new Tunnel();
+        
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
+        client.setEncKeyPair(CryptoTestData.aEnc);
+        
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
+        server.setEncKeyPair(CryptoTestData.bEnc);
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                server.setBufferM2(true);
+                server.handshake();
+                byte[] appMessage = server.getChannel().read();
+                server.getChannel().write(appMessage);
+            }
+        });
+        thread.start();
+        
         client.handshake();
         
         byte[] app1 = new byte[3000];

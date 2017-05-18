@@ -1,26 +1,29 @@
 spec-salt-channel-v2-draft4.md
 ==============================
 
-About this document
--------------------
+About
+-----
+
+About this document.
 
 *Date*: 2017-05-18
 
-*Status*: Draft specification for Salt Channel v2.
+*Status*: Salt Channel v2 specification, DRAFT.
 
 *Authors*:
  
-    - Frans Lundberg. ASSA ABLOY AB, Stockholm, frans.lundberg@assaabloy.com, phone: +46707601861.
-    - Simon Johansson, Tritech AB, Stockholm.
+* Frans Lundberg. ASSA ABLOY AB, Stockholm, frans.lundberg@assaabloy.com, 
+  phone: +46707601861.  
+* Simon Johansson, Tritech AB, Stockholm.
 
 *Thanks*:
- 
-    - To Håkan Olsson for valuable comments and discussions.
-    - To Daniel Bernstein for creating TweetNaCl.
+
+* To Håkan Olsson for valuable comments and discussions.
+* To Daniel Bernstein for creating TweetNaCl.
 
 
-Document history
-----------------
+History
+-------
 
 * 2017-05-xx. DRAFT4. 1-byte message types instead of 4 bits. Improved text.
 
@@ -114,8 +117,6 @@ Not in final spec.
     fields in this protocol. Compactness is preferred.
 
 * Notation: use style: "M1/Header".
-
-* TODO: include example session in appendix. Generate from code.
 
 
 Protocol design
@@ -250,13 +251,12 @@ messages following M1, M2 are always encrypted.
 
 A Salt Channel session can also exist of an A1-A2 session allowing the client
 to ask the server about its public server information (not encrypted).
-
+    
     Session = A1 A2
-
+    
 After A2, the session is finished.
 
 An overview of a typical Salt Channel session is shown below.
-
     
     CLIENT                                                 SERVER
     
@@ -281,7 +281,6 @@ An overview of a typical Salt Channel session is shown below.
 When the client holds a resume ticket, he can use it to achieve a
 zero-round-trip overhead session. More about that later. See the
 figure below for an overview.
-
     
     CLIENT                                                 SERVER
     
@@ -346,7 +345,6 @@ the client's public ephemeral encryption key and optionally the server's
 public signing key. It may also include a resume ticket.
 
 Details:
-
     
     **** M1 ****
     
@@ -418,7 +416,6 @@ contents of M1. We could imagine a protocol where M2 could be sent before
 the complete M1 has been read. However, this would not allow for the
 virtual server functionality and the possibility of the server to support
 multiple protocols at the same endpoint.
-
             
     **** M2 ****
     
@@ -451,14 +448,11 @@ multiple protocols at the same endpoint.
     6b  Zero.
         Bits set to zero.
         
-
 If the NoSuchServer condition occurs, the session is considered closed
 once M2 has been sent and received. Furthermore, the client's behavior 
 MUST NOT be affected be the value of M2/ServerEncKey when NoSuchServer
 occurs. When the NoSuchServer bit is set the server MUST send 32 zero-valued
 bytes in the field M2/ServerEncKey.
-
-
     
     **** M3 ****
     
@@ -498,7 +492,6 @@ Message M4
 Message M4 is sent by the client. It finishes a three-way handshake.
 If can (and typically should be) be sent together with a first application 
 message (or messages) from the client to the server.
-
     
     **** M4 ****
     
@@ -535,7 +528,6 @@ EncryptedMessage
 
 Messages M3, M4, and the application messages (AppMessage) are encrypted.
 They are included in the field EncryptedMessage/Body.
-
    
     **** EncryptedMessage ****
     
@@ -556,14 +548,13 @@ They are included in the field EncryptedMessage/Body.
     
     8b  Zero.
         Bits set to 0.
-        
+    
 
 AppPacket
 =========
 
 After the handshake, encrypted application packets (E(AppPacket)*) 
 are sent between the client and the server in any order.
-
     
     **** AppPacket ****
 
@@ -588,7 +579,7 @@ are sent between the client and the server in any order.
     
     8b  Zero.
         Bits set to 0.
-
+    
 
 The time field
 ==============
@@ -627,9 +618,9 @@ ticket specification here is the one that is audited and it is conjectured
 to be secure.
 
 The resume feature is OPTIONAL. Servers MAY NOT implement it. In that
-case a server MUST always set the M2/ResumeSupported bit to 0.
+case, a server MUST always set the M2/ResumeSupported bit to 0.
 Also for a client, the resume feature is OPTIONAL. If a client does not
-support resume, it MUST set never request a ticket from the server.
+support resume, it MUST NOT request a ticket from the server.
 Technically, such a client MUST set the M1/Header/TicketRequested bit
 to zero.
 
@@ -640,14 +631,15 @@ Idea
 The idea with the resume tickets is to support session-resume to significantly
 reduce the overhead of the Salt Channel handshake. A resumed session uses
 less communication data and a zero round-trip overhead. Also, the handshake of
-a resumed session does not require CPU intensive asymmetric cryptography.
+a resumed session does not require asymmetric cryptography which typically 
+reduces the processor time spent on cryptography by a factor of 10 or more.
 
-Salt Channel resume allows a server to support the resume feature using only
-one single bit of memory for each created ticket. This allows the server to 
-have all data related to this feature in memory. The ticket
+Salt Channel resume allows the server to support the resume feature using only
+one single bit of memory for each created ticket. This way the server can 
+keep all data related to this feature in memory. The ticket
 encryption key can be stored in memory. If it is lost due to power 
-failure, the only affect is that outstanding tickets will become invalid
-and a full handshake will required when a client connects.
+failure, the only affect is that outstanding tickets become invalid
+and a full handshake is required when a client connects.
 
 A client stores one ticket per server. The client can choose whether to use
 the resume feature or not. It can do this on a per-server basis.
@@ -658,15 +650,17 @@ index may, for example, be the number of microseconds since
 Unix Epoch (1 January 1970 UTC). After that, each issued ticket is 
 given an ID that, for example, equals the previously issued 
 ID plus one. It is entirely up to the server how to choose
-ticket IDs.
+ticket IDs. The server just needs to ensure that the IDs are strictly
+increasing (never reused).
 
-A bitmap is used to protect against replay attacks. The bitmap stores one bit
-per non-expired ticket that is issued. The bit is set to 1 when a
-ticket is issued and to 0 when it is used. Thus, a ticket can only be used
-once. Of course, the bitmap cannot be of infinite size. In fact, the server
-implementation can use a fixed size circular bit buffer. Using one megabyte 
-of memory, the server can keep track of which tickets, out of the last 
-8 million issued tickets, that have been used.
+On the server, a bitmap is used to protect against replay attacks.
+The bitmap stores one bit per non-expired ticket that it has issued.
+The bit is set to 1 when a ticket is issued and to 0 when it is used.
+Thus, a ticket can only be used once. Of course, the bitmap cannot 
+be of infinite size. In fact, the server implementation can use a 
+fixed size circular bit buffer. Using one megabyte of memory, the 
+server can keep track of which tickets, out of the last 8 million 
+issued tickets, that have been used.
 
 
 Three cases
@@ -679,7 +673,7 @@ three cases:
 * Case B, *valid ticket*, and
 * Case C, *invalid ticket*.
 
-Also, we consider a case where application message App1 is first sent
+Also, we consider the case where application message App1 is first sent
 to the server and then the server replies with the App2 application message;
 a simple request-response is the first messages exchanged at the application
 layer.
@@ -733,15 +727,16 @@ to this server. The messages App1, TT, App2 are encrypted
     
 The client sends the ticket in M1. The first application message, 
 App1A, is sent together with M1. However, the server determines that
-the ticket is not valid and replies with M2, M3. The M2 has the bit
-M2/Header/BadTicket set to 1. The client notices that the ticket
-was not accepted and then sends M4, App1B. Note that App1 
-must be sent again to the server with the new encryption key
-computed from a key agreement using the public keys exchanged 
-in M1 and M2.
+the ticket is not valid (expired) and replies with M2, M3. The M2 
+has the bit M2/Header/BadTicket set to 1. The client notices that the ticket
+was not accepted and then sends M4, App1B. "App1A" and "App1B" are the 
+same message App1 sent twice. However, they are encrypted differently.
+In Case C, App1 must be sent again to the server, now encrypted with 
+the encryption key computed from the key agreement using the public keys 
+exchanged in M1 and M2.
 
 If a new ticket was requested in M1 (M1/Header/TicketRequested set to 1),
-a ticket will be included in M3.
+a ticket MUST be included in M3.
 Message App1A is encrypted with the (invalid) ticket encryption key.
 Messages M3, M4, App1B, App2 are encrypted with the session encryption key.
 
@@ -752,7 +747,7 @@ Message TT
 This message is sent in response to a message M1 that includes a 
 valid ticket. The TT message includes a new ticket if the client
 requested one.
-
+    
     **** TT ****
 
     This packet is encrypted. The packet is sent within the body of 
@@ -784,9 +779,9 @@ requested one.
 Ticket details
 --------------
 
-The details of the RECOMMENDED ticket format.
-TODO: update this.
-
+This section has the details of the RECOMMENDED ticket format.
+The data format of a Ticket is shown below.
+   
     **** Ticket ****
 
     2   Header. 
@@ -855,7 +850,6 @@ No encryption is used. Any information sent by the server should be
 validated later once the secure channel has been established.
 The A2 response by the server is assumed to be static for days or weeks or
 longer. The client is allowed to cache this information.
-
     
     **** A1 ****
     
@@ -879,7 +873,6 @@ longer. The client is allowed to cache this information.
     
 
 And Message A2:
-
     
     **** A2 ****
     
@@ -994,7 +987,6 @@ This section is informative.
     11-127      Not used
     
 
-
 References
 ==========
 
@@ -1033,7 +1025,6 @@ pair *must* be generated for each session in real production use.
 On the application layer, a simple request-reponse exchange occurs.
 The client sends the application data: 0x010505050505 and the same
 bytes are echoed back by the server.
-
    
     ======== ExampleSessionData ========
     
@@ -1076,6 +1067,5 @@ bytes are echoed back by the server.
     total bytes: 380
     total bytes, handshake only: 320
     
-
 The output was generated with the Java class saltchannel.dev.ExampleSessionData,
 date: 2017-05-18.

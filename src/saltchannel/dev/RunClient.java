@@ -64,4 +64,15 @@ Note, we have *two* TCP packets 42+124. This could be avoided.
 When IO is slow compared to crypto, 42+124 should be combined into one write.
 When crypto is slow compared to IO, it makes sense to split them.
 
+Update,2017-05-18, now M2+M3 write is supported and we have
+the following when M2 is buffered on server-side.
+
+    C       S
+    46 ----->
+    <---- 166
+    158 ---->
+    <----- 34
+        
+Same totals as before, of course.
+
  */

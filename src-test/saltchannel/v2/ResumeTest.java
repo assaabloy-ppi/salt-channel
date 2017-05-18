@@ -9,7 +9,7 @@ import saltchannel.util.CryptoTestData;
 /**
  * Testing full client-server sessions with resume tickets.
  */
-public class ChannelResumeTest {
+public class ResumeTest {
     
     @Test
     public void testTicketRequested() {
@@ -55,7 +55,7 @@ public class ChannelResumeTest {
         
         ResumeHandler resumeHandler = new ResumeHandler(CryptoTestData.random32a, 10, 100*1000);
         
-        ClientTicketData ticketData = runSession1(resumeHandler);
+        ClientTicketData ticketData = startSession1(resumeHandler);
         Assert.assertTrue(ticketData != null);
         
         Tunnel tunnel = new Tunnel();
@@ -81,13 +81,13 @@ public class ChannelResumeTest {
         client.handshake();
         
         ByteChannel appChannel = client.getChannel();
-        appChannel.write(new byte[]{5});
+        appChannel.write(new byte[]{1, 2, 3});
         byte[] app2 = appChannel.read();
         
-        Assert.assertArrayEquals(new byte[]{5}, app2);
+        Assert.assertArrayEquals(new byte[]{1, 2, 3}, app2);
     }
 
-    private ClientTicketData runSession1(ResumeHandler resumeHandler) {
+    private ClientTicketData startSession1(ResumeHandler resumeHandler) {
         Tunnel tunnel = new Tunnel();
         
         final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
