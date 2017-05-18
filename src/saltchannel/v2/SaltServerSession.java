@@ -110,6 +110,8 @@ public class SaltServerSession {
      * @throws BadPeer
      */
     public void handshake() {
+        checkThatEncKeyPairWasSet();        
+        
         readM1();
         
         if (m1Header.getType() == Packet.TYPE_A1) {

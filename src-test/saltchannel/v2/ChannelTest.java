@@ -186,6 +186,7 @@ public class ChannelTest {
         
         final A1Client client = new A1Client(tunnel.channel1());
         final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
+        server.setEncKeyPair(CryptoTestData.bEnc);
         
         Thread thread = new Thread(new Runnable() {
             public void run() {
@@ -209,6 +210,7 @@ public class ChannelTest {
         final A1Client client = new A1Client(tunnel.channel1());
         final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
         server.setA2(a2);
+        server.setEncKeyPair(CryptoTestData.bEnc);
         
         Thread thread = new Thread(new Runnable() {
             public void run() {

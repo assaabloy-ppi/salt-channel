@@ -1,12 +1,13 @@
 package saltchannel.v2;
 
 import java.util.Arrays;
+
+import saltaa.BadEncryptedDataException;
+import saltaa.SaltLib;
+import saltaa.SaltLibFactory;
+import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
-//import saltchannel.TweetNaCl;
-
-import saltaa.*;
-
 import saltchannel.util.Bytes;
 import saltchannel.v2.packets.EncryptedPacket;
 import saltchannel.v2.packets.TTPacket;
@@ -14,6 +15,9 @@ import saltchannel.v2.packets.TTPacket;
 /**
  * An implementation of an encrypted channel using a shared symmetric 
  * session key.
+ * The read/write methods throws ComException for low-level IO errors
+ * and BadPeer if the data format is not OK or if the data is not 
+ * encrypted properly.
  * 
  * @author Frans Lundberg
  */
@@ -81,7 +85,7 @@ public class EncryptedChannelV2 implements ByteChannel {
     }
 
     @Override
-    public byte[] read() throws ComException {
+    public byte[] read() throws ComException, BadPeer {
         byte[] encrypted = readOrTakePushback();
         encrypted = unwrap(encrypted);
         byte[] clear = decrypt(encrypted);
@@ -103,7 +107,7 @@ public class EncryptedChannelV2 implements ByteChannel {
     }
 
     @Override
-    public void write(byte[]... messages) throws ComException {
+    public void write(byte[]... messages) throws ComException, BadPeer {
         byte[][] toWrite = new byte[messages.length][];
         
         for (int i = 0; i < messages.length; i++) {
@@ -117,6 +121,7 @@ public class EncryptedChannelV2 implements ByteChannel {
     
     /**
      * @throws ComException
+     * @throws BadPeer
      */
     byte[] decrypt(byte[] encrypted) {
         if (encrypted == null) {
@@ -128,16 +133,14 @@ public class EncryptedChannelV2 implements ByteChannel {
         byte[] m = new byte[c.length];
         System.arraycopy(encrypted, 0, c, SaltLib.crypto_secretbox_OVERHEAD_BYTES, encrypted.length);
         if (c.length < 32) {
-            throw new ComException("ciphertext too small");
+            throw new BadPeer("ciphertext too small");
         }
         
         try {
             salt.crypto_box_open_afternm(m, c, readNonceBytes, key);            
+        } catch(BadEncryptedDataException e) {
+            throw new BadPeer("invalid encryption, could not be decrypted");
         }
-        catch(BadEncryptedDataException e)
-        {
-            throw new ComException("invalid encryption");
-        }         
 
         clear = Arrays.copyOfRange(m, SaltLib.crypto_secretbox_INTERNAL_OVERHEAD_BYTES, m.length);
         return clear;

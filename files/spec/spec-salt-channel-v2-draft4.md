@@ -4,7 +4,7 @@ spec-salt-channel-v2-draft4.md
 About this document
 -------------------
 
-*Date*: 2017-05-15
+*Date*: 2017-05-18
 
 *Status*: Draft specification for Salt Channel v2.
 
@@ -16,6 +16,7 @@ About this document
 *Thanks*:
  
     - To Håkan Olsson for valuable comments and discussions.
+    - To Daniel Bernstein for creating TweetNaCl.
 
 
 Document history
