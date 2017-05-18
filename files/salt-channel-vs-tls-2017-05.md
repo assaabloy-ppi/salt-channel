@@ -40,6 +40,11 @@ TLS has a much larger handshake overhead, about 6 times more data
 is sent and 4 round-trips are used while Salt Channel only needs 
 2 round-trips.
 
+Note that [TLS1.3] will likely reduce the differences in overhead.
+According to the current draft [TLS1.3], TLS 1.3 will reduce 
+round-trip overhead and will support raw public keys. TLS 1.3 will
+also have support for hidden client IDs. See comments below.
+
 Comments:
 
 * TLS uses about 6 times more data.
@@ -52,8 +57,12 @@ Comments:
 
 * The [TLS1.3] draft has protection of client ID from an active attacker.
   Ref: personal email to frans.lundberg@assaabloy.com from 
-  Eric Rescorla (2017-05-11).
-    
+  Eric Rescorla, the author of [TLS1.3] (2017-05-11).
+  
+* The [TLS1.3] draft has support for using "raw public keys" as
+  defined in [RFC7250]. This would likely reduce the data overhead of
+  the handshake significantly.
+  
 * ed25519 signature is included in the current TLS 1.3 draft.
 
 * The current TLS 1.3 draft [TLS1.3] says that
@@ -74,3 +83,7 @@ References
 
 [TLS1.3] TLS version 1.3, draft-ietf-tls-tls13-20, April 2017. 
 See https://tools.ietf.org/html/draft-ietf-tls-tls13-20.
+
+[RFC7250] RFC 7250, "Using Raw Public Keys in Transport Layer Security (TLS)
+and Datagram Transport Layer Security (DTLS)", June 2014.
+

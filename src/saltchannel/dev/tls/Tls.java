@@ -1,4 +1,4 @@
-package saltchannel.dev;
+package saltchannel.dev.tls;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +24,7 @@ import saltchannel.util.Hex;
 
 /**
  * Executes an example TLS session to gather data about
- * how TLS and Salt Channel compares. No real error handling in implemented.
+ * how TLS and Salt Channel compares. No real error handling is implemented.
  * 
  * @author Frans Lundberg
  */
@@ -33,8 +33,12 @@ public class Tls {
     private static String host = "localhost";
     private SSLContext serverContext;
     private SSLContext clientContext;
+
+    public static void main(String[] args) throws Exception {
+        new Tls().go();
+    }
     
-    public void go() throws Exception {
+    private void go() throws Exception {
         context();
         startServer();
         Thread.sleep(500);
@@ -86,10 +90,6 @@ public class Tls {
         for (String s : enabledCipherSuites) {
             System.out.println("  " + s);
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        new Tls().go();
     }
     
     private void printClientSocketInfo(SSLSocket socket) throws Exception {
