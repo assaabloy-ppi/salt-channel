@@ -17,6 +17,14 @@ public class CryptoLibTest {
         Assert.assertArrayEquals(sec, sig.sec());
         Assert.assertArrayEquals(CryptoTestData.aSig.pub(), sig.pub());
     }
+    
+    @Test
+    public void testCreateEncKeysFromSec() {
+        byte[] sec = CryptoTestData.aEnc.sec();
+        KeyPair pair = CryptoLib.createEncKeysFromSec(sec);
+        Assert.assertArrayEquals(sec, pair.sec());
+        Assert.assertArrayEquals(CryptoTestData.aEnc.pub(), pair.pub());
+    }
 
     @Test
     public void testSign() {

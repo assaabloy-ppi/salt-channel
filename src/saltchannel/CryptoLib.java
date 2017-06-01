@@ -16,8 +16,6 @@ import saltaa.*;
  * @author Frans Lundberg
  */
 public class CryptoLib {
-
-    // maybe need to privatize some of next constants 
     public static final int SIGN_PUBLIC_KEY_BYTES = SaltLib.crypto_sign_PUBLICKEYBYTES;
     public static final int SIGN_SECRET_KEY_BYTES = SaltLib.crypto_sign_SECRETKEYBYTES;
     public static final int SIGNATURE_BYTES = SaltLib.crypto_sign_BYTES;
@@ -146,6 +144,15 @@ public class CryptoLib {
     public static KeyPair createSigKeysFromSec(byte[] sec) {
         byte[] pub = new byte[SaltLib.crypto_sign_PUBLICKEYBYTES];
         salt.crypto_sign_keypair_not_random(pub, sec);
+        return new KeyPair(sec, pub);
+    }
+    
+    /**
+     * Creates a deterministic encryption (key agreement) KeyPair given the secret key.
+     */
+    public static KeyPair createEncKeysFromSec(byte[] sec) {
+        byte[] pub = new byte[SaltLib.crypto_box_PUBLICKEYBYTES];
+        salt.crypto_box_keypair_not_random(pub, sec);
         return new KeyPair(sec, pub);
     }
     
