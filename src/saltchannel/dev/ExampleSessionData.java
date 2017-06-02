@@ -27,6 +27,7 @@ public class ExampleSessionData {
     private byte[] appRequest = new byte[]{0x01, 0x05, 0x05, 0x05, 0x05, 0x05};
     private byte[] appResponse;
     private LoggingByteChannel loggingByteChannel;
+    private byte[] sessionKey;
 
     public static void main(String[] args) {
         new ExampleSessionData().go();
@@ -74,6 +75,8 @@ public class ExampleSessionData {
         ByteChannel appChannel = session.getChannel();
         appChannel.write(appRequest);
         appResponse = appChannel.read();
+        
+        this.sessionKey = session.getSessionKey();
     }
     
     public void outputResult() {
@@ -110,6 +113,7 @@ public class ExampleSessionData {
         b.append("\n");
         b.append("---- Other ----\n");
         b.append("\n");
+        b.append("session key: " + Hex.create(sessionKey) + "\n");
         b.append("app request:  " + Hex.create(appRequest) + "\n");
         b.append("app response: " + Hex.create(appResponse) + "\n");
         b.append(totalsString());
@@ -205,6 +209,7 @@ server encryption key pair:
 
 ---- Other ----
 
+session key: 1b27556473e985d462cd51197a9a46c76009549eac6474f206c4ee0844f68389
 app request:  010505050505
 app response: 010505050505
 total bytes: 380

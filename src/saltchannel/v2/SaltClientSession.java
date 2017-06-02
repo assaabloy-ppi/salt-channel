@@ -148,6 +148,10 @@ public class SaltClientSession {
         return this.m3.serverSigKey;
     }
     
+    public byte[] getSessionKey() {
+        return sessionKey;
+    }
+    
     /**
      * Returns the newly issued ticket from the server or null 
      * if no new ticket was sent from the server.

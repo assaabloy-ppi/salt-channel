@@ -1062,6 +1062,7 @@ bytes are echoed back by the server.
     
     ---- Other ----
     
+    session key: 1b27556473e985d462cd51197a9a46c76009549eac6474f206c4ee0844f68389
     app request:  010505050505
     app response: 010505050505
     total bytes: 380
