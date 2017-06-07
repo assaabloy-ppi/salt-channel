@@ -12,7 +12,7 @@ import saltchannel.util.Bytes;
 
 /**
  * An implementation of an encrypted channel using a shared symmetric 
- * session key.
+ * session key. Not thread-safe.
  * 
  * @author Frans Lundberg
  */
@@ -27,7 +27,7 @@ public class EncryptedChannelV1 implements ByteChannel {
     
     /**
      * Creates a new EncryptedChannel given the underlying channel to be 
-     * encrypted, the key and the role of the peer (client or server).
+     * encrypted, the key, and the role of the peer (client or server).
      * 
      * @param key  
      *      Shared symmetric encryption key for one session. 
