@@ -80,6 +80,7 @@ public class ExampleSessionData {
     }
     
     public void outputResult() {
+        boolean includeTime = false;
         StringBuilder b = new StringBuilder();
         List<LoggingByteChannel.Entry> entries = loggingByteChannel.getLog();
         
@@ -101,12 +102,17 @@ public class ExampleSessionData {
             LoggingByteChannel.Entry entry = entries.get(i);
             long us = (entry.time - t0) / 1000;
             String formattedTime = String.format(Locale.US, "%06d", us);
+            
             String sizeString = String.format(Locale.US, "%3d", entry.bytes.length);
             String sizeAndArrowString = entry.type == LoggingByteChannel.ReadOrWrite.READ ? 
                     "<-- " + sizeString
                   : sizeString + " -->";
             
-            b.append(formattedTime + "   " + sizeAndArrowString + "   " + entry.type.name() + "\n");
+            if (includeTime) {
+                b.append(formattedTime + "   ");
+            }
+            
+            b.append(sizeAndArrowString + "   " + entry.type.name() + "\n");
             b.append("    " + Hex.create(entry.bytes) + "\n");
         }
         

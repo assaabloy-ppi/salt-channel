@@ -584,12 +584,12 @@ are sent between the client and the server in any order.
 The time field
 ==============
 
-Messages have a Time field. It either contains the time since the first
-message of the peer was sent. That is, the time since M1 was sent for the
-client and the time since M2 was sent for the server. The elapsed time is 
-measured in milliseconds. The Time field MUST have the value 1 for the first
-message sent (M1 for the client and M2 for the server) when the Time field
-is supported by the peer.
+Most messages have a Time field. It contains the time since the first
+message of the peer was sent, or it is set to 0, or is set to 1.
+The elapsed time is measured in milliseconds. The Time field MUST have 
+the value 1 for the first message sent (M1 for the client and M2 for the server) 
+when the time-stamping is supported by the peer. If time-stamping is 
+*not supported* by the peer, the peer MUST set the time field value to 0.
 
 The main reason to introduce these time-stamps is to protect against 
 *delay attacks*; that is, a man-in-the-middle attacker that affects the 
@@ -1025,7 +1025,11 @@ pair *must* be generated for each session in real production use.
 On the application layer, a simple request-reponse exchange occurs.
 The client sends the application data: 0x010505050505 and the same
 bytes are echoed back by the server.
-   
+
+No timestamps are used, neither by the server nor the client.
+The Time fields of the messages are all set zero.
+
+    
     ======== ExampleSessionData ========
     
     Example session data for Salt Channel v2.
@@ -1047,17 +1051,17 @@ bytes are echoed back by the server.
     
     --- Log entries, microsecond time ----
     
-    000000    42 -->   WRITE
+     42 -->   WRITE
         534376320100000000008520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
-    001540   <--  38   READ
+    <--  38   READ
         020000000000de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
-    009751   <-- 120   READ
+    <-- 120   READ
         0600669544da0d2ec8a03766f53e0580bc3cc6cddb69b86e299a47a9b1f1c18666e5cf8b000742bad609bfd9bf2ef2798743ee092b07eb329899ab741476448b5f34e6513e1d3cec7469fbf03112a098acd397ab933c61a2319eb6e0b4561ed9ce010d998f5bc10d6d17f88cebf961d1377faccc8a781c2c
-    010816   120 -->   WRITE
+    120 -->   WRITE
         0600a342f9538471d266100bfc3b9e794f40b32ffd053d58a54bdcc8eef60a47d0bf53057418b6054eb260cca4d827c068edff9efb48f0eb6856903f7f1006e43d7e21915f72e729a26bf6bc5f59bc7ed2e1456a8a5fc9ecc6e2cd3c48e0103769ccd6faa87e45b8b256207a2e341cd068d433c7296fb374
-    010816    30 -->   WRITE_WITH_PREVIOUS
+     30 -->   WRITE_WITH_PREVIOUS
         06005089769da0def9f37289f9e5ff6e78710b9747d8a0971591abf2e4fb
-    011125   <--  30   READ
+    <--  30   READ
         060082eb9d3660b82984f3c1c1051f8751ab5585b7d0ad354d9b5c56f755
     
     ---- Other ----
@@ -1069,4 +1073,4 @@ bytes are echoed back by the server.
     total bytes, handshake only: 320
     
 The output was generated with the Java class saltchannel.dev.ExampleSessionData,
-date: 2017-05-18.
+date: 2017-06-09.
