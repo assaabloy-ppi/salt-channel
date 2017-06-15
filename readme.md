@@ -23,23 +23,35 @@ algorithms. Our work here is completely based on his work.
 Versions
 ========
 
-Version v1 is currently well-defined version of the protocol. 
+Version v1 is the currently well-defined version of the protocol. 
 We work with the v2 specifications and implementations for it. 
 See [drafts](files/spec/).
 
 
-Java implementation
-===================
+Implementation
+==============
 
-This repository contains the Java implementation of Salt Channel. It is the reference implementation of the protocol. It is open source and
-released under the MIT License.
+Java (this repo)
+----------------
+
+This repository contains the Java implementation of Salt Channel. It is the reference 
+implementation of the protocol. It is open source and released under the MIT License.
 
 
-C Implementation
-================
+C implementation
+----------------
 
 See [github.com/assaabloy-ppi/salt-channel-c](https://github.com/assaabloy-ppi/salt-channel-c) for the C implementation. It is suitable for both
 embedded devices and larger computers.
+
+Others
+------
+
+* [github.com/assaabloy-ppi/salt-channel-js](https://github.com/assaabloy-ppi/salt-channel-js), 
+  JavaScript implementation, work in progress, MIT license.
+  
+* [github.com/assaabloy-ppi/salt-channel-python](https://github.com/assaabloy-ppi/salt-channel-python), 
+  Python 3 implementation, work in progress, MIT license.
 
 
 Authors

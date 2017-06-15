@@ -64,9 +64,9 @@ public class Tls {
             SocketChannel channel = new SocketChannel(socket);
             channel.write(new byte[]{1, 5, 5, 5, 5, 5});
             response = channel.read();
+
+            System.out.println("CLIENT, response: " + Hex.create(response));
         }
-        
-        System.out.println("CLIENT, response: " + Hex.create(response));
     }
     
     private void server() throws Exception {
@@ -79,8 +79,9 @@ public class Tls {
         try (Socket socket = ss.accept()) {
             printServerSocketInfo((SSLSocket) socket);
             ByteChannel channel = new SocketChannel(socket);
+            
             byte[] bytes = channel.read();
-            channel.write(bytes);  // echo back
+            channel.write(bytes);  // echo back        
         }
     }
 
