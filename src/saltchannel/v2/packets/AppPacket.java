@@ -30,6 +30,10 @@ public class AppPacket implements Packet {
     }
     
     public static AppPacket fromBytes(byte[] source, int offset, int packetSize) {
+        if (packetSize < PacketHeader.SIZE + 4) {
+            throw new BadPeer("packet too small, was " + packetSize);
+        }
+        
         AppPacket p = new AppPacket();
         Deserializer d = new Deserializer(source, offset);
         
