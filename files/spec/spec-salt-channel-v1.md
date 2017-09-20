@@ -9,6 +9,9 @@ About this document
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
 
+This document is written in Markdown (.md file) and the Markdown version
+of the authorative document.
+
 
 Changes
 -------

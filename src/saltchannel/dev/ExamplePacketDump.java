@@ -1,15 +1,7 @@
 package saltchannel.dev;
 
-import java.util.List;
-import java.util.Locale;
-import saltchannel.ByteChannel;
-import saltchannel.Tunnel;
 import saltchannel.util.CryptoTestData;
 import saltchannel.util.Hex;
-import saltchannel.util.KeyPair;
-import saltchannel.v2.SaltClientSession;
-import saltchannel.v2.SaltServerSession;
-
 import saltchannel.v2.packets.*;
 
 public class ExamplePacketDump {

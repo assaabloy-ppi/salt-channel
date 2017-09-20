@@ -2,8 +2,6 @@ package saltaa;
 
 import org.libsodium.jni.SodiumJNI;
 
-import com.iwebpp.crypto.TweetNaclFast;
-
 /**
  * libsodium-jni based implementation of SaltLib based on https://github.com/joshjdevl/libsodium-jni
  * 
