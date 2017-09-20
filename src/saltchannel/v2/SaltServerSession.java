@@ -323,7 +323,7 @@ public class SaltServerSession {
      * Computes Signature1.
      */
     private byte[] signature1() {
-        return V2Util.createSignature(sigKeyPair, m1Hash, m2Hash);
+        return V2Util.createSignature(sigKeyPair, V2Util.SIG1_PREFIX, m1Hash, m2Hash);
     }
     
     /**
@@ -336,7 +336,7 @@ public class SaltServerSession {
         assert m1.clientEncKey != null;
         assert encKeyPair.pub() != null;
         
-        byte[] signedMessage = V2Util.concat(m4.signature2, m1Hash, m2Hash);
+        byte[] signedMessage = V2Util.concat(m4.signature2, V2Util.SIG2_PREFIX, m1Hash, m2Hash);
         
         try {
             byte[] m = new byte[signedMessage.length];

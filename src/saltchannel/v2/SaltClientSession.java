@@ -264,9 +264,9 @@ public class SaltClientSession {
      * 
      * @throws BadPeer
      */
-    private void validateSignature1() {        
+    private void validateSignature1() {
         byte[] signedMessage = V2Util.concat(
-                m3.signature1, m1Hash, m2Hash);    
+                m3.signature1, V2Util.SIG1_PREFIX, m1Hash, m2Hash);    
 
         try {
             byte[] m = new byte[signedMessage.length];
@@ -280,7 +280,7 @@ public class SaltClientSession {
      * Computes Signature2.
      */
     private byte[] signature2() {
-        return V2Util.createSignature(sigKeyPair, m1Hash, m2Hash);
+        return V2Util.createSignature(sigKeyPair, V2Util.SIG2_PREFIX, m1Hash, m2Hash);
     }
     
     private void createEncryptedChannelForNewSession() {

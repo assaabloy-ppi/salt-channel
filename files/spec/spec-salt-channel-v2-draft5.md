@@ -8,7 +8,7 @@ About this document.
 
 *Date*: 2017-09-20.
 
-*Status*: Salt Channel v2 specification, DRAFT in progress.
+*Status*: Salt Channel v2 specification, DRAFT.
 
 *Authors*:
  
@@ -25,8 +25,8 @@ About this document.
 History
 -------
 
-* 2017-09-20. DRAFT5. Prefix added to Signature, EosFlag used. 
-  TODO: work in progress.
+* 2017-09-20. DRAFT5. Prefix "SIG1", "SIG2" added to signatures, 
+  EosFlag used. Text more complete.
 
 * 2017-05-xx. DRAFT4. 1-byte message types instead of 4 bits. Improved text.
 
@@ -114,20 +114,22 @@ Not in final spec.
 
 * Check TODO markers in text.
 
-* TODO: spec, v2 must have EosFlag!
+* TODO: spec, consider, multi-app message message.
+  Optimization, saves considerable space and reduces CPU.
 
-* TODO: spec, v2 should include multi-app message.
-  Optimization, saves considerable space and reduces CPU usage.
-  Multiple application message in ONE encrypted message.
+* TODO: spec, consider removing Resume :-(. 
+  Move to v3. Not implemented in C anyway.
 
+* TODO: how to use eosFlag from application layer.
+  Do we need boolean eos param to ByteChannel.write()?
+  Perhaps we do.
+  
 * TODO: consider proxy info, domain + port in M1.
 
-* TODO: implement sig prefix in Java.
-
-* TODO: implement EosBit in Java.
-
 * TODO: generate new data for Appendix A.
-
+  
+* DONE! spec, v2 must have EosFlag!
+* DONE! implement EosBit in Java.
 * DONE! Add role prefix to signatures.
 
 
@@ -1218,4 +1220,4 @@ TODO: data must be updated.
     total bytes: 380
     total bytes, handshake only: 320
     
-Note to authors, the about output was generated with the Java class saltchannel.dev.ExampleSessionData, date: 2017-06-09.
+Note to authors, the above output was generated with the Java class saltchannel.dev.ExampleSessionData, date: 2017-06-09.
