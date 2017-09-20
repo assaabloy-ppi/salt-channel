@@ -21,8 +21,7 @@ public class TTPacket {
     public int getSize() {
         return PacketHeader.SIZE 
                 + 4 
-                + TicketPacket.SESSION_NONCE_SIZE
-                + (ticketIncluded() ? (1 + ticket.length) : 0);
+                + (ticketIncluded() ? (TicketPacket.SESSION_NONCE_SIZE + 1 + ticket.length) : 0);
     }
     
     public boolean ticketIncluded() {
