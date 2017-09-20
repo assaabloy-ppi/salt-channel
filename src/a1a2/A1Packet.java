@@ -13,7 +13,6 @@ import saltchannel.v2.packets.PacketHeader;
  */
 public class A1Packet implements Packet {
     public static final int PACKET_TYPE = 8;
-    private static final int CLOSE_BIT_INDEX = 0;
     
     public int getType() {
         return PACKET_TYPE;
@@ -26,8 +25,6 @@ public class A1Packet implements Packet {
     public void toBytes(byte[] destination, int offset) {
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
-        boolean closeBit = true;
-        header.setBit(CLOSE_BIT_INDEX, closeBit);
         s.writeHeader(header);
     }
     
@@ -39,12 +36,6 @@ public class A1Packet implements Packet {
         int packetType = header.getType();
         if (packetType != PACKET_TYPE) {
             throw new BadPeer("unexpected packet type, " + packetType);
-        }
-        
-        boolean close = header.getBit(CLOSE_BIT_INDEX);
-        
-        if (!close) {
-            throw new BadPeer("close flag must be set");
         }
         
         return p;

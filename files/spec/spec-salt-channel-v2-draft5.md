@@ -25,7 +25,7 @@ About this document.
 History
 -------
 
-* 2017-09-20. DRAFT5. Prefix added to Signature1,2. CloseBit used. 
+* 2017-09-20. DRAFT5. Prefix added to Signature, EosFlag used. 
   TODO: work in progress.
 
 * 2017-05-xx. DRAFT4. 1-byte message types instead of 4 bits. Improved text.
@@ -114,7 +114,7 @@ Not in final spec.
 
 * Check TODO markers in text.
 
-* TODO: spec, v2 must have CloseFlag!
+* TODO: spec, v2 must have EosFlag!
 
 * TODO: spec, v2 should include multi-app message.
   Optimization, saves considerable space and reduces CPU usage.
@@ -124,7 +124,7 @@ Not in final spec.
 
 * TODO: implement sig prefix in Java.
 
-* TODO: implement CloseBit in Java.
+* TODO: implement EosBit in Java.
 
 * TODO: generate new data for Appendix A.
 
@@ -579,9 +579,13 @@ They are included in the field EncryptedMessage/Body.
         The packet type, an integer in the range 0 to 127.
         The value is 6 for this packet.
     
-    8b  Zero.
+    7b  Zero.
         Bits set to 0.
-    
+        
+    1b  EosFlag.
+        Set to 1 for the very last message of the Salt Channel session
+        (both directions) and 0 otherwise.
+       
 See the section "Crypto" for details on the authenticated
 encryption.
 
@@ -919,11 +923,8 @@ longer. The client is allowed to cache this information.
     1   PacketType.
         One byte in range 0-127 with the packet type.
         The value is 8 for this packet.
-    
-    1b  CloseFlag.
-        Set to 1 for for this message.
-
-    7b Zero.
+        
+    8b  Zero.
         Bits set to 0.
     
 
@@ -949,12 +950,13 @@ And Message A2:
     1   PacketType.
         One byte in range 0-127 with the packet type.
         The integer value is 9 for this message.
-    
-    1b  CloseFlag.
-        Set to 1 for this message to indicate end of session.
-    
-    7b Zero.
+        
+    7b  Zero.
         Bits set to 0.
+        
+    1b  EosFlag.
+        Always set to 1 for this message to indicate 
+        end of session.
     
     
     **** A2/Prot ****
@@ -1121,7 +1123,10 @@ These situations motivates the principle:
     should be able to determine whether a Salt Channel session has been closed
     without having access to encrypted data.
 
-So, to conclude, we must have a use CloseBit in cleartext.
+So, to conclude, we must have a end-of-session flag that is
+not encrypted. This flag is the last bit of the two-byte header.
+
+
 
 
 References

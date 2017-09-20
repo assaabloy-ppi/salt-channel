@@ -30,30 +30,22 @@ public class PacketHeader {
     }
     
     public void setType(int type) {
-        if (type < 0 || type > 15) {
+        if (type < 0 || type > 127) {
             throw new IllegalArgumentException("bad type value, " + type);
         }
-        
-        //int b0 = Bytes.unsigned(bytes[0]);
-        //bytes[0] = (byte) ((b0 & ~TYPE_MASK) | type);
         
         bytes[0] = (byte) type;
     }
     
     public int getType() {
-        //return Bytes.unsigned(bytes[0]) & TYPE_MASK;
         return bytes[0];
     }
     
     /**
-     * Sets a bit indexed from 0 to 11.
+     * Sets a bit indexed from 0 to 7.
      */
     public void setBit(int index, boolean booleanValue) {
         checkBitIndex(index);
-        
-        //int index2 = index + 4;
-        //int byteOffset = index2 / 8;
-        //int bitOffset = index2 - 8 * byteOffset;
         
         int byteValue = Bytes.unsigned(bytes[1]);
         int mask = BIT_MASKS[index];
@@ -73,6 +65,14 @@ public class PacketHeader {
         int value = Bytes.unsigned(bytes[1]);
         int mask = BIT_MASKS[index];
         return (value & mask) != 0;
+    }
+    
+    public boolean eosFlag() {
+        return getBit(7);
+    }
+    
+    public void setEosFlag(boolean b) {
+        setBit(7, b);
     }
     
     private void checkBitIndex(int index) {

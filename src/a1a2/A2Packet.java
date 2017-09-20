@@ -41,7 +41,7 @@ public class A2Packet implements Packet {
         
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
-        header.setBit(0, true);   // close bit   
+        header.setBit(7, true);   // EosFlag
         
         s.writeHeader(header);
         s.writeByte(prots.length);
@@ -85,10 +85,10 @@ public class A2Packet implements Packet {
             throw new BadPeer("unexpected packet type, " + packetType);
         }
         
-        boolean close = header.getBit(0);
+        boolean close = header.getBit(7);
         
         if (!close) {
-            throw new BadPeer("close flag must be set");
+            throw new BadPeer("eos flag must be set");
         }
         
         int count = d.readByte();
