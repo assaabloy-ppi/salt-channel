@@ -63,7 +63,7 @@ public class ExampleSessionData {
         session.setBufferM2(true);
         session.handshake();
         ByteChannel appChannel = session.getChannel();
-        appChannel.write(appChannel.read());    // echo once
+        appChannel.write(appChannel.read());    // echo once, set LastFlag when possible
     }
     
     private void runClient() {

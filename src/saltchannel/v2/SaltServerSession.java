@@ -187,21 +187,22 @@ public class SaltServerSession {
         checkThatA2WasSet();
         byte[] buffer = new byte[a2Packet.getSize()];
         a2Packet.toBytes(buffer, 0);
-        clearChannel.write(buffer);
+        clearChannel.write(buffer);    // set LastFlag when possible
     }
 
     /**
      * Returns true if the session was resumed using a ticket in M1.
      */
     private boolean processM1() {
-        // Note the missing support for "virtual hosting". Only one server sig key is allowed.
+        // Note the missing support for "virtual hosting". 
+        // Only one server sig key is allowed here.
         
         this.m1Hash = CryptoLib.sha512(m1Bytes);
         this.m1 = M1Packet.fromBytes(m1Bytes, 0);
         timeChecker.reportFirstTime(m1.time);
         
         if (m1.serverSigKeyIncluded() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
-            clearChannel.write(noSuchServerM2Raw());
+            clearChannel.write(noSuchServerM2Raw());      // set LastFlag when possible
             throw new NoSuchServer();
         }
         

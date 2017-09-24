@@ -31,7 +31,7 @@ public class ResumeTest {
                 server.handshake();
                 byte[] app1 = server.getChannel().read();
                 byte[] app2 = app1.clone();
-                server.getChannel().write(app2);
+                server.getChannel().write(app2);    // set LastFlag when possible
             }
         });
         thread.start();
@@ -73,7 +73,7 @@ public class ResumeTest {
                 server.handshake();
                 byte[] app1 = server.getChannel().read();
                 byte[] app2 = app1.clone();
-                server.getChannel().write(app2);
+                server.getChannel().write(app2);    // set LastFlag when possible
             }
         });
         thread.start();
@@ -103,7 +103,7 @@ public class ResumeTest {
                 server.handshake();
                 byte[] app1 = server.getChannel().read();
                 byte[] app2 = app1.clone();
-                server.getChannel().write(app2);
+                server.getChannel().write(app2);   // set LastFlag when possible
             }
         });
         thread.start();

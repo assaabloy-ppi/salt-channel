@@ -15,12 +15,14 @@ import saltchannel.ByteChannel;
  * @author Frans Lundberg
  */
 public class EchoServerSession implements ByteChannelServerSession {
+    private static final int ECHO = 1;
+    private static final int CLOSE = 2;
     
     /**
      * Runs the server forever or until an exception is thrown.
      */
     public void runSession(ByteChannel channel) {
-        while (true) {
+        LabelA: while (true) {
             byte[] data = channel.read();
             
             if (data.length < 1) {
@@ -28,11 +30,17 @@ public class EchoServerSession implements ByteChannelServerSession {
             }
             
             int commandType = data[0];
-            if (commandType != 1) {
+            
+            switch (commandType) {
+            case ECHO:
+                channel.write(data);
+                break;
+            case CLOSE:
+                channel.write(data);     // LastFlag should be set, when ByteChannel allows it
+                break LabelA;
+            default:
                 throw new BadPeer("unsupported command type, " + commandType);
             }
-            
-            channel.write(data);
         }
     }
 }

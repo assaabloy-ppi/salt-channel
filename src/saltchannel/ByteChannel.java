@@ -1,8 +1,5 @@
 package saltchannel;
 
-// TODO D. We should consider adding boolean endOfSession parameter to write().
-// Needed by Salt Channel relays.
-
 /**
  * A two-way, reliable communication channel.
  * Byte arrays can be read and written; a simple blocking model.
@@ -26,12 +23,20 @@ public interface ByteChannel {
      *          the underlying layer.
      */
     public byte[] read() throws ComException;
+
+    public void write(byte[]... messages) throws ComException;
     
     /**
-     * Writes messages. This method may block.
+     * Writes messages to the channel. The 'last' parameter must
+     * be true if the last message of 'messages' is the last message
+     * of the session.
      * 
+     * @param last
+     *     This is normally false, but must be set to true to indicate
+     *     that the last message of 'messages' is the very last message of
+     *     the session.
      * @throws ComException
-     *          If there in an IO error in the underlying layer.
+     *     If there in an IO error in the underlying layer.
      */
-    public void write(byte[]... messages) throws ComException;
+    //public void write(boolean last, byte[]... messages) throws ComException;
 }

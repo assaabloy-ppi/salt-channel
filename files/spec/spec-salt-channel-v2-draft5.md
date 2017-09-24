@@ -6,14 +6,14 @@ About
 
 About this document.
 
-*Date*: 2017-09-20.
+*Date*: 2017-09-24.
 
 *Status*: Salt Channel v2 specification, DRAFT.
 
 *Authors*:
  
 * Frans Lundberg. ASSA ABLOY AB, Stockholm, frans.lundberg@assaabloy.com, 
-  phone: +46707601861.  
+  phone: +46707601861.
 * Simon Johansson, ASSA ABLOY AB, Stockholm, simon.johansson@assaabloy.com.
 
 *Thanks*:
@@ -25,8 +25,8 @@ About this document.
 History
 -------
 
-* 2017-09-20. DRAFT5. Prefix "SIG1", "SIG2" added to signatures, 
-  EosFlag used. Text more complete.
+* 2017-09-24. DRAFT5. Prefixes "SALTSIG1", "SALTSIG2" added to signatures,
+  LastFlag used. Text more complete.
 
 * 2017-05-xx. DRAFT4. 1-byte message types instead of 4 bits. Improved text.
 
@@ -37,6 +37,35 @@ History
 
 * 2017-02-22. DRAFT1.
 
+
+
+Authors' notes
+--------------
+
+Not in final spec.
+
+* Check TODO markers in text.
+
+* Implementation: How to do ByteChannel, redefinition. How to indicate LastFlag?
+
+* TODO: spec, consider, multi-app message message.
+  Optimization, saves considerable space and reduces CPU.
+
+* TODO: spec, consider removing Resume :-(. 
+  Move to v3. Not implemented in C anyway.
+
+* TODO: how to use LastFlag from application layer.
+  Do we need boolean LastFlag param to ByteChannel.write()?
+  Perhaps we do.
+  
+* TODO: consider proxy info, domain + port in M1.
+
+* TODO: generate new data for Appendix A.
+
+* DONE! "SIG1" -> "SALTSIG1"  
+* DONE! spec, v2 must have LastFlag!
+* DONE! implement EosFlag in Java.
+* DONE! Add role prefix to signatures.
 
 
 
@@ -104,33 +133,6 @@ The signatures changed to follow recommendations in Cryptography Engineering
 This way all messages have integrity protection and all but M1, M2 have 
 confidentiality protection.
 
-
-
-
-Authors' notes
-==============
-
-Not in final spec.
-
-* Check TODO markers in text.
-
-* TODO: spec, consider, multi-app message message.
-  Optimization, saves considerable space and reduces CPU.
-
-* TODO: spec, consider removing Resume :-(. 
-  Move to v3. Not implemented in C anyway.
-
-* TODO: how to use eosFlag from application layer.
-  Do we need boolean eos param to ByteChannel.write()?
-  Perhaps we do.
-  
-* TODO: consider proxy info, domain + port in M1.
-
-* TODO: generate new data for Appendix A.
-  
-* DONE! spec, v2 must have EosFlag!
-* DONE! implement EosBit in Java.
-* DONE! Add role prefix to signatures.
 
 
 
@@ -253,6 +255,7 @@ this document.
 
 
 
+
 Session
 =======
 
@@ -264,8 +267,9 @@ The M1, and M4 messages are sent by the client and M2, M3 by the server.
 So, we have the typical three-way handshake (M1 from client, 
 M2+M3 from server, and M4 from client). In the common case when the 
 first application message is from the client, this message SHOULD be 
-sent together with M4 to achieve a one round-trip overhead (instead of two). Application layer messages (AppMessage) are sent by either the client 
-or the server in any order. The notation "E()" is used to indicate 
+sent together with M4 to achieve a one round-trip overhead (instead 
+of two). Application layer messages (AppMessage) are sent by either 
+the client or the server in any order. The notation "E()" is used to indicate
 authenticated encryption; see the section on EncryptedMessage. This 
 notation may be omitted for clarity; messages following M1, M2 are 
 always encrypted.
@@ -474,9 +478,14 @@ multiple protocols on the same endpoint.
     1b  ResumeSupported.
         Set to 1 if the server supports resume tickets.
     
-    6b  Zero.
+    5b  Zero.
         Bits set to zero.
-        
+    
+    1b  LastFlag.
+        Set to 1 when this is the last message of the session.
+        That is, when the NoSuchServer bit is set.
+    
+
 If the NoSuchServer condition occurs, the session is considered closed
 once M2 has been sent and received. Furthermore, the client's behavior 
 MUST NOT be affected be the value of M2/ServerEncKey when NoSuchServer
@@ -584,7 +593,7 @@ They are included in the field EncryptedMessage/Body.
     7b  Zero.
         Bits set to 0.
         
-    1b  EosFlag.
+    1b  LastFlag.
         Set to 1 for the very last message of the Salt Channel session
         (both directions) and 0 otherwise.
        
@@ -633,11 +642,12 @@ The time field
 Most messages have a Time field. It contains the time since the first
 message of the peer was sent, or it is set to 0, or it is set to 1.
 The elapsed time is measured in milliseconds. The Time field MUST have 
-the value 1 for the first message sent (M1 for the client and M2 for the server) 
-when the time-stamping is supported by the peer. If time-stamping is 
-*not supported* by the peer, the peer MUST set the time field value to 0.
+the value 1 for the first message sent by the peer (M1 for the client 
+and M2 for the server) when time-stamping is supported by the peer. 
+If time-stamping is *not supported* by the peer, the peer MUST set 
+the time field value to 0.
 
-The main reason to introduce these time-stamps is to protect against 
+The reason to introduce these time-stamps is to protect against 
 *delay attacks*; that is, a man-in-the-middle attacker that affects the 
 application behavior by delaying a message sent between the two peers.
 The blog post at [DELAY-ATTACK] describes this type of attack.
@@ -956,9 +966,9 @@ And Message A2:
     7b  Zero.
         Bits set to 0.
         
-    1b  EosFlag.
-        Always set to 1 for this message to indicate 
-        end of session.
+    1b  LastFlag.
+        Always set to 1 for this message to indicate that this is
+        the last message of the the session.
     
     
     **** A2/Prot ****
@@ -1086,14 +1096,14 @@ This section is informative.
     9            A2
     10           TT
     11-127      Not used
-    
+
 
 
 
 Use case: multi-link session
 ============================
 
-This section is not normative. 
+This section is not normative.
 
 Consider the use case shown in the figure below.
     
@@ -1109,24 +1119,26 @@ is included. R1 does not handle this host directly, but knows that R2
 might. R1 therefore establishes a TCP connection to R2 and sends M1 to 
 R2. R2, in turn, does not directly handle this host, but R2 knows that
 S does. R2 therefore establishes a BLE connection with S and sends M1
-to S. And from there the Salt Channel session can be established over
+to S. From there the Salt Channel session can be established over
 multiple unencrypted links.
 
 However, in this case, R1 will not know when the Salt Channel session 
 terminates. Same for relay R2. They only see encrypted application
 data in AppMessage packets once the session has been established.
 This results in the situation where R2 must keep the BLE connection
-even after the session is closed. This can be wasteful and possibly 
-hinders new connections from being established.
+open even after the session is closed. This may waste valuable resources 
+and possibly hinders new connections from being established.
 
-These situations motivates the principle:
+These type of situations motivates the principle:
 
     Anyone on the transport path of a Salt Channel (a relay server for example) 
     should be able to determine whether a Salt Channel session has been closed
-    without having access to encrypted data.
+    without having access to the encrypted data.
 
-So, to conclude, we must have a end-of-session flag that is
-not encrypted. This flag is the last bit of the two-byte header.
+So, to conclude, we must have a last message flag that is not encrypted.
+It must be set by the application layer for the last message
+of the Salt Channel session and must be readable to any relay node on the 
+transportation path between the client and the server.
 
 
 
@@ -1173,7 +1185,7 @@ The client sends the application data: 0x010505050505 and the same
 bytes are echoed back by the server.
 
 No timestamps are used, neither by the server nor the client.
-The Time fields of the messages are all set zero.
+The Time fields of the messages are all set to zero.
 
 TODO: data must be updated.
 
@@ -1220,4 +1232,4 @@ TODO: data must be updated.
     total bytes: 380
     total bytes, handshake only: 320
     
-Note to authors, the above output was generated with the Java class saltchannel.dev.ExampleSessionData, date: 2017-06-09.
+Note to authors: the above output was generated with the Java class saltchannel.dev.ExampleSessionData, date: 2017-06-09.

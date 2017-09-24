@@ -9,10 +9,12 @@ import saltchannel.v2.packets.PacketHeader;
 public class V2Util {
     private static SaltLib salt = SaltLibFactory.getLib();
     
-    public static final byte[] SIG1_PREFIX = new byte[]{0x53, 0x49, 0x47, 0x31};
-        // "SIG1" in ASCII
-    public static final byte[] SIG2_PREFIX = new byte[]{0x53, 0x49, 0x47, 0x32};   
-        // "SIG2" in ASCII
+    public static final byte[] SIG1_PREFIX = new byte[] {
+            0x53, 0x41, 0x4c, 0x54, 0x53, 0x49, 0x47, 0x31 };
+            // "SALTSIG1" in ASCII
+    public static final byte[] SIG2_PREFIX = new byte[] {
+            0x53, 0x41, 0x4c, 0x54, 0x53, 0x49, 0x47, 0x32 };   
+            // "SALTSIG2" in ASCII
 
     public static byte[] createSignature(KeyPair sigKeyPair, byte[]... arrays) {
         byte[] message = concat(arrays);

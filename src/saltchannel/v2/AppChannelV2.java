@@ -30,7 +30,7 @@ public class AppChannelV2 implements ByteChannel {
         timeChecker.checkTime(p.time);
         return p.appData;
     }
-
+    
     @Override
     public void write(byte[]... messages1) throws ComException {
         byte[][] appMessages;
