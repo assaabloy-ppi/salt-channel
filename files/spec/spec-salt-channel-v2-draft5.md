@@ -634,7 +634,43 @@ are sent between the client and the server in any order.
         Bits set to 0.
     
 
+MultiAppPacket
+==============
 
+    **** MultiAppPacket ****
+
+    This packet is encrypted.  It is sent within the body of
+    EncryptedMessage (EncryptedMessage/Body). It may contain
+    more than one application message.
+
+    2   Header.
+        Message type and flags.
+
+    4   Time.
+        See separate documentation.
+
+    2   Count.
+        Number of following application messages.
+        In the range 0 to 65535.
+
+    x   Message+
+
+    **** MultiAppPacket/Header ****
+
+    1   PacketType.
+        The packet the, an integer in the range 0 to 127.
+        The value is 11 for this packet.
+
+    8b  Zero.
+        Bits set to 0.
+
+    **** MultiAppPacket/Message ****
+
+    2   Length.
+        Length of application message in the rage 0 to 65535.
+
+    x   Data.
+        The cleartext application data.
 
 The time field
 ==============
