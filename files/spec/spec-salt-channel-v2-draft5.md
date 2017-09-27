@@ -6,7 +6,7 @@ About
 
 About this document.
 
-*Date*: 2017-09-24.
+*Date*: 2017-09-27.
 
 *Status*: Salt Channel v2 specification, DRAFT.
 
@@ -25,7 +25,7 @@ About this document.
 History
 -------
 
-* 2017-09-24. DRAFT5. Prefixes "SALTSIG1", "SALTSIG2" added to signatures,
+* 2017-09-xx. DRAFT5. Prefixes "SC-SIG01", "SC-SIG02" added to signatures,
   LastFlag used. Text more complete.
 
 * 2017-05-xx. DRAFT4. 1-byte message types instead of 4 bits. Improved text.
@@ -509,8 +509,8 @@ bytes in the field M2/ServerEncKey.
         it was specified in M1 (to keep things simple).
     
     64  Signature1
-        Signature of the following elements concatenated: "SIG1" + hash(M1) + hash(M2).
-        "SIG1" are the four bytes: 0x53, 0x49, 0x47, 0x31.
+        Signature of the following elements concatenated: "SC-SIG01" + hash(M1) + hash(M2).
+        "SC-SIG01" are the bytes: 0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x31.
         hash() is used to denote the SHA512 checksum.
         Only the actual signature (64 bytes) is included in the field.
     
@@ -549,9 +549,9 @@ message (or messages) from the client to the server.
         The client's public signature key.
         
     64  Signature2.
-        Signature of the following elements concatenated: "SIG2" + hash(M1) + hash(M2).
+        Signature of the following elements concatenated: "SC-SIG02" + hash(M1) + hash(M2).
         hash() is used to denote the SHA512 checksum.
-        "SIG2" are the four bytes: 0x53, 0x49, 0x47, 0x32.
+        "SC-SIG02" are the bytes: 0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x32.
         Only the actual signature (64 bytes) is included in the field.
     
     

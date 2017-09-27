@@ -10,10 +10,10 @@ public class V2Util {
     private static SaltLib salt = SaltLibFactory.getLib();
     
     public static final byte[] SIG1_PREFIX = new byte[] {
-            0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x31 };   // XXX
+            0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x31 }; 
             // "SC-SIG01" in ASCII
     public static final byte[] SIG2_PREFIX = new byte[] {
-            0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x32 };     // XXX
+            0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x32 };
             // "SC-SIG02" in ASCII
 
     public static byte[] createSignature(KeyPair sigKeyPair, byte[]... arrays) {
