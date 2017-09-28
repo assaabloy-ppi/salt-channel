@@ -18,14 +18,14 @@ import saltchannel.v2.SaltClientSession;
  * 
  * @author Frans Lundberg
  */
-public class RunClient {
-    private KeyPair keyPair = CryptoTestData.bSig; 
-        // Client is "Bob".
+public class RunTcpClient {
+    private KeyPair sigKeyPair = CryptoTestData.aSig;
+        // Client is "Alice".
     
     private void go() throws UnknownHostException, IOException {
         Socket socket = new Socket("localhost", TcpTestServer.DEFAULT_PORT);
         ByteChannel clear = new SocketChannel(socket);
-        SaltClientSession session = new SaltClientSession(keyPair, clear);
+        SaltClientSession session = new SaltClientSession(sigKeyPair, clear);
         session.setEncKeyPair(CryptoTestData.bEnc);
         session.setBufferM4(true);
         session.handshake();
@@ -40,7 +40,7 @@ public class RunClient {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        new RunClient().go();
+        new RunTcpClient().go();
     }
 }
 

@@ -10,6 +10,9 @@ public class Help {
         StringBuilder b = new StringBuilder();
         b.append("Choose an executable class:\n");
         b.append("  " + saltchannel.dev.PrintBuildInfo.class.getName() + "\n");
+        b.append("  " + saltchannel.dev.TcpTestServer.class.getName() + "\n");
+        b.append("  " + saltchannel.dev.RunTcpClient.class.getName() + "\n");
+        b.append("  " + saltchannel.dev.WsTestServer.class.getName() + "\n");
         System.out.println(b.toString());
     }
 

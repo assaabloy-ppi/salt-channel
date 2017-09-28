@@ -42,7 +42,7 @@ public class TcpTestServer {
                 TcpTestServer.this.run();
             }
         });
-        thread.setName("Server-" + thread.getId());
+        thread.setName("Server-thread");
     }
     
     /**
@@ -142,5 +142,15 @@ public class TcpTestServer {
         
         ByteChannelServerSession s = this.sessionFactory.createSession();
         s.runSession(session.getChannel());
+    }
+    
+    public static void main(String[] args) throws IOException, InterruptedException {
+        TcpTestServer s = TcpTestServer.createEchoServer();
+        
+        s.start();
+        
+        while (true) {
+            Thread.sleep(100*1000);
+        }
     }
 }
