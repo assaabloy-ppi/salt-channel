@@ -26,6 +26,15 @@ public interface ByteChannel {
 
     public void write(byte[]... messages) throws ComException;
     
+   
+    /**
+     * Writes last application messages to the channel.
+     * 
+     * @throws ComException
+     *     If there in an IO error in the underlying layer.
+     */
+    //public void writeLast(byte[][] messages);
+    
     /**
      * Writes messages to the channel. The 'last' parameter must
      * be true if the last message of 'messages' is the last message
@@ -39,4 +48,5 @@ public interface ByteChannel {
      *     If there in an IO error in the underlying layer.
      */
     //public void write(boolean last, byte[]... messages) throws ComException;
+   
 }

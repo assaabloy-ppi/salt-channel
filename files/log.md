@@ -3,6 +3,37 @@ log.md
 
 Log and general notes.
 
+    
+2017-10-02
+==========
+
+Frans: Finalized draft5, starting work on draft6.
+
+* DECISION: don't use symmetric protocol.
+    We could design a protocol that is symmetric. Both peers could
+    send their EncKey. Possibly in parallel and immediately when 
+    connection is established. 
+    This is beautiful and efficient, but it complicates things when 
+    we add the resume ticket feature.
+    So, decision now is to *not* do this.
+    
+* DECISION: LastFlag is needed! And should be included in v2.
+    We need it now for v2 final. We want to support the browser-to-thing
+    communication via WebSocket/TCP/BLE (for example).
+
+* DECISION: Resume feature is removed from v2 spec.
+    Should likely be added in 2.1 or v3. Needs more time, more implementations
+    than Java and perhaps a security audit. The feature will be kept in the
+    Java implementation however. That feature is however currently experimental.
+
+* DECISION: No address info (domain+port).
+    Adding address of server in M1 is tempting, but it is not added
+    in v2. Needs more thought and implementations. The pubkey in M1 is enough
+    for now. Should WebSocket be supported? Use URL or domain+port?
+    
+
+
+
 2017-05-10
 ==========
 
@@ -34,7 +65,7 @@ While flying to Tel Aviv.
 
 
 Frans and Simon about SCv2
-----------------------------------------
+--------------------------
 
 Decisions:
 * 2-byte header (not really about timestamps).
