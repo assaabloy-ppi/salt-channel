@@ -316,8 +316,8 @@ the state of the communication session so far.
 
 
 
-Message M1
-==========
+M1
+==
     
 The first message of a Salt Channel session is always the M1 message.
 It is sent from the client to the server. It includes a protocol indicator, 
@@ -360,8 +360,8 @@ Details:
 
 
 
-Messages M2 and M3
-==================
+M2 and M3
+=========
 
 The M2 message is the first message sent by the server when the 
 handshake is performed. It is followed by Message M3, also sent 
@@ -453,8 +453,8 @@ bytes in the field M2/ServerEncKey.
 
 
 
-Message M4
-==========
+M4
+==
 
 Message M4 is sent by the client. It finishes a three-way handshake.
 It can (and typically should) be sent together with a first application 
@@ -530,8 +530,8 @@ encryption.
 
 
 
-Messages AppPacket and MultiAppPacket
-=====================================
+AppPacket and MultiAppPacket
+============================
 
 After the handshake, encrypted application packets are sent between 
 the client and the server in any order. Either AppPacket:s are used or
@@ -601,10 +601,10 @@ type of messages.
     **** MultiAppPacket/Message ****
 
     2   Length.
-        Length of application message in the rage 0 to 65535.
+        Length of application message (next field) in the rage 0 to 65535.
 
     x   Data.
-        The cleartext application data.
+        The cleartext application message.
     
 An implementation MUST support receiving both types of messages and 
 MUST treat them as logically equivalent. The application layer above
@@ -647,8 +647,8 @@ be used to represent the time. Note: 2^31-1 milliseconds is more than 24 days.
 
 
 
-Messages A1 and A2
-==================
+A1 and A2
+=========
 
 Messages A1 and A2 are used by the client to query the server of which 
 protocols it supports. These two messages are intended to stay stable

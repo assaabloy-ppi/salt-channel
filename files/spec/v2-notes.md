@@ -13,6 +13,8 @@ Note for v2 draft/final documents.
 
 * Check TODO markers in text.
 
+* TODO: consider pubkey in A1.
+
 * TODO: how to use LastFlag from application layer.
   Do we need boolean LastFlag param to ByteChannel.write()?
   Perhaps we do.
