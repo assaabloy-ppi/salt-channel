@@ -618,6 +618,8 @@ MultiAppMessages could also be used (if messages lengths allow it). This
 is specified *here in this section* and not necessarily specified elsewhere
 in the document.
 
+Message M4 MUST NOT be contained in a MultiAppMessage. Use a plain AppMessage.
+
 
 
 The time field

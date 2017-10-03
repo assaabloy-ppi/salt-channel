@@ -32,9 +32,14 @@ public class ManipulableByteChannel implements ByteChannel {
         index++;
         return manipulated;
     }
-
+    
     @Override
     public void write(byte[]... messages) throws ComException {
+        write(false, messages);
+    }
+
+    @Override
+    public void write(boolean isLast, byte[]... messages) throws ComException {
         byte[][] manipulated = new byte[messages.length][];
         
         for (int i = 0; i < messages.length; i++) {
@@ -42,7 +47,7 @@ public class ManipulableByteChannel implements ByteChannel {
             index++;
         }
         
-        inner.write(manipulated);
+        inner.write(isLast, manipulated);
     }
     
     private byte[] manipulate(int index, byte[] original) {        

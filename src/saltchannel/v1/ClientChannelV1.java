@@ -143,9 +143,14 @@ public class ClientChannelV1 implements ByteChannel {
     public byte[] read() throws ComException {
         return encryptedChannel.read();
     }
+    
+    @Override
+    public void write(byte[]...messages) throws ComException {
+        write(false, messages);
+    }
 
     @Override
-    public void write(byte[]... messages) throws ComException {
+    public void write(boolean isLast, byte[]... messages) throws ComException {
         byte[][] messagesWithBuffered;
         
         if (m4Buffered == null) {
@@ -159,7 +164,7 @@ public class ClientChannelV1 implements ByteChannel {
             m4Buffered = null;
         }
         
-        encryptedChannel.write(messagesWithBuffered);
+        encryptedChannel.write(isLast, messagesWithBuffered);
     }
     
     private void checkSigKeyPairParam(KeyPair sigKeys) {

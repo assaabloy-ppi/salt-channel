@@ -16,6 +16,7 @@ public class ByteChannelWithListenerTest {
                 return new byte[]{1, 2, 3};
             }
 
+            public void write(boolean isLast, byte[]... messages) throws ComException {}
             public void write(byte[]... messages) throws ComException {}
         };
         
@@ -45,6 +46,7 @@ public class ByteChannelWithListenerTest {
             }
 
             public void write(byte[]... messages) throws ComException {}
+            public void write(boolean isLast, byte[]... messages) throws ComException {}
         };
         
         ByteChannel ch2 = new ByteChannelWithListener(ch1, new ByteChannelWithListener.Listener() {

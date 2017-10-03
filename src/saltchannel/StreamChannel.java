@@ -34,8 +34,13 @@ public class StreamChannel implements ByteChannel {
 
     @Override
     public void write(byte[]... messages) throws ComException {
+        write(false, messages);
+    }
+    
+    @Override
+    public void write(boolean isLast, byte[]... messages) throws ComException {
         try {
-            innerWrite(messages);
+            innerWrite(isLast, messages);
         } catch (IOException e) {
             throw new ComException(e.getMessage());
         }
@@ -64,7 +69,7 @@ public class StreamChannel implements ByteChannel {
     }
     
 
-    private void innerWrite(byte[]... messages) throws IOException {
+    private void innerWrite(boolean isLast, byte[]... messages) throws IOException {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         byte[] bytes;
         byte[] sizeBytes = new byte[4];

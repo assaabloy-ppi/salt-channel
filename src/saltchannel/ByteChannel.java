@@ -24,29 +24,27 @@ public interface ByteChannel {
      */
     public byte[] read() throws ComException;
 
+    /**
+     * Writes a sequence of non-last application messages to the byte channel.
+     * To write the last messages of the session, use write(isLast, messages) instead.
+     * NOTE: consider making this method deprecated and removing it in
+     * the long term.
+     * 
+     * @param messages
+     *          The non-last messages to write.
+     * @throws ComException
+     *          Thrown if there is a communication error.
+     */
     public void write(byte[]... messages) throws ComException;
-    
    
     /**
-     * Writes last application messages to the channel.
+     * Writes application messages to the channel.
      * 
+     * @param isLast
+     *     Must be set to true if messages[messages.length-1] is the
+     *     last application message of the session. Otherwise, it must be false.
      * @throws ComException
-     *     If there in an IO error in the underlying layer.
+     *     If there in an error in the underlying layer communication layer.
      */
-    //public void writeLast(byte[][] messages);
-    
-    /**
-     * Writes messages to the channel. The 'last' parameter must
-     * be true if the last message of 'messages' is the last message
-     * of the session.
-     * 
-     * @param last
-     *     This is normally false, but must be set to true to indicate
-     *     that the last message of 'messages' is the very last message of
-     *     the session.
-     * @throws ComException
-     *     If there in an IO error in the underlying layer.
-     */
-    //public void write(boolean last, byte[]... messages) throws ComException;
-   
+    public void write(boolean isLast, byte[]... messages);
 }

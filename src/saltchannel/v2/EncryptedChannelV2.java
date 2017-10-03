@@ -105,9 +105,14 @@ public class EncryptedChannelV2 implements ByteChannel {
         
         return bytes;
     }
+    
+    @Override
+    public void write(byte[]...messages) throws ComException {
+        write(false, messages);
+    }
 
     @Override
-    public void write(byte[]... messages) throws ComException, BadPeer {
+    public void write(boolean isLast, byte[]... messages) throws ComException, BadPeer {
         byte[][] toWrite = new byte[messages.length][];
         
         for (int i = 0; i < messages.length; i++) {
@@ -116,7 +121,7 @@ public class EncryptedChannelV2 implements ByteChannel {
             increaseWriteNonce();
         }
         
-        channel.write(toWrite);
+        channel.write(isLast, toWrite);
     }
     
     /**

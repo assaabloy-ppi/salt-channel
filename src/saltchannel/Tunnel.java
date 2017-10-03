@@ -28,11 +28,16 @@ public class Tunnel {
                     throw new ComException("interrupted");
                 }
             }
+            
+            @Override
+            public void write(byte[]... messages) throws ComException {
+                write(false, messages);
+            }
 
             @Override
-            public void write(byte[]... obj) throws ComException {
-                for (int i = 0; i < obj.length; i++) {
-                    q2.add(obj[i]);
+            public void write(boolean isLast, byte[]... messages) throws ComException {
+                for (int i = 0; i < messages.length; i++) {
+                    q2.add(messages[i]);
                 }
             }
         };
@@ -48,6 +53,11 @@ public class Tunnel {
 
             @Override
             public void write(byte[]... messages) throws ComException {
+                write(false, messages);
+            }
+            
+            @Override
+            public void write(boolean isLast, byte[]... messages) throws ComException {
                 for (int i = 0; i < messages.length; i++) {
                     q1.add(messages[i]);
                 }

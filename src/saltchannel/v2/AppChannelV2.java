@@ -57,6 +57,31 @@ public class AppChannelV2 implements ByteChannel {
         channel.write(appMessages);
     }
     
+    public void write(boolean isLast, byte[]... messages) throws ComException {
+        byte[][] appMessages;
+        int firstIndex;
+        
+        if (this.bufferedM4 == null) {
+            appMessages = new byte[messages.length][];
+            firstIndex = 0;
+        } else {
+            appMessages = new byte[1 + messages.length][];
+            this.bufferedM4.time = timeKeeper.getTime();
+            appMessages[0] = this.bufferedM4.toBytes();
+            firstIndex = 1;
+        }
+        
+        for (int i = firstIndex; i < appMessages.length; i++) {
+            AppPacket p = new AppPacket();
+            p.appData = messages[i - firstIndex];
+            p.time = timeKeeper.getTime();
+            appMessages[i] = new byte[p.getSize()];
+            p.toBytes(appMessages[i], 0);
+        }
+        
+        channel.write(isLast, messages);
+    }
+    
     /**
      * Used by framework to set M4, so M4 can be sent together with 
      * first application messages.

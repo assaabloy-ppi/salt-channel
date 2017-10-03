@@ -100,6 +100,10 @@ public class WsTestServer {
                 }
 
                 public void write(byte[]... messages) throws ComException {
+                    write(false, messages);
+                }
+                
+                public void write(boolean isLast, byte[]... messages) throws ComException {
                     for (int i = 0; i < messages.length; i++) {
                         socket.send(messages[i]);
                     }

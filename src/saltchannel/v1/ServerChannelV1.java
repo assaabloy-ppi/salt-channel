@@ -103,7 +103,12 @@ public class ServerChannelV1 implements ByteChannel {
 
     @Override
     public void write(byte[]... messages) throws ComException {
-        encryptedChannel.write(messages);
+        write(false, messages);
+    }
+    
+    @Override
+    public void write(boolean isLast, byte[]... messages) throws ComException {
+        encryptedChannel.write(isLast, messages);
     }
     
     private byte[] parseM1e(Parser p) {

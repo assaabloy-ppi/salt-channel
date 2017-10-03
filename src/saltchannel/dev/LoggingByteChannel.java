@@ -31,6 +31,8 @@ public class LoggingByteChannel implements ByteChannel {
         
         public LoggingByteChannel.ReadOrWrite type;
         
+        public boolean isLast;
+        
         public byte[] bytes;
     }
 
@@ -46,16 +48,21 @@ public class LoggingByteChannel implements ByteChannel {
         
         return result;
     }
+    
+    public void write(byte[]... messages) throws ComException {
+        write(false, messages);
+    }
 
     @Override
-    public void write(byte[]... messages) throws ComException {
-        inner.write(messages);
+    public void write(boolean isLast, byte[]... messages) throws ComException {
+        inner.write(isLast, messages);
         
         long time = System.nanoTime();
         
         for (int i = 0; i < messages.length; i++) {
             LoggingByteChannel.Entry entry = new Entry();
             entry.time = time;
+            entry.isLast = isLast;
             entry.type = i == 0 ? ReadOrWrite.WRITE : ReadOrWrite.WRITE_WITH_PREVIOUS;
             entry.bytes = messages[i];
             log.add(entry);

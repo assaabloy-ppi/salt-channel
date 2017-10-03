@@ -36,6 +36,10 @@ public class SocketChannel implements ByteChannel {
     }
 
     public void write(byte[]... messages) throws ComException {
-        channel.write(messages);
+        channel.write(false, messages);
+    }
+    
+    public void write(boolean isLast, byte[]... messages) throws ComException {
+        channel.write(isLast, messages);
     }
 }

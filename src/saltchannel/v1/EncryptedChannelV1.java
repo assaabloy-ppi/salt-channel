@@ -71,9 +71,14 @@ public class EncryptedChannelV1 implements ByteChannel {
         increaseReadNonce();
         return clear;
     }
+    
+    @Override
+    public void write(byte[]...messages) throws ComException {
+        write(false, messages);
+    }
 
     @Override
-    public void write(byte[]... messages) throws ComException {
+    public void write(boolean isLast, byte[]... messages) throws ComException {
         byte[][] toWrite = new byte[messages.length][];
         
         for (int i = 0; i < messages.length; i++) {
@@ -82,7 +87,7 @@ public class EncryptedChannelV1 implements ByteChannel {
             increaseWriteNonce();
         }
         
-        channel.write(toWrite);
+        channel.write(isLast, toWrite);
     }
     
     /**
