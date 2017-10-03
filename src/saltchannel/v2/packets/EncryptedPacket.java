@@ -7,7 +7,7 @@ import saltchannel.util.Serializer;
 public class EncryptedPacket implements Packet {
     public static final int PACKET_TYPE = 6;
     public byte[] body;
-    public boolean eosFlag = false;
+    public boolean lastFlag = false;
     
     public int getType() {
         return PACKET_TYPE;
@@ -17,8 +17,8 @@ public class EncryptedPacket implements Packet {
         return PacketHeader.SIZE + body.length;
     }
     
-    public boolean eosFlag() {
-        return eosFlag;
+    public boolean lastFlag() {
+        return lastFlag;
     }
 
     public void toBytes(byte[] destination, int offset) {
@@ -28,7 +28,7 @@ public class EncryptedPacket implements Packet {
         
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
-        header.setEosFlag(eosFlag);
+        header.setEosFlag(lastFlag);
         s.writeHeader(header);
         s.writeBytes(body);
     }
@@ -44,7 +44,7 @@ public class EncryptedPacket implements Packet {
         
         int size = messageSize - PacketHeader.SIZE;
         p.body = d.readBytes(size);
-        p.eosFlag = header.eosFlag();
+        p.lastFlag = header.eosFlag();
         
         return p;
     }

@@ -117,7 +117,7 @@ public class EncryptedChannelV2 implements ByteChannel {
         
         for (int i = 0; i < messages.length; i++) {
             byte[] encrypted = encrypt(messages[i]);
-            toWrite[i] = wrap(encrypted);
+            toWrite[i] = wrap(isLast && i == messages.length - 1, encrypted);
             increaseWriteNonce();
         }
         
@@ -154,8 +154,8 @@ public class EncryptedChannelV2 implements ByteChannel {
     /**
      * Needed by ServerChannelV2.
      */
-    byte[] encryptAndIncreaseWriteNonce(byte[] bytes) {
-        byte[] encrypted = wrap(encrypt(bytes));
+    byte[] encryptAndIncreaseWriteNonce(boolean isLast, byte[] bytes) {
+        byte[] encrypted = wrap(isLast, encrypt(bytes));
         increaseWriteNonce();
         return encrypted;
     }
@@ -202,9 +202,10 @@ public class EncryptedChannelV2 implements ByteChannel {
     /**
      * Wrap encrypted bytes in EncryptedPacket.
      */
-    static byte[] wrap(byte[] bytes) {
+    static byte[] wrap(boolean isLast, byte[] bytes) {
         EncryptedPacket p = new EncryptedPacket();
         p.body = bytes;
+        p.lastFlag = isLast;
         byte[] result = new byte[p.getSize()];
         p.toBytes(result, 0);
         return result;

@@ -257,15 +257,13 @@ public class SaltServerSession {
         p.signature1 = signature1();
         
         byte[] m3Bytes = p.toBytes();
-        byte[] m3Encrypted = encryptedChannel.encryptAndIncreaseWriteNonce(m3Bytes);
+        byte[] m3Encrypted = encryptedChannel.encryptAndIncreaseWriteNonce(false, m3Bytes);
         
         if (bufferM2) {
-            clearChannel.write(m2Bytes, m3Encrypted);
+            clearChannel.write(false, m2Bytes, m3Encrypted);
         } else {
-            clearChannel.write(m3Encrypted);
+            clearChannel.write(false, m3Encrypted);
         }
-        
-        //encryptedChannel.write(p.toBytes());
     }
     
     private void m4() {

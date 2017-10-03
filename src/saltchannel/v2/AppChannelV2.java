@@ -32,31 +32,11 @@ public class AppChannelV2 implements ByteChannel {
     }
     
     @Override
-    public void write(byte[]... messages1) throws ComException {
-        byte[][] appMessages;
-        int firstIndex;
-        
-        if (this.bufferedM4 == null) {
-            appMessages = new byte[messages1.length][];
-            firstIndex = 0;
-        } else {
-            appMessages = new byte[1 + messages1.length][];
-            this.bufferedM4.time = timeKeeper.getTime();
-            appMessages[0] = this.bufferedM4.toBytes();
-            firstIndex = 1;
-        }
-        
-        for (int i = firstIndex; i < appMessages.length; i++) {
-            AppPacket p = new AppPacket();
-            p.appData = messages1[i - firstIndex];
-            p.time = timeKeeper.getTime();
-            appMessages[i] = new byte[p.getSize()];
-            p.toBytes(appMessages[i], 0);
-        }
-        
-        channel.write(appMessages);
+    public void write(byte[]... messages) throws ComException {
+        write(false, messages);
     }
     
+    @Override
     public void write(boolean isLast, byte[]... messages) throws ComException {
         byte[][] appMessages;
         int firstIndex;
@@ -79,7 +59,7 @@ public class AppChannelV2 implements ByteChannel {
             p.toBytes(appMessages[i], 0);
         }
         
-        channel.write(isLast, messages);
+        channel.write(isLast, appMessages);
     }
     
     /**
