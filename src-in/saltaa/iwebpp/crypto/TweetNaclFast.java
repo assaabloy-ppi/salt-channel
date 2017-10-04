@@ -6,10 +6,12 @@
 // * Did Eclipse "format" on the code.
 // * Removed some unused fields named "TAG".
 // * Removed some code in comments.
+// * Changed package name from com.iwebpp.crypto to saltaa.iwebpp.crypto
+//   to avoid potential versioning issues for consumers.
 //
 // Copyright (c) 2014 Tom Zhou<iwebpp@gmail.com>
 
-package com.iwebpp.crypto;
+package saltaa.iwebpp.crypto;
 
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;

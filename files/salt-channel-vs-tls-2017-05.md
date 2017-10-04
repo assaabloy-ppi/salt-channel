@@ -28,8 +28,8 @@ Results:
     
     Total sent bytes:         2299             404    TLS: 6 times more data.
     Round-trips:                 4               2    
-    Forward secrecy:           yes             yes    For this cipher suite.
-    Client authenticated:      yes             yes    For this scenario.
+    Forward secrecy:           yes             yes    TLS: for this cipher suite.
+    Client authenticated:      yes             yes    TLS: for this scenario.
     Client ID hidden:           no             yes    Supported in TLS1.3 draft.
     EC curve:                P-256      Curve25519
     ECC key size (bits)        256             256
@@ -49,7 +49,7 @@ Comments:
 
 * TLS uses about 6 times more data.
 
-* TLS uses 4 round-trip while Salt Channel needs only 2.
+* TLS uses 4 round-trips while Salt Channel needs only 2.
 
 * 3 round-trips were expected for the TLS case. However, 
     no investigation has been made to explain this 

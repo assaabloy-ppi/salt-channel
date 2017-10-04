@@ -1,6 +1,6 @@
 package saltaa;
 
-import com.iwebpp.crypto.TweetNaclFast;
+import saltaa.iwebpp.crypto.TweetNaclFast;
 
 /**
  * Pure Java implementation of SaltLib based on https://github.com/InstantWebP2P/tweetnacl-java.

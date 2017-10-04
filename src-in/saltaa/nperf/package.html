@@ -1,0 +1,42 @@
+<html><head><title>Package Doc</title></head><body>
+
+<p>Performance tests for TweetNaCl (saltaa.SaltLib).</p>
+
+
+<h2>Example from C implementation</h2>
+
+<p>The name "nperf" is from the original performance tests for 
+TweetNaCl running on the NRF52 chip from Nordic Semiconductors.
+Below is an example of performance test output. We achieve a similar
+report using code in this package.
+</p>
+
+<pre>
+RESULTS FROM NRF52832
+
+Output from nperf/main.c.
+Performance results on nrf52-dk, milliseconds per function call.
+The crypto library used is Libsodium. Written in C but more optimized 
+for a 32 bit architecture. Crosscompiled for our specific target.
+
+crypto_box_keypair_not_random 
+    14.50
+crypto_box_beforenm
+    33.79
+crypto_secretbox
+    2.14
+crypto_secretbox_open
+    2.29
+crypto_sign_keypair_not_random
+    14.91
+crypto_sign_1
+    15.95
+crypto_sign_2
+    21.80
+crypto_sign_open_1
+    37.27
+crypto_sign_open_2
+    40.33
+</pre>
+
+</body></html>

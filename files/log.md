@@ -3,7 +3,13 @@ log.md
 
 Log and general notes.
 
-    
+2017-10-04
+==========
+
+Frans: Implementation should now support v2-draft6, MultiAppPacket:s and 
+lastFlag. Made release salt-channel-20171004.jar.
+
+
 2017-10-02
 ==========
 

@@ -2,7 +2,7 @@
 <!-- 
 Build file to build jar file and javadoc. 
 NOTE: compile with Java 7!
-Do not use Java (mainly due to Android).
+Do not use Java 8 or 9 (mainly due to Android).
 -->
 
 <project name="salt-channel" default="build" basedir=".">
@@ -16,7 +16,10 @@ Do not use Java (mainly due to Android).
         <format property="dateAndMinute" pattern="yyyyMMdd.HHmm" />
     </tstamp>
 
-    <property name="version" value="${date}"/>
+    <!-- VERSION, for release build, comment out second statement. -->
+    <property name="version" value="2.0"/>
+    <property name="version" value="${version}.${date}"/>
+    
     <property name="time" value="${dateAndMinute}"/>
 
     <!-- BuildInfo.java is generated from its template. -->
