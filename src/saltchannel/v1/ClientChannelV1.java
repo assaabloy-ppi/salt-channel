@@ -103,7 +103,7 @@ public class ClientChannelV1 implements ByteChannel {
         checkWantedServerParam(wantedServer);
         
         byte[] m1 = createM1(encKeyPair.pub(), wantedServer);
-        clearChannel.write(m1);
+        clearChannel.write(false, m1);
         
         byte[] m2 = clearChannel.read();
         BinsonLight.Parser m2Parser = new BinsonLight.Parser(m2);

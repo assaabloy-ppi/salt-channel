@@ -28,7 +28,7 @@ public class EncryptedPacket implements Packet {
         
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
-        header.setEosFlag(lastFlag);
+        header.setLastFlag(lastFlag);
         s.writeHeader(header);
         s.writeBytes(body);
     }
@@ -44,7 +44,7 @@ public class EncryptedPacket implements Packet {
         
         int size = messageSize - PacketHeader.SIZE;
         p.body = d.readBytes(size);
-        p.lastFlag = header.eosFlag();
+        p.lastFlag = header.lastFlag();
         
         return p;
     }

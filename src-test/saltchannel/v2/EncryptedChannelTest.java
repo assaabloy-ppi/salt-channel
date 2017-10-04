@@ -31,7 +31,7 @@ public class EncryptedChannelTest {
         byte[] bytes1 = new byte[20];
         bytes1[10] = 10;
         byte[] wrapped = EncryptedChannelV2.wrap(false, bytes1);
-        byte[] bytes2 = EncryptedChannelV2.unwrap(wrapped);
+        byte[] bytes2 = EncryptedChannelV2.unwrapToBytes(wrapped);
         Assert.assertArrayEquals(bytes1, bytes2);
     }
 
@@ -72,7 +72,6 @@ public class EncryptedChannelTest {
         Assert.assertArrayEquals(m1, m1b);
         Assert.assertArrayEquals(m2, m2b);
     }
-    
     
     @Test
     public void testMultipleMessageInOneWrite() {

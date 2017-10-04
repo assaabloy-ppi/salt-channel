@@ -48,7 +48,7 @@ public class ClientChannelTest {
         byte[] m1 = serverChannel.read();
         Assert.assertArrayEquals("m1", m1Expected, m1);
         
-        serverChannel.write(m2, m3);
+        serverChannel.write(false, m2, m3);
         
         byte[] m4 = serverChannel.read();
         Assert.assertArrayEquals("m4", m4Expected, m4);

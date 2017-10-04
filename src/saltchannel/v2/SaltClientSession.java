@@ -177,7 +177,7 @@ public class SaltClientSession {
         byte[] m1Bytes = m1.toBytes();
         this.m1Hash = CryptoLib.sha512(m1Bytes);
         
-        clearChannel.write(m1Bytes);
+        clearChannel.write(false, m1Bytes);
         
         if (ticketData != null) {
             createEncryptedChannelForResumedSession();

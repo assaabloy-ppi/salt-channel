@@ -32,7 +32,7 @@ public class RunTcpClient {
         ByteChannel appChannel = session.getChannel();
         
         byte[] request = new byte[]{1, 5, 5, 5, 5, 5};
-        appChannel.write(request);
+        appChannel.write(false, request);
         byte[] response = appChannel.read();
         
         System.out.println("Request: " + Hex.create(request));

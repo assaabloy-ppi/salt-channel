@@ -39,7 +39,7 @@ public class ServerChannelTest {
         
         final ServerChannelV1 serverChannel = new ServerChannelV1(tunnel.channel2());
         
-        client.write(m1);
+        client.write(false, m1);
         
         Thread serverThread = new Thread(new Runnable() {
             public void run() {
@@ -54,6 +54,6 @@ public class ServerChannelTest {
         byte[] m3 = client.read();
         Assert.assertArrayEquals(m3Expected, m3);
         
-        client.write(m4);
+        client.write(false, m4);
     }
 }

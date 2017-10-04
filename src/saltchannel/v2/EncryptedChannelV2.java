@@ -1,7 +1,6 @@
 package saltchannel.v2;
 
 import java.util.Arrays;
-
 import saltaa.BadEncryptedDataException;
 import saltaa.SaltLib;
 import saltaa.SaltLibFactory;
@@ -16,8 +15,8 @@ import saltchannel.v2.packets.TTPacket;
  * An implementation of an encrypted channel using a shared symmetric 
  * session key.
  * The read/write methods throws ComException for low-level IO errors
- * and BadPeer if the data format is not OK or if the data is not 
- * encrypted properly.
+ * and BadPeer if the data format is not OK including cases when the data
+ * is not encrypted correctly (when authentication of encrypted data fails).
  * 
  * @author Frans Lundberg
  */
@@ -86,9 +85,10 @@ public class EncryptedChannelV2 implements ByteChannel {
 
     @Override
     public byte[] read() throws ComException, BadPeer {
-        byte[] encrypted = readOrTakePushback();
-        encrypted = unwrap(encrypted);
+        byte[] message = readOrTakePushback();
+        byte[] encrypted = unwrapToBytes(message);
         byte[] clear = decrypt(encrypted);
+        
         increaseReadNonce();
         return clear;
     }
@@ -111,6 +111,10 @@ public class EncryptedChannelV2 implements ByteChannel {
         write(false, messages);
     }
 
+    /**
+     * Takes cleartext messages, encrypts them, and writes them to underlying
+     * channel.
+     */
     @Override
     public void write(boolean isLast, byte[]... messages) throws ComException, BadPeer {
         byte[][] toWrite = new byte[messages.length][];
@@ -211,8 +215,12 @@ public class EncryptedChannelV2 implements ByteChannel {
         return result;
     }
     
-    static byte[] unwrap(byte[] packetBytes) {
-        EncryptedPacket p = EncryptedPacket.fromBytes(packetBytes, 0, packetBytes.length);
+    static byte[] unwrapToBytes(byte[] packetBytes) {
+        EncryptedPacket p = unwrap(packetBytes);
         return p.body;
+    }
+    
+    static EncryptedPacket unwrap(byte[] packetBytes) {
+        return EncryptedPacket.fromBytes(packetBytes, 0, packetBytes.length);
     }
 }

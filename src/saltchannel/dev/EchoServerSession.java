@@ -33,10 +33,10 @@ public class EchoServerSession implements ByteChannelServerSession {
             
             switch (commandType) {
             case ECHO:
-                channel.write(data);
+                channel.write(false, data);
                 break;
             case CLOSE:
-                channel.write(data);     // LastFlag should be set, when ByteChannel allows it
+                channel.write(true, data);     // LastFlag is set
                 break LabelA;
             default:
                 throw new BadPeer("unsupported command type, " + commandType);

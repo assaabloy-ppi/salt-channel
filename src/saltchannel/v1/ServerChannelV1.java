@@ -71,7 +71,7 @@ public class ServerChannelV1 implements ByteChannel {
         byte[] m3 = createM3(mySignature, sigKeyPair.pub());
         byte[] m3encrypted = encryptedChannel.encryptAndIncreaseWriteNonce(m3);
 
-        clearChannel.write(m2, m3encrypted);
+        clearChannel.write(false, m2, m3encrypted);
         
         byte[] m4 = encryptedChannel.read();
         BinsonLight.Parser m4Parser = new BinsonLight.Parser(m4);

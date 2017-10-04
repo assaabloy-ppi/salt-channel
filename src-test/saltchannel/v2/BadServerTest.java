@@ -29,7 +29,7 @@ public class BadServerTest {
         
         ByteChannel ac = env.appChannel;
         
-        ac.write(new byte[]{1, 2, 3});
+        ac.write(false, new byte[]{1, 2, 3});
         byte[] response = ac.read();
         
         Assert.assertArrayEquals(new byte[]{1, 2, 3}, response);
@@ -51,7 +51,7 @@ public class BadServerTest {
         
         env.start();
         
-        env.appChannel.write(new byte[]{1, 2, 3});
+        env.appChannel.write(false, new byte[]{1, 2, 3});
         env.appChannel.read();
     }
     
@@ -72,7 +72,7 @@ public class BadServerTest {
         
         env.start();
         
-        env.appChannel.write(new byte[]{1, 2, 3});
+        env.appChannel.write(false, new byte[]{1, 2, 3});
         env.appChannel.read();
     }
     
@@ -92,7 +92,7 @@ public class BadServerTest {
         
         env.start();
         
-        env.appChannel.write(new byte[]{1, 2, 3});
+        env.appChannel.write(false, new byte[]{1, 2, 3});
         env.appChannel.read();
     }
 }

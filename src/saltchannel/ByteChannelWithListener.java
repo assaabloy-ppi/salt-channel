@@ -24,9 +24,7 @@ public class ByteChannelWithListener implements ByteChannel {
 
     @Override
     public void write(byte[]... byteArrays) throws ComException {
-        listener.onPreWrite(byteArrays);
-        channel.write(byteArrays);
-        listener.onPostWrite(byteArrays);
+        write(false, byteArrays);
     }
     
     @Override

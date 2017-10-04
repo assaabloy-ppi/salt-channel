@@ -36,7 +36,7 @@ public class Env2 {
             public void run() {
                 cs.handshake();
                 ByteChannel app = cs.getChannel();
-                app.write(new byte[]{1, 5, 5, 5, 5, 5});
+                app.write(false, new byte[]{1, 5, 5, 5, 5, 5});
             }
         });
         t.setName("Env1-client");

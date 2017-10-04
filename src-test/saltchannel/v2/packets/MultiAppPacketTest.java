@@ -60,6 +60,34 @@ public class MultiAppPacketTest {
         
         byte[] bytes2 = new byte[bytes1.length];
         MultiAppPacket.fromBytes(bytes1, 0, bytes1.length).toBytes(bytes2, 0);
+    }
+    
+    @Test
+    public void testShouldUse1() {
+        byte[][] appMessages = new byte[][]{
+            {0x01}
+        };
         
+        Assert.assertEquals(false, MultiAppPacket.shouldUse(appMessages));
+    }
+    
+    @Test
+    public void testShouldUse2() {
+        byte[][] appMessages = new byte[][]{
+            {0x04},
+            {0x05, 0x05}
+        };
+        
+        Assert.assertEquals(true, MultiAppPacket.shouldUse(appMessages));
+    }
+    
+    @Test
+    public void testShouldUse3() {
+        byte[][] appMessages = new byte[][]{
+            {0x04},
+            new byte[65536]
+        };
+        
+        Assert.assertEquals(false, MultiAppPacket.shouldUse(appMessages));
     }
 }

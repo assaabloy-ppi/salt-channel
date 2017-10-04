@@ -59,7 +59,7 @@ public class ByteChannelWithListenerTest {
             public void onPreWrite(byte[][] byteArrays) {}
         });
         
-        ch2.write(new byte[][]{new byte[]{2, 4, 6}});
+        ch2.write(false, new byte[][]{new byte[]{2, 4, 6}});
         
         Assert.assertArrayEquals(new byte[]{2, 4, 6}, array1);
     }

@@ -18,7 +18,7 @@ public class A1Client {
         A1Packet a1 = new A1Packet();
         byte[] buffer = new byte[a1.getSize()];
         a1.toBytes(buffer, 0);
-        channel.write(buffer);
+        channel.write(false, buffer);
         
         byte[] response = channel.read();
         A2Packet a2 = A2Packet.fromBytes(response, 0);

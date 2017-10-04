@@ -3,6 +3,7 @@ package saltchannel.util;
 import saltchannel.TimeException;
 
 public interface TimeChecker {
+    public static final TimeChecker NULL = new NullTimeChecker();
 
     /**
      * Reports first time. Should be 0 or 1.
@@ -15,5 +16,5 @@ public interface TimeChecker {
      * @throws TimeException if an unexpected time difference
      * was detected.
      */
-    public void checkTime(int time);
+    public void checkTime(int time) throws TimeException;
 }

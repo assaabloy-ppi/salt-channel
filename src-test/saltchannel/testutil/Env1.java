@@ -7,7 +7,7 @@ import saltchannel.v2.SaltClientSession;
 import saltchannel.v2.SaltServerSession;
 
 /** 
- * Client-server test environment, server run in separate thread.
+ * Client-server test environment, server runs in separate thread.
  * 
  * @author Frans Lundberg
  */
@@ -25,7 +25,7 @@ public class Env1 {
     }
     
     /**
-     * Setsup client/server channels, starts echo server that echoes once,
+     * Setsup client/server channels, starts echo server that echoes once;
      * calls handshake.
      */
     public void start() {
@@ -38,7 +38,7 @@ public class Env1 {
             public void run() {
                 ss.handshake();
                 ByteChannel ac = ss.getChannel();
-                ac.write(ac.read());
+                ac.write(true, ac.read());
             }
         });
         t.setName("Env1-server");

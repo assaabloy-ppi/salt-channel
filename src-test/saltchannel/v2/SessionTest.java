@@ -18,6 +18,8 @@ import saltchannel.util.TimeChecker;
 
 /**
  * Testing full client-server sessions; in-memory.
+ * 
+ * @author Frans Lundberg
  */
 public class SessionTest {
 
@@ -38,7 +40,7 @@ public class SessionTest {
             public void run() {
                 server.handshake();
                 byte[] appMessage = server.getChannel().read();
-                server.getChannel().write(appMessage);
+                server.getChannel().write(true, appMessage);
             }
         });
         thread.start();
@@ -49,7 +51,7 @@ public class SessionTest {
         app1[2999] = 99;
         
         ByteChannel channel = client.getChannel();
-        channel.write(app1);
+        channel.write(false, app1);
         byte[] response = channel.read();
         
         Assert.assertArrayEquals(app1, response);
@@ -71,7 +73,7 @@ public class SessionTest {
             public void run() {
                 server.handshake();
                 byte[] appMessage = server.getChannel().read();
-                server.getChannel().write(appMessage);
+                server.getChannel().write(true, appMessage);
             }
         });
         thread.start();
@@ -83,7 +85,7 @@ public class SessionTest {
         app1[2999] = 99;
         
         ByteChannel channel = client.getChannel();
-        channel.write(app1);
+        channel.write(false, app1);
         byte[] response = channel.read();
         
         Assert.assertArrayEquals(app1, response);
@@ -106,7 +108,7 @@ public class SessionTest {
                 server.setBufferM2(true);
                 server.handshake();
                 byte[] appMessage = server.getChannel().read();
-                server.getChannel().write(appMessage);
+                server.getChannel().write(true, appMessage);
             }
         });
         thread.start();
@@ -117,7 +119,7 @@ public class SessionTest {
         app1[2999] = 99;
         
         ByteChannel channel = client.getChannel();
-        channel.write(app1);
+        channel.write(false, app1);
         byte[] response = channel.read();
         
         Assert.assertArrayEquals(app1, response);
@@ -154,7 +156,7 @@ public class SessionTest {
             public void run() {
                 server.handshake();
                 byte[] appMessage = server.getChannel().read();
-                server.getChannel().write(appMessage);
+                server.getChannel().write(true, appMessage);
             }
         });
         thread.start();
@@ -165,7 +167,7 @@ public class SessionTest {
         app1[2999] = 99;
         
         ByteChannel channel = client.getChannel();
-        channel.write(app1);
+        channel.write(false, app1);
         
         Exception ex = null;
         try {
@@ -199,7 +201,7 @@ public class SessionTest {
             public void run() {
                 server.handshake();
                 byte[] app1s = server.getChannel().read();
-                server.getChannel().write(app1s);
+                server.getChannel().write(true, app1s);
             }
         });
         thread.start();
@@ -208,7 +210,7 @@ public class SessionTest {
         
         byte[] app1 = new byte[]{1, 2, 3};
         ByteChannel channel = client.getChannel();
-        channel.write(app1);
+        channel.write(false, app1);
         byte[] response = channel.read();
         
         Assert.assertArrayEquals(app1, response);
@@ -299,7 +301,7 @@ public class SessionTest {
         });
         thread.start();
         
-        tunnel.channel1().write(badM1);
+        tunnel.channel1().write(false, badM1);
         
         myEvent.waitForIt(1000);
         
@@ -332,9 +334,8 @@ public class SessionTest {
         Thread thread = new Thread(new Runnable() {
             public void run() {
                 ByteChannel ch = tunnel.channel2();
-                
                 ch.read();
-                ch.write(badM2);
+                ch.write(false, badM2);
             }
         });
         thread.start();

@@ -31,7 +31,7 @@ public class ResumeTest {
                 server.handshake();
                 byte[] app1 = server.getChannel().read();
                 byte[] app2 = app1.clone();
-                server.getChannel().write(app2);    // set LastFlag when possible
+                server.getChannel().write(true, app2);    // set LastFlag when possible
             }
         });
         thread.start();
@@ -39,7 +39,7 @@ public class ResumeTest {
         client.handshake();
         
         byte[] app1 = new byte[]{120};
-        client.getChannel().write(app1);
+        client.getChannel().write(false, app1);
         byte[] app2 = client.getChannel().read();
         byte[] ticket = client.getNewTicketData().ticket;
         
@@ -73,7 +73,7 @@ public class ResumeTest {
                 server.handshake();
                 byte[] app1 = server.getChannel().read();
                 byte[] app2 = app1.clone();
-                server.getChannel().write(app2);    // set LastFlag when possible
+                server.getChannel().write(true, app2);    // LastFlag is set
             }
         });
         thread.start();
@@ -81,7 +81,7 @@ public class ResumeTest {
         client.handshake();
         
         ByteChannel appChannel = client.getChannel();
-        appChannel.write(new byte[]{1, 2, 3});
+        appChannel.write(false, new byte[]{1, 2, 3});
         byte[] app2 = appChannel.read();
         
         Assert.assertArrayEquals(new byte[]{1, 2, 3}, app2);
@@ -103,14 +103,14 @@ public class ResumeTest {
                 server.handshake();
                 byte[] app1 = server.getChannel().read();
                 byte[] app2 = app1.clone();
-                server.getChannel().write(app2);   // set LastFlag when possible
+                server.getChannel().write(true, app2);   // LastFlag is set
             }
         });
         thread.start();
         
         client.handshake();
         
-        client.getChannel().write(new byte[]{1});
+        client.getChannel().write(false, new byte[]{1});
         client.getChannel().read();
         return client.getNewTicketData();
     }

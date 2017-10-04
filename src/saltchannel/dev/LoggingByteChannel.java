@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
+import saltchannel.util.Hex;
 
 /**
  * Decorator for ByteChannel, stores read and written packages.
@@ -34,6 +35,13 @@ public class LoggingByteChannel implements ByteChannel {
         public boolean isLast;
         
         public byte[] bytes;
+        
+        public String toString() {
+            StringBuilder b = new StringBuilder();
+            b.append(type.name() + ", " + time + "\n");
+            b.append("    " + bytes.length + ", " + Hex.create(bytes));
+            return b.toString();
+        }
     }
 
     @Override
@@ -62,7 +70,6 @@ public class LoggingByteChannel implements ByteChannel {
         for (int i = 0; i < messages.length; i++) {
             LoggingByteChannel.Entry entry = new Entry();
             entry.time = time;
-            entry.isLast = isLast;
             entry.type = i == 0 ? ReadOrWrite.WRITE : ReadOrWrite.WRITE_WITH_PREVIOUS;
             entry.bytes = messages[i];
             log.add(entry);

@@ -187,7 +187,7 @@ public class SaltServerSession {
         checkThatA2WasSet();
         byte[] buffer = new byte[a2Packet.getSize()];
         a2Packet.toBytes(buffer, 0);
-        clearChannel.write(buffer);    // set LastFlag when possible
+        clearChannel.write(true, buffer);    // LastFlag is set.
     }
 
     /**
@@ -202,7 +202,7 @@ public class SaltServerSession {
         timeChecker.reportFirstTime(m1.time);
         
         if (m1.serverSigKeyIncluded() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
-            clearChannel.write(noSuchServerM2Raw());      // set LastFlag when possible
+            clearChannel.write(true, noSuchServerM2Raw());      //LastFlag is set
             throw new NoSuchServer();
         }
         
@@ -234,7 +234,7 @@ public class SaltServerSession {
             m2.time = timeKeeper.getFirstTime();
             byte[] m2Bytes = m2.toBytes();
             this.m2Hash = CryptoLib.sha512(m2Bytes);
-            clearChannel.write(m2Bytes);
+            clearChannel.write(false, m2Bytes);
         }
     }
 

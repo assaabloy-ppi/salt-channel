@@ -8,13 +8,13 @@ public interface Packet {
     public static final int TYPE_M2 = 2;
     public static final int TYPE_M3 = 3;
     public static final int TYPE_M4 = 4;
-    public static final int TYPE_APP_MESSAGE = 5;
+    public static final int TYPE_APP_PACKET = 5;
     public static final int TYPE_ENCRYPTED_MESSAGE = 6;
     public static final int TYPE_TICKET = 7;
     public static final int TYPE_A1 = 8;
     public static final int TYPE_A2 = 9;
     public static final int TYPE_TT = 10;
-    public static final int TYPE_TICKET_ENCRYPTED = 11;
+    public static final int TYPE_MULTI_APP_PACKET = 11;
     
     /**
      * Returns size of packet when serialized to a byte array.

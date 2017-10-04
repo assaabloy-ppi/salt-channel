@@ -3,7 +3,7 @@ package saltchannel.v2.packets;
 import saltchannel.util.Bytes;
 
 /**
- * Header of a packet, two bytes long.
+ * Header of a packet.
  * 
  * @author Frans Lundberg
  */
@@ -14,12 +14,32 @@ public class PacketHeader {
     
     private final byte[] bytes = new byte[SIZE];
     
-    public PacketHeader() {
-    }
+    /**
+     * Private, use other constructors or create functions.
+     */
+    private PacketHeader() {}
     
     public PacketHeader(int type) {
         this();
         setType(type);
+    }
+    
+    /**
+     * Reads header from 'bytes' at given offset.
+     */
+    public PacketHeader(byte[] bytes, int offset) {
+        if (bytes.length < offset + SIZE) {
+            throw new IllegalArgumentException("input 'bytes' parameter, array too small");
+        }
+        System.arraycopy(bytes, offset, this.bytes, 0, SIZE);
+    }
+    
+    /**
+     * Creates a new instance without any specified type.
+     * Useful for testing.
+     */
+    static PacketHeader create() {
+        return new PacketHeader();
     }
     
     /**
@@ -67,11 +87,11 @@ public class PacketHeader {
         return (value & mask) != 0;
     }
     
-    public boolean eosFlag() {
+    public boolean lastFlag() {
         return getBit(7);
     }
     
-    public void setEosFlag(boolean b) {
+    public void setLastFlag(boolean b) {
         setBit(7, b);
     }
     

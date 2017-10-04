@@ -74,14 +74,12 @@ public class Tls {
         SSLServerSocket ss = (SSLServerSocket) factory.createServerSocket(port);
         ss.setNeedClientAuth(true);
         
-        //printEnabledSuites(ss.getEnabledCipherSuites());
-        
         try (Socket socket = ss.accept()) {
             printServerSocketInfo((SSLSocket) socket);
             ByteChannel channel = new SocketChannel(socket);
             
             byte[] bytes = channel.read();
-            channel.write(bytes);  // echo back        
+            channel.write(true, bytes);  // echo back        
         }
     }
 

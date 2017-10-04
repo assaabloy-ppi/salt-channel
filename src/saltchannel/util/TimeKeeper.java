@@ -17,4 +17,6 @@ public interface TimeKeeper {
      * or 0 if timing is not supported.
      */
     public int getTime();
+    
+    public static final NullTimeKeeper NULL = new NullTimeKeeper();
 }

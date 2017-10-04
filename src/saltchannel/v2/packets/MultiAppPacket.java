@@ -4,6 +4,11 @@ import saltchannel.BadPeer;
 import saltchannel.util.Deserializer;
 import saltchannel.util.Serializer;
 
+/**
+ * MultiAppPacket as introduced in spec-salt-channel-v2-draft5.
+ * 
+ * @author Frans Lundberg
+ */
 public class MultiAppPacket implements Packet {
     public static final int PACKET_TYPE = 11;
     public int time;
@@ -85,6 +90,24 @@ public class MultiAppPacket implements Packet {
         }
         
         return p;
+    }
+    
+    /**
+     * Returns true iff the given array of application messages
+     * should be encoded in a MultiAppPacket.
+     */
+    public static boolean shouldUse(byte[][] appMessages) {
+        if (appMessages.length < 2) {
+            return false;
+        }
+        
+        for (int i = 0; i < appMessages.length; i++) {
+            if (appMessages[i].length > MAX_SIZE) {
+                return false;
+            }
+        }
+        
+        return true;
     }
     
     private static int readUint16(Deserializer d) {

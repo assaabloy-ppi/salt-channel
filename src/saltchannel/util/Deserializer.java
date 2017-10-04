@@ -97,8 +97,7 @@ public class Deserializer {
     }
     
     public PacketHeader readHeader() {
-        PacketHeader header = new PacketHeader();
-        System.arraycopy(buffer, offset, header.bytes(), 0, PacketHeader.SIZE);
+        PacketHeader header = new PacketHeader(buffer, offset);
         offset += PacketHeader.SIZE;
         return header;
     }
