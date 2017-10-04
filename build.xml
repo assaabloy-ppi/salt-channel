@@ -16,9 +16,9 @@ Do not use Java 8 or 9 (mainly due to Android).
         <format property="dateAndMinute" pattern="yyyyMMdd.HHmm" />
     </tstamp>
 
-    <!-- VERSION, for release build, comment out second statement. -->
-    <property name="version" value="2.0"/>
-    <property name="version" value="${version}.${date}"/>
+    <!-- VERSION, first line below is for DEV build, second for _RELEASE build. -->
+    <property name="version" value="1.9.${date}"/> 
+    <!-- <property name="version" value="2.0"/> -->
     
     <property name="time" value="${dateAndMinute}"/>
 
@@ -61,16 +61,45 @@ Do not use Java 8 or 9 (mainly due to Android).
     </copy>
 </target>
     
+<target name="compilex" depends="init"
+    description="compiles files including src-x, copies resources, output to out/classes">
+    
+    <mkdir dir="out/classes"/>
+    
+    <path id="classpath">
+        <fileset dir="lib">
+            <include name="**/*.jar" />
+        </fileset>
+        <fileset dir="lib-dev">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <javac destdir="out/classes" source="1.7" target="1.7">
+        <src path="src"/>
+        <src path="src-in"/>
+        <src path="src-x"/>
+        <classpath refid="classpath" />
+    </javac>
+    
+    <copy todir="out/classes">
+        <fileset dir="src">
+            <exclude name="**/*.java"/>
+            <exclude name="**/package.html"/>
+        </fileset>
+    </copy>
+</target>
+    
 <target name="clean" description="">
     <delete includeemptydirs="true" quiet="true">
         <fileset dir="out" includes="**/*"/>
     </delete>
 </target>
 
-<target name="jar" description="creates jar file, includes libs in it" depends="compile">
+<target name="jar" description="creates jar file, includes libs in it" depends="clean, compile">
 	<delete file="out/salt-channel-${version}.jar"/>	
 	<jar destfile="out/salt-channel-${version}.jar">
-	    <fileset dir="out/classes"/>    <!-- This should be first to allow replacing classes in libs. -->
+	    <fileset dir="out/classes"/>
 	    <zipgroupfileset dir="lib" includes="*.jar" />
             <fileset dir=".">
               <include name="**/lib/**"/>
@@ -79,6 +108,22 @@ Do not use Java 8 or 9 (mainly due to Android).
     
     <copy file="out/salt-channel-${version}.jar" 
             toFile="out/salt-channel.jar"
+            overwrite="true">
+    </copy>
+</target>
+    
+<target name="jarx" description="creates jarx file, includes src-x" depends="clean, compilex">
+    <delete file="out/salt-channel-x-${version}.jar"/>    
+    <jar destfile="out/salt-channel-x-${version}.jar">
+        <fileset dir="out/classes"/>
+        <zipgroupfileset dir="lib" includes="*.jar" />
+            <fileset dir=".">
+              <include name="**/lib/**"/>
+           </fileset>
+    </jar>
+    
+    <copy file="out/salt-channel-x-${version}.jar" 
+            toFile="out/salt-channel-x.jar"
             overwrite="true">
     </copy>
 </target>

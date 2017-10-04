@@ -1,4 +1,4 @@
-package saltchannel.dev;
+package saltchannelx.ws;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -10,6 +10,9 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
+import saltchannel.dev.ByteChannelServerSession;
+import saltchannel.dev.EchoServerSession;
+import saltchannel.dev.ServerSessionFactory;
 import saltchannel.util.CryptoTestData;
 import saltchannel.util.KeyPair;
 import saltchannel.v2.SaltServerSession;
@@ -132,8 +135,6 @@ public class WsTestServer {
             this.messageQ = new LinkedBlockingQueue<byte[]>();
         }
     }
-    
-
     
     public static void main(String[] args) throws IOException, InterruptedException {
         ServerSessionFactory sessionFactory = new ServerSessionFactory() {

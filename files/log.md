@@ -7,7 +7,17 @@ Log and general notes.
 ==========
 
 Frans: Implementation should now support v2-draft6, MultiAppPacket:s and 
-lastFlag. Made release salt-channel-20171004.jar.
+lastFlag. Made release salt-channel-1.9.20171004.jar. 
+
+Versioning
+----------
+
+Note the new versioning scheme. For example:
+salt-channel-1.9.YYYYMMDD.jar is used for development builds and 
+salt-channel-2.0.jar for release build.
+
+The major version follows the version of the Salt Channel specification
+while the minor version does not.
 
 
 2017-10-02

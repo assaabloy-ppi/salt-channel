@@ -1,4 +1,4 @@
-package a1a2;
+package saltchannel.a1a2;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;

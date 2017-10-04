@@ -2,10 +2,10 @@ package saltchannel.v2;
 
 import java.util.Arrays;
 
-import a1a2.A2Packet;
 import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
+import saltchannel.a1a2.A2Packet;
 //import saltchannel.TweetNaCl;
 import saltaa.*;
 import saltchannel.util.KeyPair;

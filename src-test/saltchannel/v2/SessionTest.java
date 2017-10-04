@@ -2,14 +2,15 @@ package saltchannel.v2;
 
 import org.junit.Assert;
 import org.junit.Test;
-import a1a2.A1Client;
-import a1a2.A2Packet;
+
 import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.CryptoLib;
 import saltchannel.TimeException;
 import saltchannel.Tunnel;
+import saltchannel.a1a2.A1Client;
+import saltchannel.a1a2.A2Packet;
 import saltchannel.testutil.ToWaitFor;
 import saltchannel.util.CryptoTestData;
 import saltchannel.util.KeyPair;
