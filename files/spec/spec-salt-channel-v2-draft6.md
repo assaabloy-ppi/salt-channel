@@ -750,24 +750,22 @@ Session close
 =============
 
 This protocol is designed so that both Salt Channel peers will 
-be able to agree on when a Salt Channel ends in case the 
-session does not start an application layer session.
-If the application layer starts successfully (handshake completed), 
-it is up to the application layer to determine when the session ends.
+be able to agree on when a Salt Channel ends.
 
 The underlying reliable channel may be reused for multiple sequential
 Salt Channel sessions. Multiple concurrent sessions over
 a single underlying channel is *not* within scope of this protocol.
 
-A Salt Channel session ends when one the the following conditions occur:
+A Salt Channel session ends after a message with the LastFlag set
+is sent by either peer. This includes the following cases:
 
 1. After message A2 is sent by Server.
 
-2. After message M2 is sent by Server with the M2/NoSuchServer bit set to 1.
+2. After message M2 is sent by Server with the M2/NoSuchServer bit 
+   set to 1.
 
-3. After the session of the layer on top (AppMessage*) ends. This is
-   entirely up to that layer to determine when the session ends.
-   The Salt Channel implementation will be able to determine this.
+3. After an EncryptedMessage is sent by either peer and its
+   LastFlag is set to 1.
 
 
 
