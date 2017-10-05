@@ -10,5 +10,3 @@ Release 2.0, 2017-11-xx
 
 First production-quality release; implements Salt Channel v2.
 Dependencies: JVM 7.
-
-

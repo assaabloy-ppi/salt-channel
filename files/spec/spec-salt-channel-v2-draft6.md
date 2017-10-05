@@ -6,7 +6,7 @@ About
 
 About this document.
 
-*Date*: 2017-10-03.
+*Date*: 2017-10-05.
 
 *Status*: Salt Channel v2 specification, DRAFT.
 
@@ -435,9 +435,10 @@ bytes in the field M2/ServerEncKey.
         it was specified in M1 (to keep things simple).
     
     64  Signature1
-        Signature of the following elements concatenated: "SC-SIG01" + hash(M1) + hash(M2).
+        The following: sig("SC-SIG01" + hash(M1) + hash(M2)).
         "SC-SIG01" are the bytes: 0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x31.
         hash() is used to denote the SHA512 checksum.
+        "+" is concatenation and "sig" is defined on the "Crypto details" section.
         Only the actual signature (64 bytes) is included in the field.
     
     
@@ -475,9 +476,10 @@ message (or messages) from the client to the server.
         The client's public signature key.
         
     64  Signature2.
-        Signature of the following elements concatenated: "SC-SIG02" + hash(M1) + hash(M2).
+        The following: sig("SC-SIG02" + hash(M1) + hash(M2)).
         hash() is used to denote the SHA512 checksum.
         "SC-SIG02" are the bytes: 0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x32.
+        "+" is concatenation and "sig" is defined in the "Crypto details" section.
         Only the actual signature (64 bytes) is included in the field.
     
     
