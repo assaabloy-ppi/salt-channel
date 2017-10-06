@@ -6,7 +6,7 @@ About
 
 About this document.
 
-*Date*: 2017-10-05.
+*Date*: 2017-10-06.
 
 *Status*: Salt Channel v2 specification, DRAFT.
 
@@ -231,14 +231,14 @@ Session
 
 The message order of an ordinary successful Salt Channel session is:
  
-    Session = M1 M2 E(M3) E(M4) E(AppMessage)*
+    Session = M1 M2 E(M3) E(M4) E(AppPacket)*
 
 The M1, and M4 messages are sent by the client and M2, M3 by the server.
 So, we have the typical three-way handshake (M1 from client, 
 M2+M3 from server, and M4 from client). In the common case when the 
 first application message is from the client, this message SHOULD be 
 sent together with M4 to achieve a one round-trip overhead (instead 
-of two). Application layer messages (AppMessage) are sent by either 
+of two). Application layer messages (AppPacket:s) are sent by either 
 the client or the server in any order. The notation "E()" is used to indicate
 authenticated encryption; see the section on EncryptedMessage. This 
 notation may be omitted for clarity; messages following M1, M2 are 
@@ -269,13 +269,14 @@ An overview of a typical Salt Channel session is shown below.
     ClientSigKey
     Signature2                   ---E(M4)--->
     
-    AppMessage                   <--E(App)-->          AppMessage
+    AppPacket                    <--E(AppPacket)-->     AppPacket
     
         Figure: Salt Channel messages. "E()" is used to indicate that a 
         message is encrypted and authenticated. Header and Time fields are not
         included in the figure. They are included in every message.
             
-Later section will describe these messages in detail.
+
+Later sections will describe these messages in detail.
 
 
 
@@ -293,8 +294,8 @@ protocol and *packet* is used to refer to any byte array --
 either a full message or a part of a message.
 
 Packets are presented below with fields of specified sizes.
-If the size number has a "b" suffix, the size is in bits, 
-otherwise it is in bytes.
+If the size has a "b" suffix, the size is in bits, otherwise 
+it is in bytes.
 
 Regarding byte order and bit order; a *little-end-first* approach is 
 used. *Little-endian byte order MUST be used*.
@@ -498,7 +499,7 @@ message (or messages) from the client to the server.
 EncryptedMessage
 ================
 
-Messages M3, M4, and the application messages (AppMessage, MultiAppMessage) 
+Messages M3, M4, and the application messages (AppPacket, MultiAppPacket) 
 are encrypted. They are included in the field EncryptedMessage/Body.
    
     **** EncryptedMessage ****
@@ -526,8 +527,7 @@ are encrypted. They are included in the field EncryptedMessage/Body.
         (both directions) and 0 otherwise.
        
 
-See the section "Crypto" for details on the authenticated
-encryption.
+See the section "Crypto" for details of the authenticated encryption.
 
 
 
@@ -557,7 +557,7 @@ message at once.
         The cleartext application data.
     
     
-    **** AppMessage/Header ****
+    **** AppPacket/Header ****
     
     1   PacketType.
         The packet type, an integer in the range 0 to 127.
@@ -569,7 +569,7 @@ message at once.
 
 The MultiAppPacket is specified below. It allows multiple application 
 messages to be contained in one encrypted Salt Channel packet. This saves
-IO and CPU, but provides no additional functionality over using only AppMessage
+IO and CPU, but provides no additional functionality over using only AppPacket
 type of messages.
 
 
@@ -577,7 +577,7 @@ type of messages.
 
     This packet is encrypted.  It is sent within the body of
     EncryptedMessage (EncryptedMessage/Body). It may contain
-    more than one application message.
+    more than one application packet.
 
     2   Header.
         Message type and flags.
@@ -591,6 +591,7 @@ type of messages.
 
     x   Message+
 
+
     **** MultiAppPacket/Header ****
 
     1   PacketType.
@@ -600,6 +601,7 @@ type of messages.
     8b  Zero.
         Bits set to 0.
 
+
     **** MultiAppPacket/Message ****
 
     2   Length.
@@ -608,19 +610,20 @@ type of messages.
     x   Data.
         The cleartext application message.
     
+
 An implementation MUST support receiving both types of messages and 
 MUST treat them as logically equivalent. The application layer above
 should not need to know about the difference of these two types of messages.
-A sending peer MAY chose to use MultiAppMessage when possible or use 
-AppMessage.
+A sending peer MAY chose to use MultiAppPacket when possible or use 
+AppPacket:s.
 
-This specification focuses on AppMessage in definitions of message flow
-to keep the specification simple. Anywhere where AppMessages are used, 
-MultiAppMessages could also be used (if messages lengths allow it). This
+This specification focuses on AppPacket in definitions of message flow
+to keep the specification simple. Anywhere where AppPacket:s are used, 
+MultiAppPacket:s can be used instead (if message lengths allow it). This
 is specified *here in this section* and not necessarily specified elsewhere
 in the document.
 
-Message M4 MUST NOT be contained in a MultiAppMessage. Use a plain AppMessage.
+Message M4 MUST NOT be contained in a MultiAppPacket. Use a plain AppPacket.
 
 
 
@@ -828,13 +831,13 @@ This section is informative.
     2            M2
     3            M3
     4            M4
-    5            AppMessage
+    5            AppPacket
     6            EncryptedMessage
     7            reserved (has been used for Ticket in v2 drafts)
     8            A1
     9            A2
     10           TT (not used in v2 spec)
-    11           MultiAppMessage
+    11           MultiAppPacket
     12-127       Not used
 
 
@@ -864,7 +867,7 @@ multiple unencrypted links.
 
 However, in this case, R1 will not know when the Salt Channel session 
 terminates. Same for relay R2. They only see encrypted application
-data in AppMessage packets once the session has been established.
+data in AppPacket packets once the session has been established.
 This results in the situation where R2 must keep the BLE connection
 open even after the session is closed. This may waste valuable resources 
 and possibly hinders new connections from being established.
@@ -927,51 +930,51 @@ bytes are echoed back by the server.
 No timestamps are used, neither by the server nor the client.
 The Time fields of the messages are all set to zero.
 
-TODO: data must be updated.
-
     
-======== ExampleSessionData ========
-
-Example session data for Salt Channel v2.
-
----- key pairs, secret key first ----
-
-client signature key pair:
-    55f4d1d198093c84de9ee9a6299e0f6891c2e1d0b369efb592a9e3f169fb0f795529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b
-    5529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b
-client encryption key pair:
-    77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a
-    8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
-server signature key pair:
-    7a772fa9014b423300076a2ff646463952f141e2aa8d98263c690c0d72eed52d07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b
-    07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b
-server encryption key pair:
-    5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb
-    de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
-
---- Log entries, microsecond time ----
-
- 42 -->   WRITE
-    534376320100000000008520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
-<--  38   READ
-    020000000000de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
-<-- 120   READ
-    0600e47d66e90702aa81a7b45710278d02a8c6cddb69b86e299a47a9b1f1c18666e5cf8b000742bad609bfd9bf2ef2798743ee092b07eb32a45f27cda22cbbd0f0bb7ad264be1c8f6e080d053be016d5b04a4aebffc19b6f816f9a02e71b496f4628ae471c8e40f9afc0de42c9023cfcd1b07807f43b4e25
-120 -->   WRITE
-    0600b4c3e5c6e4a405e91e69a113b396b941b32ffd053d58a54bdcc8eef60a47d0bf53057418b6054eb260cca4d827c068edff9efb48f0eb8454ee0b1215dfa08b3ebb3ecd2977d9b6bde03d4726411082c9b735e4ba74e4a22578faf6cf3697364efe2be6635c4c617ad12e6d18f77a23eb069f8cb38173
- 30 -->   WRITE_WITH_PREVIOUS
-    06005089769da0def9f37289f9e5ff6e78710b9747d8a0971591abf2e4fb
-<--  30   READ
-    060082eb9d3660b82984f3c1c1051f8751ab5585b7d0ad354d9b5c56f755
-
----- Other ----
-
-session key: 1b27556473e985d462cd51197a9a46c76009549eac6474f206c4ee0844f68389
-app request:  010505050505
-app response: 010505050505
-total bytes: 380
-total bytes, handshake only: 320
+    ======== ExampleSessionData ========
     
-Note to authors: the above output was generated with the Java class saltchannel.dev.ExampleSessionData, date: 2017-06-09.
+    Example session data for Salt Channel v2.
+    
+    ---- key pairs, secret key first ----
+    
+    client signature key pair:
+        55f4d1d198093c84de9ee9a6299e0f6891c2e1d0b369efb592a9e3f169fb0f795529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b
+        5529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b
+    client encryption key pair:
+        77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a
+        8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
+    server signature key pair:
+        7a772fa9014b423300076a2ff646463952f141e2aa8d98263c690c0d72eed52d07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b
+        07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b
+    server encryption key pair:
+        5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb
+        de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
+    
+    --- Log entries ----
+    
+     42 -->   WRITE
+        534376320100000000008520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
+    <--  38   READ
+        020000000000de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
+    <-- 120   READ
+        0600e47d66e90702aa81a7b45710278d02a8c6cddb69b86e299a47a9b1f1c18666e5cf8b000742bad609bfd9bf2ef2798743ee092b07eb32a45f27cda22cbbd0f0bb7ad264be1c8f6e080d053be016d5b04a4aebffc19b6f816f9a02e71b496f4628ae471c8e40f9afc0de42c9023cfcd1b07807f43b4e25
+    120 -->   WRITE
+        0600b4c3e5c6e4a405e91e69a113b396b941b32ffd053d58a54bdcc8eef60a47d0bf53057418b6054eb260cca4d827c068edff9efb48f0eb8454ee0b1215dfa08b3ebb3ecd2977d9b6bde03d4726411082c9b735e4ba74e4a22578faf6cf3697364efe2be6635c4c617ad12e6d18f77a23eb069f8cb38173
+     30 -->   WRITE_WITH_PREVIOUS
+        06005089769da0def9f37289f9e5ff6e78710b9747d8a0971591abf2e4fb
+    <--  30   READ
+        068082eb9d3660b82984f3c1c1051f8751ab5585b7d0ad354d9b5c56f755
+    
+    ---- Other ----
+    
+    session key: 1b27556473e985d462cd51197a9a46c76009549eac6474f206c4ee0844f68389
+    app request:  010505050505
+    app response: 010505050505
+    total bytes: 380
+    total bytes, handshake only: 320
+    
+
+Note to authors: the above output was generated with the Java class 
+saltchannel.dev.ExampleSessionData, date: 2017-10-06.
 
 
