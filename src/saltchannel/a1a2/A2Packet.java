@@ -21,11 +21,24 @@ public class A2Packet implements Packet {
     public static final String UNSPECIFIED_PROT_STRING = "----------";
     
     public Prot[] prots;
+
+    /**
+     * Returns protocol specification items, "Prots".
+     */
+    public Prot[] getProts() {
+        return prots;
+    }
     
+    /**
+     * Returns message type.
+     */
     public int getType() {
         return PACKET_TYPE;
     }
     
+    /**
+     * Returns byte size of message.
+     */
     public int getSize() {
         return PacketHeader.SIZE + 1 + prots.length * (2 * Prot.P_SIZE);
     }
@@ -122,6 +135,10 @@ public class A2Packet implements Packet {
         public Prot(String p1, String p2) {
             this.p1 = p1;
             this.p2 = p2;
+        }
+        
+        public String toString() {
+            return p1 + "/" + p2;
         }
     }
     

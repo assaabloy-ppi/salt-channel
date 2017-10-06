@@ -918,12 +918,12 @@ References
 Appendix A: Example session data
 ================================
 
-Example session data for a simple request-echo application scenario.
+Example session data for a simple echo server scenario.
 Fixed key pairs are used for a deterministic result. Obviously, such
-an approach should *not* be used in production. The encryption key 
-pair *must* be generated for each session in real production use.
+an approach *must not* be used in production. The encryption key 
+pair *must* be generated for each session to achieve the security goals.
 
-On the application layer, a simple request-reponse exchange occurs.
+On the application layer, a simple request-response exchange occurs.
 The client sends the application data: 0x010505050505 and the same
 bytes are echoed back by the server.
 

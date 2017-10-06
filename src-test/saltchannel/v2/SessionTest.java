@@ -2,7 +2,6 @@ package saltchannel.v2;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
