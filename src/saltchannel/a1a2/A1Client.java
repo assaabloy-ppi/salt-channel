@@ -9,13 +9,21 @@ import saltchannel.ByteChannel;
  */
 public class A1Client {
     private ByteChannel channel;
+    private A1Packet a1;
     
     public A1Client(ByteChannel channel) {
         this.channel = channel;
+        this.a1 = new A1Packet();
+    }
+    
+    /**
+     * Allows the consumer to modify A1 before it is sent.
+     */
+    public A1Packet getA1() {
+        return a1;
     }
     
     public A2Packet go() {
-        A1Packet a1 = new A1Packet();
         byte[] buffer = new byte[a1.getSize()];
         a1.toBytes(buffer, 0);
         channel.write(false, buffer);

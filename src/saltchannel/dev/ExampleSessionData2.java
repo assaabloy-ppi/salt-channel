@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import saltchannel.Tunnel;
 import saltchannel.a1a2.A1Client;
+import saltchannel.a1a2.A1Packet;
 import saltchannel.a1a2.A2Packet;
 import saltchannel.util.CryptoTestData;
 import saltchannel.util.Hex;
@@ -11,7 +12,7 @@ import saltchannel.util.KeyPair;
 import saltchannel.v2.SaltServerSession;
 
 /**
- * Example session data, does A1-A2.
+ * Example session data, does A1-A2, ANY adress.
  * 
  * @author Frans Lundberg
  */
@@ -22,6 +23,12 @@ public class ExampleSessionData2 {
     private LoggingByteChannel loggingByteChannel;
     private static final String P1 = A2Packet.SC2_PROT_STRING;
     private static final String P2 = "ECHO------";
+    private static final byte[] pubkey = new byte[32];
+    static {
+        for (int i = 0; i < pubkey.length; i++) {
+            pubkey[i] = 0x09;
+        }
+    }
 
     public static void main(String[] args) {
         new ExampleSessionData2().go();
@@ -60,6 +67,10 @@ public class ExampleSessionData2 {
     private void runClient() {
         loggingByteChannel = new LoggingByteChannel(tunnel.channel1());
         A1Client client = new A1Client(loggingByteChannel);
+        A1Packet a1 = client.getA1();
+        a1.addressType = A1Packet.ADDRESS_TYPE_PUBKEY;
+        a1.address = createAddress();
+        
         A2Packet a2 = client.go();
         
         String p1a = P1;
@@ -84,6 +95,8 @@ public class ExampleSessionData2 {
         b.append("\n");
         b.append("Example session data for Salt Channel v2.\n");
         b.append("An A1-A2 session; one 'prot' with P1='" + P1 + "' and P2='" + P2 + "'.\n");
+        b.append("The *pubkey* type of address (AddressType 1) is used in A1.\n");
+        b.append("As a simple example, the public key consists of 32 bytes, all set to 0x08.\n");
         b.append("\n");
         
         b.append("--- Log entries ----\n");
@@ -133,26 +146,37 @@ public class ExampleSessionData2 {
         
         return b.toString();
     }
+    
+    private byte[] createAddress() {
+        byte[] result = new byte[32];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = 0x08;
+        }
+        return result;
+    }
 }
 
 /*
 
-OUTPUT 2017-10-06
+OUTPUT 2017-10-09
 
 ======== ExampleSessionData2 ========
 
 Example session data for Salt Channel v2.
 An A1-A2 session; one 'prot' with P1='SC2-------' and P2='ECHO------'.
+The *pubkey* type of address (AddressType 1) is used in A1.
+As a simple example, the public key consists of 32 bytes, all set to 0x08.
 
 --- Log entries ----
 
-  2 -->   WRITE
-    0800
+ 37 -->   WRITE
+    08000120000808080808080808080808080808080808080808080808080808080808080808
 <--  23   READ
     0980015343322d2d2d2d2d2d2d4543484f2d2d2d2d2d2d
 
 ---- Other ----
 
+total bytes: 60
 total bytes: 25
 
 */

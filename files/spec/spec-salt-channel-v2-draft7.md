@@ -18,14 +18,16 @@ About this document.
 
 *Thanks*:
 
-* To Håkan Olsson for valuable comments and discussions.
+* To Håkan Olsson for comments and discussions.
 * To Daniel Bernstein for creating TweetNaCl.
+* To Kenneth Pernyer and Felix Grape for comments and implementations
+  in Swift and JavaScript.
 
 
 History
 -------
 
-* 2017-10-09. DRAFT7. Pubkey added to A1.
+* 2017-10-09. DRAFT7. Address fields added to message A1.
 
 * 2017-10-06. DRAFT6. Resume feature removed from spec.
 
@@ -663,7 +665,7 @@ Messages A1 and A2 are used by the client to query the server of which
 protocols it supports. These two messages are intended to stay stable
 even if/when Salt Channel is upgraded to v3, v4, and so on.
 
-No encryption is used. Any information sent by the server should be 
+No encryption is used. Information sent by the server should be 
 validated later once the secure channel has been established.
 The A2 response by the server is assumed to be static for days or weeks or
 longer. The client is allowed to cache this information.
@@ -697,13 +699,21 @@ longer. The client is allowed to cache this information.
     8b  Zero.
         Bits set to 0.
         
-    
-    **** 
-    
+Currently, two address types are supported.
 
-TODO: Define AddressType 0, define AddressType 1.
+*AddressType 0* is the *any* type. The client does not specify a particular
+server-side key holder to connect to, it connects to the server default 
+one. When AddressType is 0, AddressSize MUST be 0.
 
-And Message A2:
+*AddressType 1* is a public key address. The client can chose key holder
+based on its public. A 32-byte public signing key as defined in 
+Salt Channel v2 MUST be used in the Address field. Thus, AddressSize MUST
+be 32 for this address type.
+
+More address types may be defined by later versions of the Salt Channel 
+specification.
+
+Message A2 has the following format:
     
     **** A2 ****
     
