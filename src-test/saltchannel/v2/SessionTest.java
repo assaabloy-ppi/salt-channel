@@ -234,8 +234,8 @@ public class SessionTest {
         A2Packet a2 = client.go();
         
         Assert.assertEquals(1, a2.prots.length);
-        Assert.assertEquals("SC2-------", a2.prots[0].p1);
-        Assert.assertEquals("----------", a2.prots[0].p2);
+        Assert.assertEquals("SC2-------", a2.prots[0].p1());
+        Assert.assertEquals("----------", a2.prots[0].p2());
     }
     
     @Test
@@ -258,8 +258,8 @@ public class SessionTest {
         A2Packet a2b = client.go();
         
         Assert.assertEquals(2, a2b.prots.length);
-        Assert.assertEquals("SC2-------", a2.prots[0].p1);
-        Assert.assertEquals("MyProtV3--", a2.prots[0].p2);
+        Assert.assertEquals("SC2-------", a2.prots[0].p1());
+        Assert.assertEquals("MyProtV3--", a2.prots[0].p2());
     }
     
     @Test

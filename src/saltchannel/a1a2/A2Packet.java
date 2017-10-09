@@ -126,19 +126,61 @@ public class A2Packet implements Packet {
      */
     public static class Prot {
         public static final int P_SIZE = 10;
-        public String p1;
-        public String p2;
+        private String p1;
+        private String p2;
         
         public Prot() {
         }
         
         public Prot(String p1, String p2) {
+            check(p1);
+            check(p2);
             this.p1 = p1;
             this.p2 = p2;
         }
         
+        public String p1() {
+            return p1;
+        }
+        
+        public String p2() {
+            return p2;
+        }
+        
         public String toString() {
             return p1 + "/" + p2;
+        }
+        
+        public static boolean isAllowed(char c) {
+            // Letters, digits, dash, underscore or period.
+            // As defined in Salt Channel v2 spec.
+            
+            return (c >= 'A' && c <= 'Z') 
+                || (c >= 'a' && c <= 'z')
+                || (c >= '0' && c <= '9')
+                || c == '-' || c == '_' || c == '.';
+        }
+        
+        /**
+         * Checks validity of a P-string.
+         * 
+         * @throws IllegalArgumentException if p is not valid.
+         */
+        public static void check(String p) {
+            if (p == null) {
+                throw new IllegalArgumentException("p-string == null not allowed");
+            }
+            
+            if (p.length() != P_SIZE) {
+                throw new IllegalArgumentException("p-string length not 10, was " + p.length());
+            }
+            
+            for (int i = 0; i < p.length(); i++) {
+                char c = p.charAt(i);
+                if (!isAllowed(c)) {
+                    throw new IllegalArgumentException("illegal char in p, '" + p + "'");
+                }
+            }
         }
     }
     
@@ -151,7 +193,7 @@ public class A2Packet implements Packet {
          * This is also the default value if this method is not called.
          */
         public Builder saltChannelProt(String p1) {
-            checkP(p1);
+            Prot.check(p1);
             this.p1 = p1;
             return this;
         }
@@ -160,19 +202,8 @@ public class A2Packet implements Packet {
          * Adds subprotocol 'p2' to the declared available protocols of the server.
          */
         public Builder prot(String p2) {
-            checkP(p2);
             prots.add(new Prot(p1, p2));
             return this;
-        }
-        
-        private void checkP(String p) {
-            if (p == null) {
-                throw new IllegalArgumentException("null not allowed for prot type");
-            }
-            
-            if (p.length() != PROT_STRING_SIZE) {
-                throw new IllegalArgumentException("bad length of prot type string" + p.length());
-            }
         }
         
         public A2Packet build() {

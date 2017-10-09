@@ -74,13 +74,13 @@ public class ExampleSessionData2 {
         A2Packet a2 = client.go();
         
         String p1a = P1;
-        String p1b = a2.getProts()[0].p1;
+        String p1b = a2.getProts()[0].p1();
         if (!p1a.equals(p1b)) {
             throw new AssertionError(p1a + " != " + p1b);
         }
         
         String p2a = P2;
-        String p2b = a2.getProts()[0].p2;
+        String p2b = a2.getProts()[0].p2();
         if (!p2a.equals(p2b)) {
             throw new AssertionError(p2a + " != " + p2b);
         }

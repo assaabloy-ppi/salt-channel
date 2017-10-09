@@ -1,4 +1,4 @@
-package saltchannel.v2.packets;
+package saltchannel.a1a2;
 
 import org.junit.Assert;
 import org.junit.Test;

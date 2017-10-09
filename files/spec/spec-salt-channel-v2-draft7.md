@@ -748,23 +748,23 @@ Message A2 has the following format:
     
     10  P1.
         Protocol ID of Salt Channel with version. 
-        Exactly 10 ASCII bytes. Whitespace and control characters
-        MUST be avoided.
-        The value for this field in for this version of
+        Exactly 10 ASCII bytes. The value for this field in for this version
         of Salt Channel MUST BE "SC2-------".
     
     10  P2.
         Protocol ID of the protocol on top of Salt Channel. 
-        Exactly 10 ASCII bytes. Whitespace and control characters
-        MUST be avoided.
-        If the server does not wish to reveal any information about
-        the layer above, the server MUST use value "----------" for 
-        this field.
+        Exactly 10 ASCII bytes. If the server does not wish to reveal any 
+        information about the layer above, the server MUST use value 
+        "----------" for this field.
     
+The strings on P1 and P1 MUST only contain ASCII characters in the
+set: 'A'-'Z', 'a'-'z', '0'-'9', '-', '_', '.'. That is, English letters, 
+upper-case or lower case, digits, dash, underscore, and period are the 
+allowed characters.
 
 The server MUST use protocol ID "SC2-------" for this version (v2) of
 Salt Channel. The plan is that future versions of Salt Channel should use
-the same A1 and A2 messages. Salt Channel v2 should use "SC3-------" and 
+the same A1 and A2 messages. Salt Channel v3 should use "SC3-------" and 
 v4 should use "SC4-------" and so on.
 
 The server also has the possibility of specifying a higher-level layer

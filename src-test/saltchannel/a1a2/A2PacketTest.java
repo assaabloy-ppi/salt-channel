@@ -1,4 +1,4 @@
-package saltchannel.v2.packets;
+package saltchannel.a1a2;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,5 +20,19 @@ public class A2PacketTest {
         A2Packet.fromBytes(bytes1, 0).toBytes(bytes2, 0);
         
         Assert.assertArrayEquals(bytes1, bytes2);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testTooShortP2() {
+        A2Packet p = new A2Packet();
+        p.prots = new A2Packet.Prot[2];
+        p.prots[0] = new A2Packet.Prot("SC2-------", "X1-----");
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testInvalidCharInP2() {
+        A2Packet p = new A2Packet();
+        p.prots = new A2Packet.Prot[2];
+        p.prots[0] = new A2Packet.Prot("SC2-------", "X--%------");
     }
 }
