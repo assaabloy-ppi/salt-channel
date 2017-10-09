@@ -78,7 +78,7 @@ public class AppChannelV2 implements ByteChannel {
     public void write(boolean isLast, byte[]... messages) throws ComException {
         // 
         // * Adds application header (AppPacket/MultiAppPacket).
-        // * Adds (prepends) buffered M4 when needed.
+        // * Adds (prepends) buffered M4 if needed.
         // * Writes to underlying layer (EncryptedChannelV2).
         //
         // messages:  input application messages
@@ -116,6 +116,7 @@ public class AppChannelV2 implements ByteChannel {
             this.bufferedM4.time = currentTime;
             messages3[0] = this.bufferedM4.toBytes();
             System.arraycopy(messages2, 0, messages3, 1, messages2.length);
+            this.bufferedM4 = null;
         }
         
         channel.write(isLast, messages3);

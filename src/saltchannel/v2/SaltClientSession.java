@@ -86,6 +86,11 @@ public class SaltClientSession {
         this.bufferM4 = bufferM4;
     }
     
+    /**
+     * Set to true to request a resume ticket. 
+     * NOTE, the resume feature is currently (2017-10-09) *experimental*
+     * and not included in the v2 spec.
+     */
     public void setTicketRequested(boolean requestTicket) {
         this.ticketRequested = requestTicket;
     }

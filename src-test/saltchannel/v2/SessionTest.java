@@ -355,4 +355,44 @@ public class SessionTest {
     private static class MyEvent extends ToWaitFor {
         public Exception ex;
     }
+    
+    @Test
+    public void testBufferedM4() {
+        final Tunnel tunnel = new Tunnel();
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
+        client.setEncKeyPair(CryptoTestData.aEnc);
+        client.setBufferM4(true);
+        
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
+        server.setEncKeyPair(CryptoTestData.bEnc);
+        server.setBufferM2(true);
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                server.handshake();
+                ByteChannel ch = server.getChannel();
+                byte[] data1 = ch.read();
+                ch.write(false, data1);
+                
+                byte[] data2 = ch.read();
+                byte[] data3 = ch.read();
+                ch.write(true, data2, data3);
+            }
+        });
+        thread.start();
+        
+        client.handshake();
+        ByteChannel channel = client.getChannel();
+        channel.write(false, new byte[]{0x01, 0x05, 0x05, 0x05, 0x05, 0x05});
+        byte[] response1 = channel.read();
+        channel.write(false, 
+                new byte[]{0x01, 0x04, 0x04, 0x04, 0x04},
+                new byte[]{0x03, 0x03, 0x03, 0x03});
+        byte[] response2 = channel.read();
+        byte[] response3 = channel.read();
+        
+        Assert.assertArrayEquals(new byte[]{0x01, 0x05, 0x05, 0x05, 0x05, 0x05}, response1);
+        Assert.assertArrayEquals(new byte[]{0x01, 0x04, 0x04, 0x04, 0x04}, response2);
+        Assert.assertArrayEquals(new byte[]{0x03, 0x03, 0x03, 0x03}, response3);
+    }
 }
