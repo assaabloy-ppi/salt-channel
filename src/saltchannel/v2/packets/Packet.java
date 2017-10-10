@@ -1,7 +1,14 @@
 package saltchannel.v2.packets;
 
 /**
- * A low-level packet.
+ * A low-level packet definition.
+ * 
+ * Beyond the methods defined by this interface, implementing classes should
+ * have a public static fromBytes(byte[] data, int offset) method that parses the
+ * data. The fromBytes() method throws BadPeer if the bytes are not correctly
+ * formatted to parse the packet.
+ * 
+ * @author Frans Lundberg
  */
 public interface Packet {
     public static final int TYPE_M1 = 1;
@@ -28,6 +35,8 @@ public interface Packet {
      * 
      * @param destination  Buffer to write the packet to.
      * @param offset  Offset in buffer to start at.
+     * @throws IllegalStateException
+     *          If the state of the in-memory representation of the packet is illegal.
      */
     public void toBytes(byte[] destination, int offset);
     
@@ -37,4 +46,5 @@ public interface Packet {
      * @return Packet type.
      */
     public int getType();
+    
 }

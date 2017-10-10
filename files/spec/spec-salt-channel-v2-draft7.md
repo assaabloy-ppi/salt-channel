@@ -736,8 +736,13 @@ Message A2 has the following format:
         One byte in range 0-127 with the packet type.
         The integer value is 9 for this message.
         
-    7b  Zero.
-        Bits set to 0.
+    1b  NoSuchServer.
+        Set to 1 if no server could be found or connected to that matches
+        the Address field of A1. When this bit is set, A2/Count MUST 
+        have the value 0.
+        
+    6b  Zero.
+        Bits set to zero.
         
     1b  LastFlag.
         Always set to 1 for this message to indicate that this is

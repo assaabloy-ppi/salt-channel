@@ -2,6 +2,7 @@ package saltchannel.util;
 
 import java.io.UnsupportedEncodingException;
 
+import saltchannel.BadPeer;
 import saltchannel.v2.packets.PacketHeader;
 
 /**
@@ -26,6 +27,10 @@ public class Deserializer {
     private static final int INT4_MASK = 1 + 2 + 4 + 8;
     
     public Deserializer(byte[] buffer, int offset) {
+        if (offset > buffer.length) {
+            throw new BadPeer("offset beyond buffer length");
+        }
+        
         this.buffer = buffer;
         this.firstOffset = offset;
         this.offset = offset;
@@ -43,16 +48,17 @@ public class Deserializer {
     
     public byte readByte() {
         checkBitOffsetZero();
+        if (offset > buffer.length - 1) {
+            throw new BadPeer("offset out of bounds, " + offset);
+        }
+        
         byte result = buffer[offset];
         offset++;
         return result;
     }
     
     public int readUnsignedByte() {
-        checkBitOffsetZero();
-        byte b = buffer[offset];
-        offset++;
-        return Bytes.unsigned(b);
+        return Bytes.unsigned(readByte());
     }
     
     public byte[] readBytes(int size) {

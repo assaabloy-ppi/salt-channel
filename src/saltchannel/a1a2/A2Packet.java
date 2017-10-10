@@ -21,6 +21,7 @@ public class A2Packet implements Packet {
     public static final String UNSPECIFIED_PROT_STRING = "----------";
     
     public Prot[] prots;
+    public boolean noSuchServer = false;
 
     /**
      * Returns protocol specification items, "Prots".
@@ -54,7 +55,8 @@ public class A2Packet implements Packet {
         
         Serializer s = new Serializer(destination, offset);
         PacketHeader header = new PacketHeader(PACKET_TYPE);
-        header.setBit(7, true);   // EosFlag
+        header.setBit(7, true);   // LastFlag
+        header.setBit(0, this.noSuchServer);
         
         s.writeHeader(header);
         s.writeByte(prots.length);
@@ -88,6 +90,10 @@ public class A2Packet implements Packet {
         }
     }
     
+    /**
+     * @throws BadPeer
+     *          If data is not formatted correctly.
+     */
     public static A2Packet fromBytes(byte[] source, int offset) {
         A2Packet p = new A2Packet();
         Deserializer d = new Deserializer(source, offset);
@@ -98,14 +104,15 @@ public class A2Packet implements Packet {
             throw new BadPeer("unexpected packet type, " + packetType);
         }
         
-        boolean close = header.getBit(7);
+        boolean lastFlag = header.getBit(7);
+        p.noSuchServer = header.getBit(0);
         
-        if (!close) {
-            throw new BadPeer("eos flag must be set");
+        if (!lastFlag) {
+            throw new BadPeer("LastFlag must be set");
         }
         
         int count = d.readByte();
-        if (count < 1) {
+        if (count < 0) {
             throw new BadPeer("bad Count, was " + count);
         }
         
