@@ -111,7 +111,7 @@ public class M1Packet implements Packet {
         
         if (ticketIncluded) {
             byte ticketSize = d.readByte();
-            if (ticketSize < 0) {
+            if (ticketSize < 0 || ticketSize > 127) {
                 throw new BadPeer("bad ticketSize, " + ticketSize);
             }
             
