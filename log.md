@@ -1,3 +1,10 @@
+Log 2017-10-16
+==============
+
+Frans Lundberg: We are finishing work on v2 soon. Draft8 might be the 
+last draft.
+
+
 
 Log 2017-05-10
 ==============

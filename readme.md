@@ -1,7 +1,7 @@
 salt-channel
 ============
 
-This repo contains [the specification](files/spec/spec-salt-channel-v1.md) and the 
+This repo contains [the specification](files/spec/spec-salt-channel-v2-draft7.md) and the 
 Java reference implementation of 
 *Salt Channel* - a simple, light-weight secure channel protocol based on 
 [TweetNaCl](http://tweetnacl.cr.yp.to/) by Bernstein et al.
@@ -107,7 +107,7 @@ Code conventions
 
 The old Sun code conventions 
 (http://www.oracle.com/technetwork/java/codeconvtoc-136057.html)
-are followed loosly together with the following rules (which take precedence):
+are followed loosely together with the following rules (which take precedence):
 
 * Lines can be up to 100 characters long.
 * Use four spaces as indent.
