@@ -22,6 +22,8 @@ About this document.
 * To Daniel Bernstein for creating TweetNaCl.
 * To Kenneth Pernyer and Felix Grape for comments and implementations
   in Swift and JavaScript.
+* To Felix Grape for carefully reviewing the protocol and improving
+  the wording of the specification.
 
 
 History
@@ -56,7 +58,7 @@ Table of contents
   * [Goals](#goals)
   * [Limitations](#limitations)
 * [Layer below](#layer-below)
-  * [Salt Channel over stream](#salt-channel-over-stream)
+  * [Salt Channel over a stream](#salt-channel-over-a-stream)
   * [Salt Channel over WebSocket](#salt-channel-over-websocket)
 * [Session](#session)
   * [Closing a session](#closing-a-session)
@@ -245,8 +247,8 @@ an unsigned or signed 32-bit integer work for storing it in computer memory.
 defined in this document.
 
 
-Salt Channel over Web Socket
-----------------------------
+Salt Channel over WebSocket
+---------------------------
 
 WebSocket [WS] connections are already in the "chunked" format and transmit binary data either as ArrayBuffer (byte array-like object) or Blob (file-like object). Because WebSockets using the binary type ArrayBuffer delivers a stream of byte arrays of known size, as opposed to individual bytes, Salt Channel over WebSocket is very simple. There is no need for the size prefix needed when implementing Salt Channel over TCP. Each WebSocket message is a message as specified in this document.
 

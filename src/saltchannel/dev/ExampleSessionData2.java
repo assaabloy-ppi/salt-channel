@@ -158,12 +158,12 @@ public class ExampleSessionData2 {
 
 /*
 
-OUTPUT 2017-10-09
+OUTPUT 2017-10-17
 
 ======== ExampleSessionData2 ========
 
 Example session data for Salt Channel v2.
-An A1-A2 session; one 'prot' with P1='SC2-------' and P2='ECHO------'.
+An A1-A2 session; one 'prot' with P1='SCv2------' and P2='ECHO------'.
 The *pubkey* type of address (AddressType 1) is used in A1.
 As a simple example, the public key consists of 32 bytes, all set to 0x08.
 
@@ -172,12 +172,11 @@ As a simple example, the public key consists of 32 bytes, all set to 0x08.
  37 -->   WRITE
     08000120000808080808080808080808080808080808080808080808080808080808080808
 <--  23   READ
-    0980015343322d2d2d2d2d2d2d4543484f2d2d2d2d2d2d
+    098001534376322d2d2d2d2d2d4543484f2d2d2d2d2d2d
 
 ---- Other ----
 
 total bytes: 60
-total bytes: 25
 
 */
 

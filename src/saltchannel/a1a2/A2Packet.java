@@ -17,7 +17,7 @@ import saltchannel.v2.packets.PacketHeader;
 public class A2Packet implements Packet {
     public static final int PACKET_TYPE = 9;
     public static final int PROT_STRING_SIZE = Prot.P_SIZE;
-    public static final String SC2_PROT_STRING = "SC2-------";
+    public static final String SC2_PROT_STRING = "SCv2------";
     public static final String UNSPECIFIED_PROT_STRING = "----------";
     
     public Prot[] prots;
@@ -159,13 +159,16 @@ public class A2Packet implements Packet {
         }
         
         public static boolean isAllowed(char c) {
-            // Letters, digits, dash, underscore or period.
+            //
             // As defined in Salt Channel v2 spec.
+            // From spec, draft8: 'A'-'Z', 'a'-'z', '0'-'9', '-', '.', '/', '_'. 
+            // English characters, digits, dash, period, forward slash, and underscore.
+            //
             
             return (c >= 'A' && c <= 'Z') 
                 || (c >= 'a' && c <= 'z')
                 || (c >= '0' && c <= '9')
-                || c == '-' || c == '_' || c == '.';
+                || c == '-' || c == '.' || c == '/' || c == '_';
         }
         
         /**

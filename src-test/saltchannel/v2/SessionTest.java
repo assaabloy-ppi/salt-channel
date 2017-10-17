@@ -258,7 +258,7 @@ public class SessionTest {
         A2Packet a2b = client.go();
         
         Assert.assertEquals(2, a2b.prots.length);
-        Assert.assertEquals("SC2-------", a2.prots[0].p1());
+        Assert.assertEquals("SCv2------", a2.prots[0].p1());
         Assert.assertEquals("MyProtV3--", a2.prots[0].p2());
     }
     
