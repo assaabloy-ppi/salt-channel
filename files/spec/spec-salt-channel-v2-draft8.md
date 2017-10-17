@@ -6,7 +6,7 @@ About
 
 About this document.
 
-*Date*: 2017-10-16.
+*Date*: 2017-10-17.
 
 *Status*: Salt Channel v2 specification, DRAFT.
 
@@ -59,7 +59,9 @@ Table of contents
   * [Salt Channel over stream](#salt-channel-over-stream)
   * [Salt Channel over WebSocket](#salt-channel-over-websocket)
 * [Session](#session)
-  * [Closing a session](#closing-a-session)
+  * [Handshaked session](#handshaked-session)
+  * [A1A2 session](#a1a2-session)
+  * [Session close](#session-close)
 * [Message details](#message-details)
   * [A1 and A2](#a1-and-a2)
   * [M1](#m1)
@@ -185,7 +187,7 @@ The following are the main goals of the protocol.
 * **Compact protocol** (few bytes).
     Designed for Bluetooth Low Energy and other low-bandwidth channels.
 
-* **Independent packet parsing**
+* **Independent packet parsing**.
     It should be possible to parse each packet *independently* of any 
     session state. The pack/unpack code is thus simplified. There is 
     little to gain from not following this principle.
@@ -195,20 +197,21 @@ Limitations
 
 Salt Channel is limited in scope in the following ways:
 
-* **No certificates.**
+* **No certificates**.
     Simplicity and compactness are preferred.
     Using certificates together with the Salt Channel public keys
     is possible, but not included in the protocol.
     
-* **No quantum sequrity.**
+* **No quantum sequrity**.
     The protocol is not intended to be secure for an 
     attacker with a large quantum computer. Such a computer does not exist.
     This is a limitation from the underlying TweetNaCl library.
     
-* Limitation: no attempt is made to hide the length, sequence, or timing
+* **Public length, sequence and timing**.
+    No attempt is made to hide the length, sequence, or timing
     of the communicated messages.
 
-* **No DoS protection.**
+* **No DoS protection**.
     No attempt is made to protect against denial-of-service 
     attacks. This is an important topic. Perhaps important enough to 
     warrant a dedicated protocol. Anyway, the possibility of 
@@ -223,7 +226,7 @@ Layer below
 Salt Channel can be implemented on top of any underlying channel that provides
 reliable, order-preserving, bidirectional communication. This section 
 describes how Salt Channel is implemented on top of a stream-type of 
-channel such as TCP, and how it is implemented on top of a Web Socket.
+channel such as TCP, and how it is implemented on top of a WebSocket.
 
 Excluding this section, this specification only deals with byte arrays 
 *of known size*. The underlying layer provides an order-preserving 
@@ -241,18 +244,25 @@ format is used:
 *Size* is a 32-bit integer with the byte size of 
 the following Message. Its valid range is [0, 2^31-1], so either
 an unsigned or signed 32-bit integer work for storing it in computer memory.
-*Message* is the raw message bytes. The format of these messages is 
-defined in this document.
+*Message* is the raw message bytes. The different of message types
+are defined in the [Message details](#message-details) section.
 
 
-Salt Channel over Web Socket
-----------------------------
+Salt Channel over WebSocket
+---------------------------
 
-WebSocket [WS] connections are already in the "chunked" format and transmit binary data either as ArrayBuffer (byte array-like object) or Blob (file-like object). Because WebSockets using the binary type ArrayBuffer delivers a stream of byte arrays of known size, as opposed to individual bytes, Salt Channel over WebSocket is very simple. There is no need for the size prefix needed when implementing Salt Channel over TCP. Each WebSocket message is a message as specified in this document.
+WebSocket [WS] connections are already in the "chunked" format and transmit binary data either as ArrayBuffer (byte array-like object) or Blob (file-like object). Because WebSockets using the binary type ArrayBuffer delivers a stream of byte arrays of known size, as opposed to individual bytes, Salt Channel over WebSocket is very simple. There is no need for the size prefix that is needed when implementing Salt Channel over TCP. Each WebSocket message is a message as specified in this document.
 
 
-Session
-=======
+Salt Channel sessions
+=====================
+
+This section describes the two different types of Salt Channel sessions, 
+the ordinary handshaked session for exchanging application messages and
+the A1A2 session for querying about a servers available protocols.
+
+Handshaked session
+------------------
 
 The message order of an ordinary successful Salt Channel session is:
  
@@ -265,16 +275,9 @@ message is sent by the client, this message SHOULD be sent together with M4 by
 the underlying layer to achieve a one round-trip overhead (instead 
 of two). Application layer messages (AppPacket:s) are sent by both client and 
 server in any order. The notation "E()" is used to denote authenticated encryption, 
-see the section on EncryptedMessage. This notation may be omitted for clarity, 
-all messages following M1, M2 are always encrypted.
-
-A Salt Channel session can also consist of the A1 and A2 messages. The A1A2 session allows the client to ask the server about its public server protocol information.
-    
-    Session = A1 A2
-    
-The session is finished after A2. Note that there is no confidentiality
-or integrity protection for the A1A2 session, the messages are
-sent in cleartext.
+see the section on [EncryptedMessage](#encryptedmessage). This notation may be 
+omitted for clarity. Note that only M1 and M2 are sent in cleartext, M3 and all 
+subsequent packets are always encrypted.
 
 An overview of a typical Salt Channel session is shown below.
     
@@ -301,10 +304,21 @@ An overview of a typical Salt Channel session is shown below.
 
 Later sections will describe these messages in detail.
 
+A1A2 session
+------------
+
+A Salt Channel session can also consist of the A1 and A2 messages. The A1A2 session allows the client to ask the server about its public server protocol information.
+    
+    Session = A1 A2
+    
+The session is finished after A2. Note that there is no confidentiality
+or integrity protection for the A1A2 session, the messages are
+sent in cleartext.
+
 Closing a session
 -----------------
 
-This protocol is designed so that both Salt Channel peers will 
+The Salt Channel protocol is designed so that both peers will 
 be able to agree on when a Salt Channel ends.
 
 The underlying reliable channel may be reused for multiple sequential
@@ -323,17 +337,21 @@ is sent by either peer. This includes the following cases:
    LastFlag is set to 1.
 
 A Salt Channel session also ends if a peer receives a packet that does 
-not follow the protocol. This can happen if, but is not limited to cases
-where either one of the signatures in M3 or M4 cannot be verified, if a 
+not follow the protocol. This can happen, but is not limited to, if 
+either one of the signatures in M3 or M4 cannot be verified, if a 
 peer receives an EncryptedMessage with a Body field that cannot be 
 decrypted, if the PacketType field value in the header does not match 
-the expected value.
+the expected value. If such an error occurs the peer that received the
+bad packet must immediately close the Salt Channel without notifying 
+the peer that sent the packet. It is up to the implementation and/or
+the code that uses the Salt Channel to decide if the underlying layer
+is closed or not.
 
 Message details
 ===============
 
-The message detail sections that follow describe how a message is 
-represented as an array of bytes. The size of a message is always 
+This section describes how the different message and packet types are 
+defined as an array of bytes. The size of a packet is always 
 known from the underlying layer. When the layer below is a stream 
 (like TCP for example) each message is prefixed with the byte size 
 of the message as described in the section "Salt Channel over a stream".
@@ -358,19 +376,19 @@ for closed intervals. [0, 127] denotes the closed interval between 0 and 127
 
 The word "OPT" is used to mark a field that MAY or MAY NOT exist
 in the packet. It does not necessarily indicate an optional field 
-in the sense that it independently may exist or not. Whether its existence
+in the sense that it independently may exist or not. Whether a fields existence
 is optional, mandatory or forbidden may depend on other fields and/or
 the state of the communication session so far.
 
 A1 and A2
 ---------
 
-Messages A1 and A2 are used by the client to query the server of which 
-protocols it supports. These two messages are intended to stay stable
+Messages A1 and A2 are used by the client to query the server about which 
+protocols it supports. This message exchange is intended to stay stable
 even if/when Salt Channel is upgraded to v3, v4, and so on.
 
 No encryption is used. Information sent by the server SHOULD be 
-validated later once the secure channel has been established.
+validated later once a secure channel has been established.
 The A2 response by the server is assumed to be static for days, weeks, or
 longer. The client is allowed to cache this information.
     
@@ -388,7 +406,7 @@ longer. The client is allowed to cache this information.
     
     2   AddressSize
         Byte size of Address field that follows.
-        16-bit unsigned integer.
+        Integer in [0, 65535].
         
     x   Address
         The address.
@@ -406,8 +424,8 @@ longer. The client is allowed to cache this information.
 Two address types are currently supported.
 
 *AddressType 0* is the *any* type. The client does not specify a particular
-server-side key holder to connect to, it connects to the server default 
-one. When AddressType is 0, AddressSize MUST be 0.
+server-side key holder to connect to, it connects to the server default. 
+When AddressType is 0, AddressSize MUST be 0.
 
 *AddressType 1* is a public key address. The client can chose key holder
 based on its public. A 32-byte public signing key as defined in 
@@ -470,19 +488,19 @@ The strings on P1 and P2 MUST only contain ASCII characters in the following
 set: 'A'-'Z', 'a'-'z', '0'-'9', '-', '.', '/', '\_'. That is, English letters, 
 upper-case or lower case, digits, dash, period, slash, and underscore are the 
 allowed characters. This translates to the following ranges of valid values for the
-bytes making up the P1 and P2 strings: [45, 57], [65, 90], [95, 95], and [97, 122].
+bytes making up the P1 and P2 strings: [0x2D, 0x39], [0x41, 0x5A], [0x5F, 0x5F], and [61, 7A].
 
 The server MUST use protocol ID "SCv2------" for Salt Channel v2. 
-The plan is that future versions of Salt Channel should use the same 
-A1 and A2 messages. Salt Channel v3 should use "SCv3------" and 
-v4 should use "SCv4------" and so on.
+The plan is that future versions of Salt Channel SHOULD use the same 
+A1 and A2 messages. Salt Channel v3 SHOULD use "SCv3------" and 
+v4 SHOULD use "SCv4------" and so on.
 
-The server also has the possibility of specifying a higher-level layer
+The server also has the ability to specify a higher-level layer
 protocol in the A2 message. This way a client can determine whether there 
 is any use of connecting to the server.
 
-Note that messages A1, A2 together form a complete session.
-An M1 message following A1, A2 should be considered a *new* 
+Note that messages A1 and A2 together form a complete session.
+An M1 message following A1 and A2 should be considered a *new* 
 session that is completely independent of the previous A1A2 session.
 
 M1
@@ -805,14 +823,15 @@ M1 for clients and M2 for servers. For all subsequent messages the Time
 field value is the number of milliseconds since the first message was sent.
 
 The Time field can be used by a server to protect against delay attacks 
-by recording the time at which M1 arrived, ClientEpoch. For subsequent packets 
+by recording the time at which M1 arrived as ClientEpoch. For subsequent packets 
 the server can compute an expected value of the Time field by taking the 
 current time in milliseconds and subtracting ClientEpoch. If the difference 
 between the expected Time field value and the actual Time field value the server 
 can reject the message. A client that supports timestamping can perform the analogous
 steps to protect against delay attacks. A peer that supports timestamping must 
 therefore store both MyEpoch and TheirEpoch, recording the time at which the 
-first message was sent and received respectively.
+first message was sent and received respectively, in order to send a correct value
+in the Time field and verify the value in the Time field of incoming packets.
 
 Format: Integer in [0, 2^31-1]. This means that either a signed or an 
 unsigned 32-bit integer canbe used to represent the time. Note that 
