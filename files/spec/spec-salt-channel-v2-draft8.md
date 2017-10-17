@@ -70,9 +70,9 @@ Table of contents
   * [The time field](#the-time-field)
 * [Crypto details](#crypto-details)
 * [List of message types](#list-of-message-types)
-* [Use case: Multi-link session](#use-case:-multi-link-session)
+* [Use case: Multi-link session](#use-case-multi-link-session)
 * [References](#references)
-* [Appendix A: Example session data](#appendix-a:-example-session-data)
+* [Appendix A: Example session data](#appendix-a-example-session-data)
 
 Introduction
 ============
