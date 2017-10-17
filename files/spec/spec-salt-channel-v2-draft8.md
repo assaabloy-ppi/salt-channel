@@ -125,8 +125,8 @@ The major changes are:
 
 The Binson dependency is removed to make the protocol independent 
 of that specification. Also, it means more fixed sizes and offsets
-which may be beneficiary for performance, especially on resource-constrained
-processors.
+which could improve performance, especially on resource constrained
+systems.
 
 By including the hash of M1 and M2 in the signatures it is possible to ensure 
 the integrity of M1 and M2. Thus it is possible to ensure the integrity of all 
@@ -136,7 +136,7 @@ messages except for M1 and M2.
 The protocol info feature (A1A2 session) allows a client to ask a server to 
 tell what protocols and protocol versions it supports before a real session 
 is initiated by the client. This allows easy future Salt Channel version 
-upgrades since both the client and the server may support multiple
+upgrades since both the client and the server MAY support multiple
 versions in parallel. Note that the A1A2 session actually form an independent 
 protocol that can be used for other protocols than Salt Channel.
 
@@ -170,8 +170,8 @@ Goals
 The following are the main goals of the protocol.
 
 * **128-bit security**. 
-    The best attack should be a 2^128 brute force attack. 
-    No attack should be possible until there are (if there ever will be) 
+    The best attack SHOULD be a 2^128 brute force attack. 
+    No attack SHOULD be feasible until there are (if there ever will be) 
     large-enough quantum computers.
 
 * **Forward secrecy**.
@@ -183,14 +183,14 @@ The following are the main goals of the protocol.
     public key of the client. Tracking of the client is impossible.
     
 * **Simple protocol**.
-    It should be possible to implement in few lines of code. 
+    It SHOULD be possible to implement in few lines of code. 
     Should be auditable just like TweetNaCl.
 
 * **Compact protocol** (few bytes).
     Designed for Bluetooth Low Energy and other low-bandwidth channels.
 
 * **Independent packet parsing**.
-    It should be possible to parse each packet *independently* of any 
+    It SHOULD be possible to parse each packet *independently* of any 
     session state. The pack/unpack code is thus simplified. There is 
     little to gain from not following this principle.
 
@@ -283,7 +283,7 @@ message is sent by the client, this message SHOULD be sent together with M4 by
 the underlying layer to achieve a one round-trip overhead (instead 
 of two). Application layer messages (AppPacket:s) are sent by both client and 
 server in any order. The notation "E()" is used to denote authenticated encryption, 
-see the section on [EncryptedMessage](#encryptedmessage). This notation may be 
+see the section on [EncryptedMessage](#encryptedmessage). This notation MAY be 
 omitted for clarity. Note that only M1 and M2 are sent in cleartext, M3 and all 
 subsequent packets are always encrypted.
 
@@ -329,7 +329,7 @@ Session close
 The Salt Channel protocol is designed so that both peers will 
 be able to agree on when a Salt Channel ends.
 
-The underlying reliable channel may be reused for multiple sequential
+The underlying reliable channel MAY be reused for multiple sequential
 Salt Channel sessions. Multiple concurrent sessions over
 a single underlying channel is *not* within scope of this protocol.
 
@@ -350,7 +350,7 @@ either one of the signatures in M3 or M4 cannot be verified, if a
 peer receives an EncryptedMessage with a Body field that cannot be 
 decrypted, if the PacketType field value in the header does not match 
 the expected value. If such an error occurs the peer that received the
-bad packet must immediately close the Salt Channel without notifying 
+bad packet MUST immediately close the Salt Channel without notifying 
 the peer that sent the packet. It is up to the implementation and/or
 the code that uses the Salt Channel to decide if the underlying layer
 is closed or not.
@@ -384,8 +384,8 @@ for closed intervals. [0, 127] denotes the closed interval between 0 and 127
 
 The word "OPT" is used to mark a field that MAY or MAY NOT exist
 in the packet. It does not necessarily indicate an optional field 
-in the sense that it independently may exist or not. Whether a fields existence
-is optional, mandatory or forbidden may depend on other fields and/or
+in the sense that it MAY independently exist or not. Whether a fields existence
+is optional, mandatory or forbidden could depend on other fields and/or
 the state of the communication session so far.
 
 A1 and A2
@@ -440,7 +440,7 @@ based on its public. A 32-byte public signing key as defined in
 Salt Channel v2 MUST be used in the Address field. Thus, AddressSize MUST
 be 32 for this address type.
 
-More address types may be defined by later versions of the Salt Channel 
+More address types MAY be defined by later versions of the Salt Channel 
 specification.
 
 Message A2 has the following format:
@@ -496,10 +496,10 @@ The strings on P1 and P2 MUST only contain ASCII characters in the following
 set: 'A'-'Z', 'a'-'z', '0'-'9', '-', '.', '/', '\_'. That is, English letters, 
 upper-case or lower case, digits, dash, period, slash, and underscore are the 
 allowed characters. This translates to the following ranges of valid values for the
-bytes making up the P1 and P2 strings: [0x2D, 0x39], [0x41, 0x5A], [0x5F, 0x5F], and [61, 7A].
+bytes making up the P1 and P2 strings: [0x2D, 0x39], [0x41, 0x5A], [0x5F, 0x5F], and [0x61, 0x7A].
 
 The server MUST use protocol ID "SCv2------" for Salt Channel v2. 
-The plan is that future versions of Salt Channel SHOULD use the same 
+The plan is that future versions of Salt Channel will use the same 
 A1 and A2 messages. Salt Channel v3 SHOULD use "SCv3------" and 
 v4 SHOULD use "SCv4------" and so on.
 
@@ -508,7 +508,7 @@ protocol in the A2 message. This way a client can determine whether there
 is any use of connecting to the server.
 
 Note that messages A1 and A2 together form a complete session.
-An M1 message following A1 and A2 should be considered a *new* 
+An M1 message following A1 and A2 MUST be considered a *new* 
 session that is completely independent of the previous A1A2 session.
 
 M1
@@ -732,7 +732,7 @@ type of messages.
     **** MultiAppPacket ****
 
     This packet is encrypted.  It is sent within the body of
-    EncryptedMessage (EncryptedMessage/Body). It may contain
+    EncryptedMessage (EncryptedMessage/Body). It MAY contain
     more than one application packet.
 
     2   Header.
@@ -770,7 +770,7 @@ type of messages.
 
 An implementation MUST support receiving both types of messages and 
 MUST treat them as logically equivalent. The application layer above
-should not need to know about the difference of these two types of messages.
+MUST NOT need to know about the difference of these two types of messages.
 A sending peer MAY chose to use a single MultiAppPacket when possible or use 
 multiple AppPacket:s.
 
@@ -836,8 +836,8 @@ the server can compute an expected value of the Time field by taking the
 current time in milliseconds and subtracting ClientEpoch. If the difference 
 between the expected Time field value and the actual Time field value the server 
 can reject the message. A client that supports timestamping can perform the analogous
-steps to protect against delay attacks. A peer that supports timestamping must 
-therefore store both MyEpoch and TheirEpoch, recording the time at which the 
+steps to protect against delay attacks. A peer that supports timestamping 
+therefore have to store both MyEpoch and TheirEpoch, recording the time at which the 
 first message was sent and received respectively, in order to send a correct value
 in the Time field and verify the value in the Time field of incoming packets.
 
@@ -891,10 +891,10 @@ This integer is 1, 3, 5, ... for messages sent by the client;
 increasing by 2 for each message it sends.
 This integer is 2, 4, 6, ... for messages sent by Server;
 increasing by 2 for each message it sends.
-The rest of the bytes of the nonce must be set to zero.
+The rest of the bytes of the nonce MUST be set to zero.
 The nonce counters are reset for every Salt Channel session.
 Note, no assumption is made on the order in which the peers send
-application messages. For example, the server may send all 
+application messages. For example, the server MAY send all 
 application messages. The nonce values used by the client and those 
 used by the server are disjoint sets. Note also that the nonce 
 values used are *not* sent over the communication channel. This is 
@@ -936,22 +936,21 @@ multiple unencrypted links.
 
 However, in this case, R1 will not know when the Salt Channel session 
 terminates. Same for relay R2. They only see encrypted application
-data in AppPacket packets once the session has been established.
-This results in the situation where R2 must keep the BLE connection
-open even after the session is closed. This may waste valuable resources 
-and possibly hinders new connections from being established.
+data in EncryptedMessage packets once the session has been established.
+This results in the situation where R2 MUST keep the BLE connection
+open even after the session is closed. This could waste valuable resources 
+and possibly hinder new connections from being established.
 
 These type of situations motivates the principle:
 
     Anyone on the transport path of a Salt Channel (a relay server for example) 
-    should be able to determine whether a Salt Channel session has been closed
+    MUST be able to determine whether a Salt Channel session has been closed
     without having access to the encrypted data.
 
-So, to conclude, we must have a last message flag that is not encrypted.
-It must be set by the application layer for the last message
-of the Salt Channel session and must be readable to any relay node on the 
+So, to conclude, we have to have a last message flag that is not encrypted.
+It MUST be set by the application layer for the last message
+of the Salt Channel session and have to be readable to any relay node on the 
 transportation path between the client and the server.
-
 
 
 
@@ -989,8 +988,8 @@ Appendix A: Example session data
 
 Example session data for a simple echo server scenario.
 Fixed key pairs are used for a deterministic result. Obviously, such
-an approach *must not* be used in production. The encryption key 
-pair *must* be generated for each session to achieve the security goals.
+an approach MUST NOT be used in production. The encryption key 
+pair MUST be generated for each session to achieve the security goals.
 
 On the application layer, a simple request-response exchange occurs.
 The client sends the application data: 0x010505050505 and the same
