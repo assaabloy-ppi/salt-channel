@@ -743,7 +743,7 @@ type of messages.
 
     2   Count.
         Number of following application messages.
-        Integer in [0, 65535].
+        Integer in [1, 65535].
 
     x   Message+
 
