@@ -60,7 +60,7 @@ Table of contents
 * [Layer below](#layer-below)
   * [Salt Channel over a stream](#salt-channel-over-a-stream)
   * [Salt Channel over WebSocket](#salt-channel-over-websocket)
-* [Session](#session)
+* [Salt Channel sessions](#salt-channel-sessions)
   * [Handshaked session](#handshaked-session)
   * [A1A2 session](#a1a2-session)
   * [Session close](#session-close)
@@ -72,8 +72,8 @@ Table of contents
   * [AppPacket and MultiAppPacket](#apppacket-and-multiapppacket)
   * [EncryptedMessage](#encryptedmessage)
   * [The time field](#the-time-field)
+  * [List of message types](#list-of-message-types)
 * [Crypto details](#crypto-details)
-* [List of message types](#list-of-message-types)
 * [Use case: Multi-link session](#use-case-multi-link-session)
 * [References](#references)
 * [Appendix A: Example session data](#appendix-a-example-session-data)
@@ -323,8 +323,8 @@ The session is finished after A2. Note that there is no confidentiality
 or integrity protection for the A1A2 session, the messages are
 sent in cleartext.
 
-Closing a session
------------------
+Session close
+-------------
 
 The Salt Channel protocol is designed so that both peers will 
 be able to agree on when a Salt Channel ends.
@@ -845,6 +845,28 @@ Format: Integer in [0, 2^31-1]. This means that either a signed or an
 unsigned 32-bit integer canbe used to represent the time. Note that 
 2^31-1 milliseconds is more than 24 days.
 
+List of message types
+---------------------
+
+This section is informative.
+    
+    PacketType   Name
+    
+    0            Not used
+    1            M1
+    2            M2
+    3            M3
+    4            M4
+    5            AppPacket
+    6            EncryptedMessage
+    7            reserved (has been used for Ticket in v2 drafts)
+    8            A1
+    9            A2
+    10           TT (not used in v2 spec)
+    11           MultiAppPacket
+    12-127       Not used
+
+
 
 Crypto details
 ==============
@@ -888,32 +910,6 @@ The term "encryption key" in this document refers to an x25519
 key following the terminology of [NACL]. An encryption key pair
 is really used for Diffie-Hellman key agreement, but indirectly
 it is used for encryption.
- 
-
-
-
-List of message types
-=====================
-
-This section is informative.
-    
-    PacketType   Name
-    
-    0            Not used
-    1            M1
-    2            M2
-    3            M3
-    4            M4
-    5            AppPacket
-    6            EncryptedMessage
-    7            reserved (has been used for Ticket in v2 drafts)
-    8            A1
-    9            A2
-    10           TT (not used in v2 spec)
-    11           MultiAppPacket
-    12-127       Not used
-
-
 
 
 Use case: multi-link session
