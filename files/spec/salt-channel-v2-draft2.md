@@ -1,12 +1,12 @@
-spec-salt-channel-v2-draft3.md
-==============================
+salt-channel-v2-draft1.md
+=========================
 
 About this document
 -------------------
 
-*Date*: 2017-03-29
+*Date*: 2017-03-26
 
-*Status*: Work on progress for Salt Channel v2.
+*Status*: Work in progress.
 
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
@@ -14,18 +14,11 @@ frans.lundberg@assaabloy.com, phone: +46707601861.
 *Thanks*: 
 To Simon Johansson and Håkan Olsson for valuable comments and discussions.
 
-*Temp notes*:
-
-* Check TODO markers in text.
-
 
 Document history
 ----------------
 
-* 2017-03-29. DRAFT3. Work in progress with adding resume feature.
-
-* 2017-03-xx. DRAFT2. 2-byte headers. Time fields added. A1A2 functionality.
-  added.
+* 2017-03-xx. DRAFT2. 2-byte headers. Time fields added.
 
 * 2017-02-22. DRAFT1.
 
@@ -40,16 +33,16 @@ Salt Channel is a secure channel protocol based on the TweetNaCl
 simple.
 
 The protocol is essentially an implementation of the station-to-station [STS] 
-protocol using the cryptography primitives of TweetNaCl.
-Salt Channel relies on an underlying reliable bidirectional communication 
-channel between two peers. TCP is an important example of such a channel, 
-but Salt Channel is in no way restricted to TCP. In fact, Salt Channel 
-has been successfully implemented on top of WebSocket, RS485, 
-and Bluetooth Low Energy.
+protocol using the crypto primitives of TweetNaCl.
+It relies on an underlying reliable communication channel between two 
+peers. TCP is an important example of such a channel, but Salt Channel is in
+no way restricted to TCP. In fact, Salt Channel can be successfully 
+implemented on top of WebSocket, RS485, Bluetooth, and NFC.
 
-This is the second version of the protocol, called *Salt Channel v2*. 
-The major changes from v1 is the removal of the Binson dependency and 
-the addition of the resume feature.
+This is the second version of the protocol, *Salt Channel v2*. The major changes
+is the removal of the Binson dependency and the addition of the server
+protocol support messages that allows the client to query the server about 
+what protocols it supports.
 
 Salt Channel is "Powered by Curve25519".
 
@@ -63,14 +56,13 @@ with v1.
 The major changes are: 
 
 1. Binson dependency removed.
-2. The resume feature is added.
+2. Server protocol info added.
 3. Signature1, Signature2 modified to include sha512(M1) + sha512(M2).
-4. Server protocol info added.
 
 The Binson dependency is removed to make the protocol independent 
-of that specification. Also, it means more fixed sizes and offsets
-which may be beneficiary for performance; especially on resource-constrained
-processors.
+of the specification. Also, it means more fixed sizes and offsets
+which can be beneficiary for performance; especially on 
+small embedded processors.
 
 The server protocol info feature allows the server to tell what 
 protocols and protocol versions it supports before a the real session 
@@ -210,29 +202,6 @@ Overview of a typical Salt Channel session:
             used to indicate that a message is authenticated
             and encrypted.
     
-When the client holds a resume ticket, he can use it to achieve a
-zero-way overhead session resume.
-
-    CLIENT                                                 SERVER
-    
-    Header
-    ClientEncKey
-    [ServerSigKey]
-    Ticket                       ---M1----->
-                
-                                 <--M2------         ServerEncKey
-                                   
-                                                     ServerSigKey
-                                 <--E(M3)---           Signature1
-    
-    ClientSigKey
-    Signature2                   ---E(M4)--->
-    
-    AppMessage                   <--E(App)-->          AppMessage
-    
-            Figure 1: Salt Channel messages. "E()" is 
-            used to indicate that a message is authenticated
-            and encrypted.
 
 
 Message details
@@ -290,18 +259,6 @@ Details:
         The server's public signing key. Used to choose what virtual 
         server to connect to in cases when there are many to choose from.
     
-    1   TicketSize, OPT.
-        Size of the following ticket in bytes. 
-        Allowed value range: 0-127.
-        
-    x   Ticket, OPT.
-        A ticket received from the server in the previous
-        session between this particular client and server.
-        The ticket data MUST NOT be interpreted by the client,
-        except for the ticket size.
-        The exact interpretation of the bytes is up to
-        the server. See separate documentation.
-    
     
     **** M1/Header ****
     
@@ -312,14 +269,7 @@ Details:
     1b  ServerSigKeyIncluded.
         Set to 1 when ServerSigKey is included in the message.
     
-    1b  TicketIncluded.
-        Set to 1 when Ticket is included in the message.
-    
-    1b  TicketRequested.
-        Set to 1 to request a new resume ticket to use in the future to 
-        connect quickly with the server.
-        
-    9b  Zero.
+    11b Zero.
         Bits set to 0.
     
 
@@ -333,9 +283,9 @@ by the server.
 By using two messages, M2, M3, instead one, the M3 message can be encrypted
 the same way as the application messages. Also, it allows the signature
 computations (Signature1, Signature2) to be done in parallel. The server
-MAY send the M2 message before Signature1 is computed.
+MAY send the M2 message before Signature1 is computed and M3 sent. 
 In cases when computation time is long compared to communication time, 
-this can decrease total handshake time.
+this may decrease total handshake time significantly.
 
 Note, the server must read M1 before sending M2 since M2 depends on the 
 contents of M1. We could imagine a protocol where M2 could be sent before
@@ -361,18 +311,15 @@ multiple protocols at the same endpoint.
     4b  PacketType.
         Four bits that encodes an integer in range 0-15.
         The integer value is 2 for this type of packet.
-        
+    
     1b  NoSuchServer.
         Set to 1 if ServerSigKey was included in M1 but a server with such a
         public signature key does not exist at this end-point.
         Note, when this happens, the client MUST ignore ServerEncKey.
-        The server MUST send zero-valued bytes in ServerEncKey if this 
+        The server SHOULD send zero-valued bytes in ServerEncKey if this 
         condition happens.
-        
-    1b  ResumeSupported.
-        Set to 1 if the server supports resume tickets.
-    
-    10b Zero.
+
+    11b Zero.
         Bits set to zero.
         
 
@@ -383,8 +330,7 @@ once M2 has been sent and received.
     **** M3 ****
     
     This message is encrypted. It is sent within the body of EncryptedMessage 
-    (EncryptedMessage/Body). If a ticket was requested in M1 and the server supports
-    resume, a newly issued ticket is included in the message.
+    (EncryptedMessage/Body).
     
     2   Header.
         Message type and flags.
@@ -397,11 +343,12 @@ once M2 has been sent and received.
         it was specified in M1 (to keep things simple).
     
     64  Signature1
-        Signature of the following elements concatenated: hash(M1) + hash(M2).
+        Signature of the following elements concatenated:
+        ServerEncKey + ClientEncKey + hash(M1) + hash(M2).
         hash() is used to denote the SHA512 checksum.
         Only the actual signature (64 bytes) is included in the field.
     
-    
+       
     **** M3/Header ****
     
     4b  PacketType.
@@ -435,7 +382,8 @@ message from the client to the server.
         The client's public signature key.
         
     64  Signature2.
-        Signature of the following elements concatenated: hash(M1) + hash(M2).
+        Signature of the following elements concatenated:
+        ClientEncKey + ServerEncKey + hash(M1) + hash(M2).
         hash() is used to denote the SHA512 checksum.
         Only the actual signature (64 bytes) is included in the field.
     
@@ -510,7 +458,7 @@ are sent between the client and the server in any order.
         Bits set to 0.
 
 
-The time field
+The Time field
 ==============
 
 Messages have a Time field. It either contains the time since the first
@@ -536,235 +484,6 @@ be used to represent the time. Little-endian byte order is used.
 
 Note: 2^31-1 milliseconds is more than 24 days.
 
-
-Resume
-======
-
-The resume feature is implemented mostly on the server-side.
-To the client, a resume ticket is just an arbitrary array of bytes
-that can be used to improve handshake performance.
-The client MUST allow changes to the format of resume tickets.
-However, the server SHOULD follow the specification here. The resume
-ticket specification here is the one that will be audited and should
-have the highest possible security.
-
-The resume feature is OPTIONAL. Servers may not implement it. In that
-case a server MUST always set the M2/ResumeSupported bit to 0.
-Also for a client, the resume feature is OPTIONAL. If a client does not
-support resume, it MUST set never request a ticket from the server.
-Technically, such a client MUST set the M1/Header/TicketRequested bit
-to zero.
-
-
-Idea
-----
-
-The idea with the resume tickets is to support session-resume to significantly
-reduce the overhead of the Salt Channel handshake. A resumed session uses
-less communication data and a zero round-trip overhead. Also, the handshake of
-a resumed session does not require CPU intensive asymmetric cryptography.
-
-Salt Channel resume allows a server to support the resume feature using only
-one single bit of memory for each created ticket. This allows the server to 
-have all data related to this feature in memory. The ticket
-encryption key can be stored in memory. If it is lost due to power 
-failure, the only affect is that outstanding tickets will become invalid
-and a full handshake will required when a client connects.
-
-A client stores one ticket per server. The client can choose whether to use
-the resume feature or not. It can do this on a per-server basis.
-
-A unique ticket ID (message field: Ticket/Encrypted/TicketId) is 
-given to every ticket that is issued by the server. The first such 
-index may, for example, be the number of microseconds since 
-Unix Epoch (1 January 1970 UTC). After that, each issued ticket is 
-given an ID that, for example, equals the previously issued 
-ID plus one. It is entirely up to the server how to choose
-ticket IDs.
-
-A bitmap is used to protect against replay attacks. The bitmap stores one bit
-per non-expired ticket that is issued. The bit is set to 1 when a
-ticket is issued and to 0 when it is used. Thus, a ticket can only be used
-once. Of course, the bitmap cannot be of infinite size. In fact, the server
-implementation can use a fixed size circular bit buffer. Using one megabyte 
-of memory, the server can keep track of which tickets, out of the last 
-8 million issued tickets, that have been used.
-
-
-Three cases
------------
-
-To introduce the resume feature from a communication standpoint, we consider
-three cases: 
-
-* Case A, *no ticket*,
-* Case B, *valid ticket*, and
-* Case C, *invalid ticket*.
-
-Also, we consider a case where application message App1 is first sent
-to the server and then the server replies with the App2 application message;
-a simple request-response is the first messages exchanged at the application
-layer.
-
-*Case A, no ticket*, is shown in the figure below.
-    
-    ---> M1
-    <--- M2, M3
-    ---> M4, App1
-    <--- TT, App2
-    
-    Figure: The message flow for Case A. The client does not have a ticket, but requests one.
-    
-The client does not have a ticket, but requests one. 
-The normal three-way handshake is used with an additional message
-TT that is sent together with the first application message from the
-server to the client.
-The client requests a ticket (M1/Header/TicketRequested is set to 1)
-and the server supports resume, so the server will include a 
-newly created ticket in TT.
-The messages M3, M4, App1, TT, App2 are encrypted (EncryptedMessage).
-The new ticket cannot be issued until after M4.
-Before that, the server does not know the identity (ClientSigKey)
-of the client.
-
-If the client does not request a new ticket, the server sends
-no TT message.
-
-*Case B, valid ticket*, is shown in the figure below.
-    
-    ---> M1, App1
-    <--- TT, App2
-    
-    Figure: The message flow for Case C. The client has a valid ticket.
-    
-The client sends the ticket in M1. The first application message,
-App1, is sent together with M1. The server determines that the 
-ticket is valid and replies with a TT message. If requested in M1,
-TT contains a new ticket to be used next time the client connects
-to this server. The messages App1, TT, App2 are encrypted
-(EncryptedMessage) with the ticket encryption key.
-
-*Case C, invalid ticket*, is shown in the figure below.
-    
-    ---> M1, App1A
-    <--- M2, M3
-    ---> M4, App1B
-    <--- App2
-    
-    Figure: The message flow for Case B. The client has an invalid ticket.
-    
-The client sends the ticket in M1. The first application message, 
-App1A, is sent together with M1. However, the server determines that
-the ticket is not valid and replies with M2, M3. The M2 has the bit
-M2/Header/BadTicket set to 1. The client notices that the ticket
-was not accepted and then sends M4, App1B. Note that App1 
-must be sent again to the server with the new encryption key
-computed from a key agreement using the public keys exchanged 
-in M1 and M2.
-
-If a new ticket was requested in M1 (M1/Header/TicketRequested set to 1),
-a ticket will be included in M3.
-Message App1A is encrypted with the (invalid) ticket encryption key.
-Messages M3, M4, App1B, App2 are encrypted with the session encryption key.
-
-
-Message TT
-----------
-
-This message is sent in response to a message M1 that includes a 
-valid ticket. The TT message includes a new ticket if the client
-requested one.
-
-    **** TT ****
-
-    This packet is encrypted. The packet is sent within the body of 
-    EncryptedMessage (EncryptedMessage/Body).
-    
-    2   Header. 
-        Packet type and flags.
-        
-    4   Time.
-        See separate documentation.
-    
-    2   Ticket, OPT.
-        A Ticket (encrypted) from the server.
-    
-    
-    **** TT/Header ****
-
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 10 for this packet.
-
-    1b  TicketIncluded.
-        Set to 1 when Ticket is included in the message.
-        
-    11b Zero.
-        Bits set to 0.
-    
-
-Ticket details
---------------
-
-The details of the RECOMMENDED ticket format.
-TODO: update this.
-
-    **** Ticket ****
-
-    2   Header. 
-        Packet type and flags.
-        
-    2   KeyId.
-        The server can used KeyId to choose one among multiple 
-        encryption keys to decrypt the encrypted part of the ticket.
-        Note, server-side implementation may choose to use only one 
-        ticket encryption key for all outstanding tickets.
-
-    16  Nonce.
-        Nonce to use when decrypting Ticket/Encrypted.
-        The nonce MUST be unique among all tickets encrypted with
-        a particular key.
-
-    x   Encrypted.
-        Encrypted ticket data.
-    
-    
-    **** Ticket/Header ****
-
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 6 for this packet.
-
-    12b Zero.
-        Bits set to 0.
-    
-    
-    **** Ticket/Encrypted ****
-
-    This is an encrypted packet.
-    TODO update this.
-
-    2   Header.
-        The Ticket/Header repeated. For authentication purposes.
-        The server MUST consider the ticket invalid if Ticket/Encrypted/Header
-        differs from Ticket/Header.
-
-    2   KeyId.
-        Repeated for data authentication purposes.
-        The server MUST consider the ticket invalid if Ticket/Encrypted/KeyId
-        differs from Ticket/KeyId.
-
-    8   TicketId
-        The ID of the ticket.
-        A 8-byte integer in the range: 0 to 2^63-1.
-
-    32  ClientSigKey.
-        The client's public signature key. Used to identify the client.
-
-    32  SessionKey.
-        The symmetric encryption key to use to encrypt and decrypt messages
-        of this session.
-    
 
 Messages A1 and A2
 ==================
@@ -898,9 +617,6 @@ List of message types
 =====================
 
 This section is informative.
-TODO: consider changing packet types. Should A1, A2 be 0, 1? Or 14, 15 perhaps?
-TODO: consider having one whole byte as message type. 8 bits is enough anyway.
-    Simpler and allows more message types.
     
     PacketType   Name
     
@@ -911,11 +627,10 @@ TODO: consider having one whole byte as message type. 8 bits is enough anyway.
     4            M4
     5            AppMessage
     6            EncryptedMessage
-    7            Ticket
+    7            Ticket (reserved for future version)
     8            A1
     9            A2
-    10           TT
-    11-15        Not used
+    10-15        Not used
     
 
 

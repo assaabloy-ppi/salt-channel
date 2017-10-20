@@ -1,5 +1,5 @@
-spec-salt-channel-v2-draft7.md
-==============================
+salt-channel-v2-draft7.md
+=========================
 
 About
 -----

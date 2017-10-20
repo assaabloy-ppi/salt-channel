@@ -1,14 +1,17 @@
-spec-salt-channel-v2-draft8.md
-==============================
+salt-channel-v2-draft8.md
+=========================
+
 
 About
 -----
 
 About this document.
 
-*Date*: 2017-10-17.
+*Date*: 2017-10-20.
 
-*Status*: Salt Channel v2 specification, DRAFT.
+*Status*: DRAFT.
+
+*Title*: salt-channel-v2-draft8.md -- Specification of Salt Channel v2
 
 *Authors*:
  
@@ -48,6 +51,9 @@ History
 
 * 2017-02-22. DRAFT1.
 
+
+
+
 Table of contents
 =================
 
@@ -77,6 +83,9 @@ Table of contents
 * [Use case: Multi-link session](#use-case-multi-link-session)
 * [References](#references)
 * [Appendix A: Example session data](#appendix-a-example-session-data)
+
+
+
 
 Introduction
 ============
@@ -141,6 +150,8 @@ versions in parallel. Note that the A1A2 session actually form an independent
 protocol that can be used for other protocols than Salt Channel.
 
 
+
+
 Protocol design
 ===============
 
@@ -194,6 +205,7 @@ The following are the main goals of the protocol.
     session state. The pack/unpack code is thus simplified. There is 
     little to gain from not following this principle.
 
+
 Limitations
 -----------
 
@@ -220,6 +232,8 @@ Salt Channel is limited in scope in the following ways:
     denial-of-service attacks varies profoundly with the situation, 
     such as the type of the underlying reliable channel. Solving this in 
     a generic way is too complex to include in this protocol.
+
+
 
 
 Layer below
@@ -262,12 +276,15 @@ size prefix that is needed when implementing Salt Channel over TCP. Each
 WebSocket message is a message as specified in this document.
 
 
+
+
 Salt Channel sessions
 =====================
 
 This section describes the two different types of Salt Channel sessions, 
 the ordinary handshaked session for exchanging application messages and
 the A1A2 session for querying about a servers available protocols.
+
 
 Handshaked session
 ------------------
@@ -312,6 +329,7 @@ An overview of a typical Salt Channel session is shown below.
 
 Later sections will describe these messages in detail.
 
+
 A1A2 session
 ------------
 
@@ -322,6 +340,7 @@ A Salt Channel session can also consist of the A1 and A2 messages. The A1A2 sess
 The session is finished after A2. Note that there is no confidentiality
 or integrity protection for the A1A2 session, the messages are
 sent in cleartext.
+
 
 Session close
 -------------
@@ -355,6 +374,9 @@ the peer that sent the packet. It is up to the implementation and/or
 the code that uses the Salt Channel to decide if the underlying layer
 is closed or not.
 
+
+
+
 Message details
 ===============
 
@@ -387,6 +409,7 @@ in the packet. It does not necessarily indicate an optional field
 in the sense that it MAY independently exist or not. Whether a fields existence
 is optional, mandatory or forbidden could depend on other fields and/or
 the state of the communication session so far.
+
 
 A1 and A2
 ---------
@@ -511,8 +534,9 @@ Note that messages A1 and A2 together form a complete session.
 An M1 message following A1 and A2 MUST be considered a *new* 
 session that is completely independent of the previous A1A2 session.
 
+
 M1
----
+--
     
 The first message of a Salt Channel handshake MUST be the M1 message.
 It is sent from the client to the server. It includes a protocol indicator, 
@@ -553,7 +577,6 @@ Details:
     7b  Zero.
         Bits set to 0.
     
-
 
 
 M2 and M3
@@ -648,9 +671,8 @@ bytes in the field M2/ServerEncKey.
     
 
 
-
 M4
-----
+--
 
 M4 is sent by the client. When M4 has been sent and received both peers 
 have authenticated themselves to each other, and they have agreed upon 
@@ -686,6 +708,7 @@ a symmetric encryption key, i.e. the Salt Channel handhsake is complete.
     
     8b  Zero.
         Bits set to 0.
+    
 
 
 AppPacket and MultiAppPacket
@@ -780,6 +803,7 @@ MultiAppPacket:s can be used instead (if message lengths allow it). This
 is specified *here in this section* and not necessarily specified elsewhere
 in the document.
 
+
 EncryptedMessage
 ----------------
 
@@ -814,6 +838,7 @@ ciphertext of those packets are included in the field EncryptedMessage/Body.
 
 See the section "Crypto" for details of the authenticated encryption.
 
+
 The Time field
 --------------
 
@@ -845,6 +870,7 @@ Format: Integer in [0, 2^31-1]. This means that either a signed or an
 unsigned 32-bit integer canbe used to represent the time. Note that 
 2^31-1 milliseconds is more than 24 days.
 
+
 List of message types
 ---------------------
 
@@ -865,6 +891,8 @@ This section is informative.
     10           TT (not used in v2 spec)
     11           MultiAppPacket
     12-127       Not used
+    
+
 
 
 
@@ -912,6 +940,8 @@ is really used for Diffie-Hellman key agreement, but indirectly
 it is used for encryption.
 
 
+
+
 Use case: multi-link session
 ============================
 
@@ -951,6 +981,7 @@ So, to conclude, we have to have a last message flag that is not encrypted.
 It MUST be set by the application layer for the last message
 of the Salt Channel session and have to be readable to any relay node on the 
 transportation path between the client and the server.
+
 
 
 
