@@ -1,7 +1,7 @@
 salt-channel
 ============
 
-This repo contains [the specification](files/spec/spec-salt-channel-v2-draft7.md) and the 
+This repo contains [the specification](files/spec/) and the 
 Java reference implementation of 
 *Salt Channel* - a simple, light-weight secure channel protocol based on 
 [TweetNaCl](http://tweetnacl.cr.yp.to/) by Bernstein et al.
@@ -47,18 +47,25 @@ See [github.com/assaabloy-ppi/salt-channel-c](https://github.com/assaabloy-ppi/s
 embedded devices and larger computers.
 
 
+JavaScript
+----------
+
+Available here: [github.com/assaabloy-ppi/salt-channel-js](https://github.com/assaabloy-ppi/salt-channel-js), 
+JavaScript implementation, MIT license.
+
+
+Swift
+-----
+
+Available here: [github.com/assaabloy-ppi/salt-channel-swift](https://github.com/assaabloy-ppi/salt-channel-swift),
+Swift for iPhone and more, MIT license.
+
+
 Python implementation
 ---------------------
 
 See [github.com/assaabloy-ppi/salt-channel-python](https://github.com/assaabloy-ppi/salt-channel-python), 
 Python 3 implementation, MIT License.
-
-
-Others
-------
-
-* [github.com/assaabloy-ppi/salt-channel-js](https://github.com/assaabloy-ppi/salt-channel-js), 
-  JavaScript implementation, work in progress, MIT license.
 
 
 
