@@ -57,6 +57,7 @@ public class LoggingByteChannel implements ByteChannel {
         return result;
     }
     
+    @Override
     public void write(byte[]... messages) throws ComException {
         write(false, messages);
     }
@@ -72,6 +73,7 @@ public class LoggingByteChannel implements ByteChannel {
             entry.time = time;
             entry.type = i == 0 ? ReadOrWrite.WRITE : ReadOrWrite.WRITE_WITH_PREVIOUS;
             entry.bytes = messages[i];
+            entry.isLast = i == messages.length - 1 ? isLast : false;
             log.add(entry);
         }
     }

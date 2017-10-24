@@ -140,8 +140,8 @@ public class SaltClientSession {
      * @throws IllegalStateException 
      *          If the channel is not available, has not been created yet.
      */
-    public ByteChannel getChannel() {
-        ByteChannel result = this.appChannel;
+    public AppChannelV2 getChannel() {
+        AppChannelV2 result = this.appChannel;
         if (result == null) {
             throw new IllegalStateException("this.appChannel == null");
         }

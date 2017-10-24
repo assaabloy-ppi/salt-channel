@@ -1,20 +1,20 @@
-spec-salt-channel-v2-draft4.md
-==============================
+salt-channel-v2-draft5.md
+=========================
 
 About
 -----
 
 About this document.
 
-*Date*: 2017-05-18
+*Date*: 2017-10-02.
 
 *Status*: Salt Channel v2 specification, DRAFT.
 
 *Authors*:
  
 * Frans Lundberg. ASSA ABLOY AB, Stockholm, frans.lundberg@assaabloy.com, 
-  phone: +46707601861.  
-* Simon Johansson, Tritech AB, Stockholm.
+  phone: +46707601861.
+* Simon Johansson, ASSA ABLOY AB, Stockholm, simon.johansson@assaabloy.com.
 
 *Thanks*:
 
@@ -25,14 +25,47 @@ About this document.
 History
 -------
 
-* 2017-05-xx. DRAFT4. 1-byte message types instead of 4 bits. Improved text.
+* 2017-10-02. DRAFT5. Prefixes "SC-SIG01", "SC-SIG02" added to signatures,
+  LastFlag used. Text more complete. MultiAppPacket introduced.
+
+* 2017-05-15. DRAFT4. 1-byte message types instead of 4 bits. Improved text.
 
 * 2017-03-29. DRAFT3. Work in progress with adding resume feature.
 
-* 2017-03-xx. DRAFT2. 2-byte headers. Time fields added. A1A2 functionality.
+* 2017-03-15. DRAFT2. 2-byte headers. Time fields added. A1A2 functionality.
   added.
 
 * 2017-02-22. DRAFT1.
+
+
+
+Authors' notes
+--------------
+
+Not in final spec.
+
+* Check TODO markers in text.
+
+* Implementation: How to do ByteChannel, redefinition. How to indicate LastFlag?
+
+* TODO: spec, consider, multi-app message message.
+  Optimization, saves considerable space and reduces CPU.
+
+* TODO: spec, consider removing Resume :-(. 
+  Move to v3. Not implemented in C anyway.
+
+* TODO: how to use LastFlag from application layer.
+  Do we need boolean LastFlag param to ByteChannel.write()?
+  Perhaps we do.
+  
+* TODO: consider proxy info, domain + port in M1.
+
+* TODO: generate new data for Appendix A.
+
+* DONE! "SIG1" -> "SALTSIG1"  
+* DONE! spec, v2 must have LastFlag!
+* DONE! implement EosFlag in Java.
+* DONE! Add role prefix to signatures.
 
 
 
@@ -50,7 +83,8 @@ Salt Channel relies on an underlying reliable bidirectional communication
 channel between the two peers communicating. TCP is an important example 
 of such an underlying channel, but Salt Channel is in no way restricted to 
 TCP. In fact, Salt Channel has been successfully implemented on top of 
-WebSocket, RS485, Bluetooth, and Bluetooth Low Energy.
+WebSocket, RS485, NFC, and Bluetooth Low Energy (BLE) and also on 
+combinations of such links, for example BLE + TCP.
 
 This is the second version of the protocol, called *Salt Channel v2*. 
 The major changes from v1 is the removal of the Binson dependency,
@@ -68,55 +102,38 @@ document are to be interpreted as described in [RFC2119];
 
 
 
+
 Changes from v1
 ===============
 
 Salt Channel v2 is a new version of Salt Channel. It is incompatible 
-with v1.
+with v1 and replaces it.
 
 The major changes are: 
 
 1. The Binson dependency is removed.
 2. The resume feature is added.
-3. Signature1, Signature2 are modified to include sha512(M1) + sha512(M2).
-4. The server protocol info is added.
+3. Signature1, Signature2 are modified to include hash(M1) and hash(M2).
+4. The *protocol info* feature is added.
 
 The Binson dependency is removed to make the protocol independent 
 of that specification. Also, it means more fixed sizes and offsets
 which may be beneficiary for performance; especially on resource-constrained
 processors.
 
-The server protocol info feature allows the server to tell what 
-protocols and protocol versions it supports before a the real session 
+The protocol info feature (messages A1, A2) allows the server to 
+tell what protocols and protocol versions it supports before a the real session 
 is initiated by the client. This allows easy future Salt Channel version 
 upgrades since both the client and the server may support multiple
-versions in parallel.
+versions in parallel. Note, A1+A2 actually form an independent protocol 
+that can be used for other protocols than Salt Channel.
 
-The signatures changed to follow recommendations in Cryptography Enginnering
+The signatures changed to follow recommendations in Cryptography Engineering
 [SCHNEIER]. It does make sense to add integrity checks to messages M1, M2. 
 This way all messages have integrity protection and all but M1, M2 have 
 confidentiality protection.
 
 
-Author's notes
-==============
-
-Not in final spec.
-
-* Check TODO markers in text.
-
-* v2 uses CloseFlag.
-
-* Independent message parsing. 
-    Each packet should be possible to parse *independently*.
-    Independently of the previous communication and any state.
-    The pack/unpack code can thus be completely independent.
-
-* Single-byte alignment.
-    There is not special reason to have 2, or 4-byte alignment of
-    fields in this protocol. Compactness is preferred.
-
-* Notation: use style: "M1/Header".
 
 
 Protocol design
@@ -138,7 +155,8 @@ The following priorities were used when designing the protocol.
 3. The third priority is to allow for *low code complexity*, 
    and *low CPU requirements* of the communicating peers.
 
-Low complexity is always important to achieve high security.
+Low complexity is also, in itself, important to achieve high 
+security.
 
 
 Goals
@@ -152,39 +170,44 @@ The following are the main goals and limitations of the protocol.
     large-enough quantum computers.
 
 * **Forward secrecy**.
-    Old recorded communication data will not be possible to 
-    decrypt even if one or both peer's private keys are compromised.
+    Recorded communication will not be possible to decrypt even 
+    if one or both peer's private keys are compromised.
 
 * **Secret client identity**.
     An active or passive attacker cannot retrieve the long-term 
     public key of the client. Tracking of the client is impossible.
     
 * **Simple protocol**.
-    Should be possible to implement in few lines of code. Should be auditable 
-    just like TweetNaCl.
+    It should be possible to implement in few lines of code. 
+    Should be auditable just like TweetNaCl.
 
 * **Compact protocol** (few bytes).
-    Designed for Bluetooth low energy and other low-bandwidth channels.
+    Designed for Bluetooth Low Energy and other low-bandwidth channels.
     
 * Limitation: No certificates.
     Simplicity and compactness are preferred.
-    The use of certificates together with the public keys of Salt Channel
-    is a possibility, but not included in the protocol. It could be included
-    in an upper layer.
+    Using certificates together with the Salt Channel public keys
+    is possible, but not included in the protocol.
     
 * Limitation: the protocol is not intended to be secure for an 
     attacker with a large quantum computer. Such a computer does not exist.
-    This is a limitation of the underlying TweetNaCl library.
+    This is a limitation from the underlying TweetNaCl library.
     
 * Limitation: no attempt is made to hide the length, sequence, or timing
-  of the communicated messages.
+    of the communicated messages.
 
 * Limitation: no attempt is made to protect against denial-of-service 
-  attacks. This is an important topic. Perhaps large enough to 
-  warrant a special protocol for that. Anyway, the possibility of 
-  denial-of-service attacks varies greatly with the situation, such as
-  the type of the underlying reliable channel. Solving this in a generic way
-  is too complex to be considered for Salt Channel.
+    attacks. This is an important topic. Perhaps important enough to 
+    warrant a dedicated protocol. Anyway, the possibility of 
+    denial-of-service attacks varies profoundly with the situation, 
+    such as the type of the underlying reliable channel. Solving this in 
+    a generic way is too complex to include in this protocol.
+
+A principle used is that each packet can be parsed *independently* of 
+any session state. The pack/unpack code is thus simplified. There is
+little to gain from not following this principle.
+
+
 
 
 Layer below
@@ -197,7 +220,7 @@ channel such as TCP, and how it is implemented on top of a Web Socket.
 
 Excluding this section, this specification only deals with byte arrays 
 *of known size*. The underlying layer provides an order-preserving 
-exchange of byte arrays with a known size.
+exchange of byte arrays, each with a known size.
 
 
 Salt Channel over a stream
@@ -211,7 +234,7 @@ format is used:
 *Size* is a 32-bit integer with the byte size of 
 the following Message. Its valid range is (0, 2^31-1), so either
 an unsigned or signed 32-bit integer work for storing it in computer memory.
-*Message* is the raw message bytes. The format of these Message:s is 
+*Message* is the raw message bytes. The format of these messages is 
 defined in this document.
 
 
@@ -220,15 +243,16 @@ Salt Channel over Web Socket
 
 Binary Web Socket [WS] connections are already in the "chunked" format. 
 Applications send byte arrays of know sizes rather than a stream of bytes.
-The byte arrays arrive at the receiver application as a byte arrays with
-know sizes. A binary web socket communicates using a stream of byte arrays
-rather than a stream of bytes.
+The byte arrays arrive at the receiver application with know sizes. 
+A binary web socket communicates using a stream of byte arrays rather
+than a stream of individual bytes.
 
 When Salt Channel is implemented over a binary Web Socket, the "Size" prefix 
-(32-bit), used when Salt Channel is implementation over TCP, is unnecessary.
+used when Salt Channel is implementation over TCP, is unnecessary.
 It is already provided by the Web Socket layer. So Salt Channel over Web Socket 
-is very simple. Each web socket message is a Binson object as specified in 
+is very simple. Each web socket message is a message as specified in 
 this document.
+
 
 
 
@@ -240,21 +264,24 @@ The message order of an ordinary successful Salt Channel session is:
     Session = M1 M2 E(M3) E(M4) E(AppMessage)*
 
 The M1, and M4 messages are sent by the client and M2, M3 by the server.
-So, we have a three-way handshake (M1 from client, M2+M3 from server, and 
-M4 from client). In the common case when the first application message 
-is from the client, this message should normally be sent together with M4
-to achieve a one round-trip overhead (instead of two). Application layer 
-messages (AppMessage*) are sent by either the client or the server in 
-any order. The notation "E()" is used to indicate authenticated encryption; 
-see the section on EncryptedMessage. This may be omitted for clarity; 
-messages following M1, M2 are always encrypted.
+So, we have the typical three-way handshake (M1 from client, 
+M2+M3 from server, and M4 from client). In the common case when the 
+first application message is from the client, this message SHOULD be 
+sent together with M4 to achieve a one round-trip overhead (instead 
+of two). Application layer messages (AppMessage) are sent by either 
+the client or the server in any order. The notation "E()" is used to indicate
+authenticated encryption; see the section on EncryptedMessage. This 
+notation may be omitted for clarity; messages following M1, M2 are 
+always encrypted.
 
 A Salt Channel session can also exist of an A1-A2 session allowing the client
-to ask the server about its public server information (not encrypted).
+to ask the server about its public server protocol information.
     
     Session = A1 A2
     
-After A2, the session is finished.
+After A2, the session is finished. Note, there is no confidentiality
+or integrity protection for the A1-A2 exchange, the messages are
+sent in cleartext.
 
 An overview of a typical Salt Channel session is shown below.
     
@@ -274,45 +301,47 @@ An overview of a typical Salt Channel session is shown below.
     
     AppMessage                   <--E(App)-->          AppMessage
     
-            Figure 1: Salt Channel messages. "E()" is 
-            used to indicate that a message is encrypted and
-            authenticated.
-    
+        Figure: Salt Channel messages. "E()" is used to indicate that a 
+        message is encrypted and authenticated. Header and Time fields are not
+        included in the figure. They are included in every message.
+        
 When the client holds a resume ticket, he can use it to achieve a
-zero-round-trip overhead session. More about that later. See the
-figure below for an overview.
-    
+zero-round-trip overhead session. See the figure below for an
+example of a session using the resume feature.
+        
     CLIENT                                                 SERVER
     
-    Header
+    ProtocolIndicator
     ClientEncKey
     [ServerSigKey]
+    TicketSize
     Ticket
     AppMessage                   ---M1, App -->
                                                              Ticket
                                  <--TT, App ---          AppMessage
         
     AppMessage                   <--App------->          AppMessage
-
-            Figure 2: Salt Channel messages for the resume
-            case. First application message is sent with no
-            round-trip overhead.
+    
+        Figure: Salt Channel messages for the resume case. The first 
+        application message is sent with no round-trip overhead.
     
 Later section will describe these messages in detail.
+
+
 
 
 Message details
 ===============
 
 The message detail sections that follow describe how a message is 
-represented as an array of bytes. The size of a message is known 
-from the layer below. When the layer below is a stream (like TCP
+represented as an array of bytes. The size of a message is always 
+known from the layer below. When the layer below is a stream (like TCP
 for example) each message is prefixed with the byte size of the 
 message as described in the section "Salt Channel over a stream".
 
 The term *message* is used for a whole byte array message of the 
-protocol (encrypted or not) and *packet* is used to refer to any
-byte array -- either a full message or a part of a message.
+protocol and *packet* is used to refer to any byte array -- 
+either a full message or a part of a message.
 
 Packets are presented below with fields of specified sizes.
 If the size number has a "b" suffix, the size is in bits, 
@@ -329,11 +358,13 @@ Unless otherwise described, a range of an integer is expressed
 using an *inclusive* range, for example:
 "0 to 127" means any integer between 0 and 127 including 0 and 127.
 
-The word "OPT" is used to mark a field that may or may not exist
-in the packet. It does not necessarily indicate a an optional field 
+The word "OPT" is used to mark a field that MAY or MAY NOT exist
+in the packet. It does not necessarily indicate an optional field 
 in the sense that it independently may exist or not. Whether its existence
 is optional, mandatory or forbidden may depend on other fields and/or
-the state of the communication so far.
+the state of the communication session so far.
+
+
 
 
 Message M1
@@ -397,6 +428,8 @@ Details:
         Bits set to 0.
     
 
+
+
 Messages M2 and M3
 ==================
 
@@ -409,14 +442,14 @@ the same way as the application messages. Also, it allows the signature
 computations (Signature1, Signature2) to be done in parallel. The server
 MAY send the M2 message before Signature1 is computed.
 In cases when computation time is long compared to communication time, 
-this can decrease total handshake time.
+this can decrease the overall handshake time.
 
-Note, the server must read M1 before sending M2 since M2 depends on the 
+Note, the server MUST read M1 before sending M2 since M2 depends on the 
 contents of M1. We could imagine a protocol where M2 could be sent before
 the complete M1 has been read. However, this would not allow for the
 virtual server functionality and the possibility of the server to support
-multiple protocols at the same endpoint.
-            
+multiple protocols on the same endpoint.
+    
     **** M2 ****
     
     2   Header.
@@ -445,9 +478,14 @@ multiple protocols at the same endpoint.
     1b  ResumeSupported.
         Set to 1 if the server supports resume tickets.
     
-    6b  Zero.
+    5b  Zero.
         Bits set to zero.
-        
+    
+    1b  LastFlag.
+        Set to 1 when this is the last message of the session.
+        That is, when the NoSuchServer bit is set.
+    
+
 If the NoSuchServer condition occurs, the session is considered closed
 once M2 has been sent and received. Furthermore, the client's behavior 
 MUST NOT be affected be the value of M2/ServerEncKey when NoSuchServer
@@ -471,7 +509,8 @@ bytes in the field M2/ServerEncKey.
         it was specified in M1 (to keep things simple).
     
     64  Signature1
-        Signature of the following elements concatenated: hash(M1) + hash(M2).
+        Signature of the following elements concatenated: "SC-SIG01" + hash(M1) + hash(M2).
+        "SC-SIG01" are the bytes: 0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x31.
         hash() is used to denote the SHA512 checksum.
         Only the actual signature (64 bytes) is included in the field.
     
@@ -486,11 +525,13 @@ bytes in the field M2/ServerEncKey.
         Bits set to 0.
     
 
+
+
 Message M4
 ==========
 
 Message M4 is sent by the client. It finishes a three-way handshake.
-If can (and typically should be) be sent together with a first application 
+It can (and typically should) be sent together with a first application 
 message (or messages) from the client to the server.
     
     **** M4 ****
@@ -508,8 +549,9 @@ message (or messages) from the client to the server.
         The client's public signature key.
         
     64  Signature2.
-        Signature of the following elements concatenated: hash(M1) + hash(M2).
+        Signature of the following elements concatenated: "SC-SIG02" + hash(M1) + hash(M2).
         hash() is used to denote the SHA512 checksum.
+        "SC-SIG02" are the bytes: 0x53, 0x43, 0x2d, 0x53, 0x49, 0x47, 0x30, 0x32.
         Only the actual signature (64 bytes) is included in the field.
     
     
@@ -522,6 +564,8 @@ message (or messages) from the client to the server.
     8b  Zero.
         Bits set to 0.
     
+
+
 
 EncryptedMessage
 ================
@@ -546,15 +590,28 @@ They are included in the field EncryptedMessage/Body.
         The packet type, an integer in the range 0 to 127.
         The value is 6 for this packet.
     
-    8b  Zero.
+    7b  Zero.
         Bits set to 0.
-    
+        
+    1b  LastFlag.
+        Set to 1 for the very last message of the Salt Channel session
+        (both directions) and 0 otherwise.
+       
+See the section "Crypto" for details on the authenticated
+encryption.
 
-AppPacket
-=========
 
-After the handshake, encrypted application packets (E(AppPacket)*) 
-are sent between the client and the server in any order.
+
+
+Messages AppPacket and MultiAppPacket
+=====================================
+
+After the handshake, encrypted application packets are sent between 
+the client and the server in any order. Either AppPacket:s are used or
+MultiAppPacket:s. The MultiAppPacket is an optimization; it reduces the
+overhead due to headers and crypto when sending multiple application 
+message at once. 
+
     
     **** AppPacket ****
 
@@ -581,17 +638,73 @@ are sent between the client and the server in any order.
         Bits set to 0.
     
 
+The MultiAppPacket is specified below. It allows multiple application 
+messages to be contained in one encrypted Salt Channel packet. This saves
+IO and CPU, but provides no additional functionality over using only AppMessage
+type of messages.
+
+
+    **** MultiAppPacket ****
+
+    This packet is encrypted.  It is sent within the body of
+    EncryptedMessage (EncryptedMessage/Body). It may contain
+    more than one application message.
+
+    2   Header.
+        Message type and flags.
+
+    4   Time.
+        See separate documentation.
+
+    2   Count.
+        Number of following application messages.
+        In the range 0 to 65535.
+
+    x   Message+
+
+    **** MultiAppPacket/Header ****
+
+    1   PacketType.
+        The packet the, an integer in the range 0 to 127.
+        The value is 11 for this packet.
+
+    8b  Zero.
+        Bits set to 0.
+
+    **** MultiAppPacket/Message ****
+
+    2   Length.
+        Length of application message in the rage 0 to 65535.
+
+    x   Data.
+        The cleartext application data.
+    
+An implementation MUST support receiving both types of messages and 
+MUST treat them as logically equivalent. The application layer above
+should not need to know about the difference of these two types of messages.
+A sending peer MAY chose to use MultiAppMessage when possible or use 
+AppMessage.
+
+This specification focuses on AppMessage in definitions of message flow
+to keep the specification simple. Anywhere where AppMessages are used, 
+MultiAppMessages could also be used (if messages lengths allow it). This
+is specified *here in this section* and not necessarily specified elsewhere
+in the document.
+
+
+
 The time field
 ==============
 
 Most messages have a Time field. It contains the time since the first
-message of the peer was sent, or it is set to 0, or is set to 1.
+message of the peer was sent, or it is set to 0, or it is set to 1.
 The elapsed time is measured in milliseconds. The Time field MUST have 
-the value 1 for the first message sent (M1 for the client and M2 for the server) 
-when the time-stamping is supported by the peer. If time-stamping is 
-*not supported* by the peer, the peer MUST set the time field value to 0.
+the value 1 for the first message sent by the peer (M1 for the client 
+and M2 for the server) when time-stamping is supported by the peer. 
+If time-stamping is *not supported* by the peer, the peer MUST set 
+the time field value to 0.
 
-The main reason to introduce these time-stamps is to protect against 
+The reason to introduce these time-stamps is to protect against 
 *delay attacks*; that is, a man-in-the-middle attacker that affects the 
 application behavior by delaying a message sent between the two peers.
 The blog post at [DELAY-ATTACK] describes this type of attack.
@@ -604,6 +717,8 @@ bytes) of *all* messages in a Salt Channel session.
 Format: The Time field consists of an integer in the range 0 to 2^31-1.
 This means that either a signed or an unsigned 32-bit integer can
 be used to represent the time. Note: 2^31-1 milliseconds is more than 24 days.
+
+
 
 
 Resume
@@ -621,8 +736,8 @@ The resume feature is OPTIONAL. Servers MAY NOT implement it. In that
 case, a server MUST always set the M2/ResumeSupported bit to 0.
 Also for a client, the resume feature is OPTIONAL. If a client does not
 support resume, it MUST NOT request a ticket from the server.
-Technically, such a client MUST set the M1/Header/TicketRequested bit
-to zero.
+Technically, such a client MUST always set the M1/Header/TicketRequested
+bit to zero.
 
 
 Idea
@@ -723,7 +838,8 @@ to this server. The messages App1, TT, App2 are encrypted
     ---> M4, App1B
     <--- App2
     
-    Figure: The message flow for Case B. The client has an invalid ticket.
+        Figure: The message flow for Case B. The client has an 
+        invalid ticket.
     
 The client sends the ticket in M1. The first application message, 
 App1A, is sent together with M1. However, the server determines that
@@ -751,7 +867,9 @@ requested one.
     **** TT ****
 
     This packet is encrypted. The packet is sent within the body of 
-    EncryptedMessage (EncryptedMessage/Body).
+    EncryptedMessage (EncryptedMessage/Body). The fields SessionNonce, TicketSize,
+    Ticket are all included or all excluded. The are included when 
+    Header/TicketIncluded is 1.
     
     2   Header. 
         Packet type and flags.
@@ -759,21 +877,29 @@ requested one.
     4   Time.
         See separate documentation.
     
-    2   Ticket, OPT.
-        A Ticket (encrypted) from the server.
+    8   SessionNonce. OPT
+        The session nonce to use for the session started with the following 
+        ticket.
+        
+    1   TicketSize, OPT
+        Size of the following Ticket field. Must be in range 0 to 127.
+        
+    x   Ticket, OPT.
+        An encrypted ticket from the server of size TicketSize bytes.
     
     
     **** TT/Header ****
 
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
+    1   PacketType.
+        The packet type, an integer in the range 0 to 127.
         The integer value is 10 for this packet.
 
     1b  TicketIncluded.
         Set to 1 when Ticket is included in the message.
         
-    11b Zero.
+    7b  Zero.
         Bits set to 0.
+    
     
 
 Ticket details
@@ -788,10 +914,11 @@ The data format of a Ticket is shown below.
         Packet type and flags.
         
     2   KeyId.
-        The server can used KeyId to choose one among multiple 
+        The server can use KeyId to choose one among multiple 
         encryption keys to decrypt the encrypted part of the ticket.
-        Note, server-side implementation may choose to use only one 
-        ticket encryption key for all outstanding tickets.
+        The server-side implementation may choose to use only one 
+        ticket encryption key for all outstanding tickets or some key
+        rotation approach.
 
     16  Nonce.
         Nonce to use when decrypting Ticket/Encrypted.
@@ -804,18 +931,17 @@ The data format of a Ticket is shown below.
     
     **** Ticket/Header ****
 
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 6 for this packet.
+    1   PacketType.
+        One byte in range 0-127 with the packet type.
+        The value is 6 for this packet.
 
-    12b Zero.
+    8b  Zero.
         Bits set to 0.
     
     
     **** Ticket/Encrypted ****
 
     This is an encrypted packet.
-    TODO update this.
 
     2   Header.
         The Ticket/Header repeated. For authentication purposes.
@@ -839,6 +965,8 @@ The data format of a Ticket is shown below.
         of this session.
     
 
+
+
 Messages A1 and A2
 ==================
 
@@ -861,14 +989,11 @@ longer. The client is allowed to cache this information.
     
     **** A1/Header ****
     
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
-        The integer value is 8 for this message.
-    
-    1b  CloseFlag.
-        Set to 1 for for this message.
-
-    11b Zero.
+    1   PacketType.
+        One byte in range 0-127 with the packet type.
+        The value is 8 for this packet.
+        
+    8b  Zero.
         Bits set to 0.
     
 
@@ -891,15 +1016,16 @@ And Message A2:
     
     **** A2/Header ****
     
-    4b  PacketType.
-        Four bits that encodes an integer in range 0-15.
+    1   PacketType.
+        One byte in range 0-127 with the packet type.
         The integer value is 9 for this message.
-    
-    1b  CloseFlag.
-        Set to 1 for for this message.
-    
-    11b Zero.
+        
+    7b  Zero.
         Bits set to 0.
+        
+    1b  LastFlag.
+        Always set to 1 for this message to indicate that this is
+        the last message of the the session.
     
     
     **** A2/Prot ****
@@ -907,14 +1033,14 @@ And Message A2:
     10  P1.
         Protocol ID of Salt Channel with version. 
         Exactly 10 ASCII bytes. Whitespace and control characters
-        must be avoided.
+        MUST be avoided.
         The value for this field in for this version of
         of Salt Channel MUST BE "SC2-------".
     
     10  P2.
         Protocol ID of the protocol on top of Salt Channel. 
         Exactly 10 ASCII bytes. Whitespace and control characters
-        must be avoided.
+        MUST be avoided.
         If the server does not wish to reveal any information about
         the layer above, the server MUST use value "----------" for 
         this field.
@@ -929,9 +1055,11 @@ The server also has the possibility of specifying a higher-level layer
 protocol in the A2 message. This way a client can determine whether there 
 is any use of connecting to the server.
 
-Note that messages A1, A2 together form a complete Salt Channel session.
-An M1 message following A1, A2 should be considered a *new* Salt Channel 
+Note that messages A1, A2 together form a complete session.
+An M1 message following A1, A2 should be considered a *new* 
 session that is completely independent of the previous A1-A2 session.
+
+
 
 
 Session close
@@ -954,16 +1082,56 @@ A Salt Channel session ends when one the the following conditions occur:
 2. After message M2 is sent by Server with the M2/NoSuchServer bit set to 1.
 
 3. After the session of the layer on top (AppMessage*) ends. This is
-   entrirely up to that layer to determine when the session ends.
+   entirely up to that layer to determine when the session ends.
    The Salt Channel implementation will be able to determine this.
 
 
-Encryption
-==========
 
-TODO: write about the how messages are encrypted in detail. With reference to TweetNaCl/NaCl.
 
-TODO: write about how signatures are computed in detail. With reference to TweetNaCl/NaCl.
+Crypto details
+==============
+
+This section describes the crypto primitives in detail.
+
+The field EncryptedMessage/Body uses authenticated encryption
+as defined by the function crypto_box() of TweetNaCl 
+[NACL, TWEET-1, TWEET-2]. The corresponding function to 
+decrypt is crypto_box_open(). In practice, implementations will use 
+the functions crypto_box_beforenm(), crypto_box_afternm(), 
+and crypto_box_open_afternm() as an optimization. See [NACLBOX].
+
+The first 16 bytes of the ciphertext is used to authenticate the message when
+it is decrypted. Encryption and authentication are done in one atomic function 
+call and is described in the original NaCl paper [NACL].
+
+The crypto_box_x() functions take a 24-byte nonce as a parameter.
+Both the client and the server use the first 8 bytes of the nonce to store 
+a signed 64-bit integer in little-endian byte order.
+This integer is 1, 3, 5, ... for messages sent by the client; 
+increasing by 2 for each message it sends.
+This integer is 2, 4, 6, ... for messages sent by Server;
+increasing by 2 for each message it sends.
+The rest of the bytes of the nonce must be set to zero.
+The nonce counters are reset for every Salt Channel session.
+Note, no assumption is made on the order in which the peers send
+application messages. For example, the server may send all 
+application messages. The nonce values used by the client and those 
+used by the server are disjoint sets. Note also that the nonce 
+values used are *not* sent over the communication channel. This is 
+not necessary; they can easily be computed.
+
+Signatures (fields M3/Signature1, M4/Signature2) are generated
+and verified using the signature scheme defined by the functions
+crypto_sign() and crypto_sign_open() of TweetNaCl 
+[NACL, TWEET-1, TWEET-2]. This scheme uses Ed25519 and sha512
+to produce signatures that are 64 bytes long.
+
+The term "encryption key" in this document refers to an x25519 
+key following the terminology of [NACL]. An encryption key pair
+is really used for Diffie-Hellman key agreement, but indirectly
+it is used for encryption.
+ 
+
 
 
 List of message types
@@ -980,12 +1148,57 @@ This section is informative.
     4            M4
     5            AppMessage
     6            EncryptedMessage
-    7            Ticket
+    7            Ticket (not used in v2 spec)
     8            A1
     9            A2
-    10           TT
-    11-127      Not used
+    10           TT (not used in v2 spec)
+    11           MultiAppMessage
+    12-127       Not used
+
+
+
+Use case: multi-link session
+============================
+
+This section is not normative.
+
+Consider the use case shown in the figure below.
     
+    C ---(WebSocket)--> R1 ---(TCP)--> R2 ---(BLE)--> S
+    
+        Figure: A client, C, connects to a server, S, via two relay servers:
+        R1, R2. An end-to-end Salt Channel is established over three different
+        types of unencrypted channels.
+        
+The client, C, wants to establish a Salt Channel with the server, S.
+C sends M1 to R1 over a WebSocket connection. The M1/ServerSigKey field
+is included. R1 does not handle this host directly, but knows that R2 
+might. R1 therefore establishes a TCP connection to R2 and sends M1 to 
+R2. R2, in turn, does not directly handle this host, but R2 knows that
+S does. R2 therefore establishes a BLE connection with S and sends M1
+to S. From there the Salt Channel session can be established over
+multiple unencrypted links.
+
+However, in this case, R1 will not know when the Salt Channel session 
+terminates. Same for relay R2. They only see encrypted application
+data in AppMessage packets once the session has been established.
+This results in the situation where R2 must keep the BLE connection
+open even after the session is closed. This may waste valuable resources 
+and possibly hinders new connections from being established.
+
+These type of situations motivates the principle:
+
+    Anyone on the transport path of a Salt Channel (a relay server for example) 
+    should be able to determine whether a Salt Channel session has been closed
+    without having access to the encrypted data.
+
+So, to conclude, we must have a last message flag that is not encrypted.
+It must be set by the application layer for the last message
+of the Salt Channel session and must be readable to any relay node on the 
+transportation path between the client and the server.
+
+
+
 
 References
 ==========
@@ -1014,6 +1227,8 @@ References
 * **RFC2119**, RFC 2119 by S. Bradner, https://www.ietf.org/rfc/rfc2119.txt
 
 
+
+
 Appendix A: Example session data
 ================================
 
@@ -1027,50 +1242,51 @@ The client sends the application data: 0x010505050505 and the same
 bytes are echoed back by the server.
 
 No timestamps are used, neither by the server nor the client.
-The Time fields of the messages are all set zero.
+The Time fields of the messages are all set to zero.
+
+TODO: data must be updated.
 
     
-    ======== ExampleSessionData ========
+======== ExampleSessionData ========
+
+Example session data for Salt Channel v2.
+
+---- key pairs, secret key first ----
+
+client signature key pair:
+    55f4d1d198093c84de9ee9a6299e0f6891c2e1d0b369efb592a9e3f169fb0f795529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b
+    5529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b
+client encryption key pair:
+    77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a
+    8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
+server signature key pair:
+    7a772fa9014b423300076a2ff646463952f141e2aa8d98263c690c0d72eed52d07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b
+    07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b
+server encryption key pair:
+    5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb
+    de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
+
+--- Log entries, microsecond time ----
+
+ 42 -->   WRITE
+    534376320100000000008520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
+<--  38   READ
+    020000000000de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
+<-- 120   READ
+    0600e47d66e90702aa81a7b45710278d02a8c6cddb69b86e299a47a9b1f1c18666e5cf8b000742bad609bfd9bf2ef2798743ee092b07eb32a45f27cda22cbbd0f0bb7ad264be1c8f6e080d053be016d5b04a4aebffc19b6f816f9a02e71b496f4628ae471c8e40f9afc0de42c9023cfcd1b07807f43b4e25
+120 -->   WRITE
+    0600b4c3e5c6e4a405e91e69a113b396b941b32ffd053d58a54bdcc8eef60a47d0bf53057418b6054eb260cca4d827c068edff9efb48f0eb8454ee0b1215dfa08b3ebb3ecd2977d9b6bde03d4726411082c9b735e4ba74e4a22578faf6cf3697364efe2be6635c4c617ad12e6d18f77a23eb069f8cb38173
+ 30 -->   WRITE_WITH_PREVIOUS
+    06005089769da0def9f37289f9e5ff6e78710b9747d8a0971591abf2e4fb
+<--  30   READ
+    060082eb9d3660b82984f3c1c1051f8751ab5585b7d0ad354d9b5c56f755
+
+---- Other ----
+
+session key: 1b27556473e985d462cd51197a9a46c76009549eac6474f206c4ee0844f68389
+app request:  010505050505
+app response: 010505050505
+total bytes: 380
+total bytes, handshake only: 320
     
-    Example session data for Salt Channel v2.
-    
-    ---- key pairs, secret key first ----
-    
-    client signature key pair:
-        55f4d1d198093c84de9ee9a6299e0f6891c2e1d0b369efb592a9e3f169fb0f795529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b
-        5529ce8ccf68c0b8ac19d437ab0f5b32723782608e93c6264f184ba152c2357b
-    client encryption key pair:
-        77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a
-        8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
-    server signature key pair:
-        7a772fa9014b423300076a2ff646463952f141e2aa8d98263c690c0d72eed52d07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b
-        07e28d4ee32bfdc4b07d41c92193c0c25ee6b3094c6296f373413b373d36168b
-    server encryption key pair:
-        5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb
-        de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
-    
-    --- Log entries, microsecond time ----
-    
-     42 -->   WRITE
-        534376320100000000008520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
-    <--  38   READ
-        020000000000de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
-    <-- 120   READ
-        0600669544da0d2ec8a03766f53e0580bc3cc6cddb69b86e299a47a9b1f1c18666e5cf8b000742bad609bfd9bf2ef2798743ee092b07eb329899ab741476448b5f34e6513e1d3cec7469fbf03112a098acd397ab933c61a2319eb6e0b4561ed9ce010d998f5bc10d6d17f88cebf961d1377faccc8a781c2c
-    120 -->   WRITE
-        0600a342f9538471d266100bfc3b9e794f40b32ffd053d58a54bdcc8eef60a47d0bf53057418b6054eb260cca4d827c068edff9efb48f0eb6856903f7f1006e43d7e21915f72e729a26bf6bc5f59bc7ed2e1456a8a5fc9ecc6e2cd3c48e0103769ccd6faa87e45b8b256207a2e341cd068d433c7296fb374
-     30 -->   WRITE_WITH_PREVIOUS
-        06005089769da0def9f37289f9e5ff6e78710b9747d8a0971591abf2e4fb
-    <--  30   READ
-        060082eb9d3660b82984f3c1c1051f8751ab5585b7d0ad354d9b5c56f755
-    
-    ---- Other ----
-    
-    session key: 1b27556473e985d462cd51197a9a46c76009549eac6474f206c4ee0844f68389
-    app request:  010505050505
-    app response: 010505050505
-    total bytes: 380
-    total bytes, handshake only: 320
-    
-The output was generated with the Java class saltchannel.dev.ExampleSessionData,
-date: 2017-06-09.
+Note to authors: the above output was generated with the Java class saltchannel.dev.ExampleSessionData, date: 2017-06-09.

@@ -26,12 +26,14 @@ public class AppChannelV2 implements ByteChannel {
     private TimeChecker timeChecker;
     private M4Packet bufferedM4 = null;
     private LinkedBlockingQueue<byte[]> readQ;
+    private PacketHeader lastReadHeader;
     
     public AppChannelV2(ByteChannel channel, TimeKeeper timeKeeper, TimeChecker timeChecker) {
         this.channel = channel;
         this.timeKeeper = timeKeeper;
         this.timeChecker = timeChecker;
         this.readQ = new LinkedBlockingQueue<byte[]>();
+        this.lastReadHeader = null;
     }
 
     @Override
@@ -67,6 +69,23 @@ public class AppChannelV2 implements ByteChannel {
         }
         
         return result;
+    }
+    
+    /**
+     * Returns the number of remaining application messages left to
+     * read in the buffer. This is the same as the number of further message
+     * of an MultiAppPacket that are buffered by this implementation.
+     */
+    public int available() {
+        return readQ.size();
+    }
+    
+    /**
+     * Returns true if the last packet (APP_PACKET or MULTI_APP_PACKET)
+     * had the lastFlag set.
+     */
+    public boolean lastFlag() {
+        return lastReadHeader == null ? false : lastReadHeader.lastFlag();
     }
     
     @Override

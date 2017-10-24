@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- 
 Build file to build jar file and javadoc. 
-NOTE: compile with Java 7!
-Do not use Java 8 or 9 (mainly due to Android).
+NOTE: compile with Java 7! (mainly due to Android).
 -->
 
 <project name="salt-channel" default="build" basedir=".">
@@ -17,8 +16,8 @@ Do not use Java 8 or 9 (mainly due to Android).
     </tstamp>
 
     <!-- VERSION, first line below is for DEV build, second for _RELEASE build. -->
-    <property name="version" value="1.9.${date}"/> 
-    <!-- <property name="version" value="2.0"/> -->
+    <property name="version" value="2.1.${date}"/>
+    <!-- <property name="version" value="2.1"/> -->
     
     <property name="time" value="${dateAndMinute}"/>
 
@@ -112,7 +111,7 @@ Do not use Java 8 or 9 (mainly due to Android).
     </copy>
 </target>
     
-<target name="jarx" description="creates jarx file, includes src-x" depends="clean, compilex">
+<target name="jarx" description="creates jarx file, includes src-x" depends="compilex">
     <delete file="out/salt-channel-x-${version}.jar"/>    
     <jar destfile="out/salt-channel-x-${version}.jar">
         <fileset dir="out/classes"/>

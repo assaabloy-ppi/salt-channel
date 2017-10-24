@@ -1,12 +1,12 @@
-spec-salt-channel-v2-draft1.md
-==============================
+salt-channel-v2-draft1.md
+=========================
 
 About this document
 -------------------
 
 *Date*: 2017-02-22
 
-*Status*: DRAFT1.
+*Status*: DRAFT.
 
 *Author*: Frans Lundberg. ASSA ABLOY AB, Shared Technologies, Stockholm,
 frans.lundberg@assaabloy.com, phone: +46707601861.
