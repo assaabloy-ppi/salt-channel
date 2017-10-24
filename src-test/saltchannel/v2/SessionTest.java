@@ -1,5 +1,7 @@
 package saltchannel.v2;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 import saltchannel.BadPeer;
@@ -10,6 +12,7 @@ import saltchannel.TimeException;
 import saltchannel.Tunnel;
 import saltchannel.a1a2.A1Client;
 import saltchannel.a1a2.A2Packet;
+import saltchannel.dev.LoggingByteChannel;
 import saltchannel.testutil.ToWaitFor;
 import saltchannel.util.CryptoTestData;
 import saltchannel.util.KeyPair;
@@ -58,6 +61,44 @@ public class SessionTest {
         Assert.assertArrayEquals(CryptoTestData.aSig.pub(), server.getClientSigKey());
         Assert.assertArrayEquals(CryptoTestData.bSig.pub(), client.getServerSigKey());
     }
+    
+
+    @Test
+    public void testThatLastFlagIsSet() {
+        // Checks that lastFlag is set and available to LoggingByteChannel (the writer).
+        
+        Tunnel tunnel = new Tunnel();
+        LoggingByteChannel loggingChannel2 = new LoggingByteChannel(tunnel.channel2());
+        
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, tunnel.channel1());
+        client.setEncKeyPair(CryptoTestData.aEnc);
+        
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, loggingChannel2);
+        server.setEncKeyPair(CryptoTestData.bEnc);
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                server.handshake();
+                byte[] appMessage = server.getChannel().read();
+                server.getChannel().write(true, appMessage);
+            }
+        });
+        thread.start();
+        
+        client.handshake();
+        
+        byte[] app1 = new byte[3000];
+        app1[2999] = 99;
+        
+        ByteChannel channel = client.getChannel();
+        channel.write(false, app1);
+        channel.read();
+        
+        List<LoggingByteChannel.Entry> log = loggingChannel2.getLog();
+        
+        Assert.assertTrue(log.get(log.size() - 1).isLast);
+    }
+    
     
     @Test
     public void testSample1WithM4Buffered() {
