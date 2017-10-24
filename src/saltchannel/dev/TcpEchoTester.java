@@ -1,25 +1,19 @@
 package saltchannel.dev;
 
-import org.omg.CORBA.Environment;
 import saltchannel.ByteChannel;
-import saltchannel.NoSuchServerException;
 import saltchannel.SocketChannel;
 import saltchannel.a1a2.A1Client;
 import saltchannel.a1a2.A1Packet;
 import saltchannel.a1a2.A2Packet;
 import saltchannel.util.CryptoTestData;
-import saltchannel.util.Hex;
 import saltchannel.util.KeyPair;
 import saltchannel.v2.NoSuchServer;
 import saltchannel.v2.SaltClientSession;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
 
 /**
- * Created by simonj on 2017-10-12.
- *
  * Tests a salt-channel v2 host that runs the simplest case of the echo protocol.
  *
  * The Echo protocol is described as:
@@ -84,6 +78,7 @@ import java.util.Arrays;
  *
  *     If responses differ from requests then fail.
  *
+ * @author Simon Johansson
  */
 public class TcpEchoTester {
 
