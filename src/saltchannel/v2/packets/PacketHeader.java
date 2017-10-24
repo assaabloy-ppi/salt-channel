@@ -95,6 +95,10 @@ public class PacketHeader {
         setBit(7, b);
     }
     
+    public String toString() {
+        return "type:" + getType() + ", last:" + lastFlag();
+    }
+    
     private void checkBitIndex(int index) {
         if (!(index >= 0 && index < BIT_COUNT)) {
             throw new IllegalArgumentException("index is " + index);

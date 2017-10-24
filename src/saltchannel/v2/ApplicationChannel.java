@@ -13,14 +13,14 @@ import saltchannel.v2.packets.Packet;
 import saltchannel.v2.packets.PacketHeader;
 
 /**
- * An app message channel on top of an underlying ByteChannel (EncryptedChannelV2).
+ * An application message channel on top of an underlying ByteChannel (EncryptedChannelV2).
  * Adds a small header to messages (2-bytes header + time).
  * Also, this class decides how to encode application messages 
  * using AppPacket or MultiAppPacket.
  * 
  * @author Frans Lundberg
  */
-public class AppChannelV2 implements ByteChannel {
+public class ApplicationChannel implements ByteChannel {
     private ByteChannel channel;
     private TimeKeeper timeKeeper;
     private TimeChecker timeChecker;
@@ -28,7 +28,7 @@ public class AppChannelV2 implements ByteChannel {
     private LinkedBlockingQueue<byte[]> readQ;
     private PacketHeader lastReadHeader;
     
-    public AppChannelV2(ByteChannel channel, TimeKeeper timeKeeper, TimeChecker timeChecker) {
+    public ApplicationChannel(ByteChannel channel, TimeKeeper timeKeeper, TimeChecker timeChecker) {
         this.channel = channel;
         this.timeKeeper = timeKeeper;
         this.timeChecker = timeChecker;
@@ -48,6 +48,7 @@ public class AppChannelV2 implements ByteChannel {
         
         byte[] bytes = channel.read();
         PacketHeader header = new PacketHeader(bytes, 0);
+        this.lastReadHeader = header;
         int type = header.getType();
         byte[] result;
         
@@ -81,11 +82,15 @@ public class AppChannelV2 implements ByteChannel {
     }
     
     /**
-     * Returns true if the last packet (APP_PACKET or MULTI_APP_PACKET)
-     * had the lastFlag set.
+     * Returns true if the last packet read with read() is the last
+     * message of the application session.
      */
-    public boolean lastFlag() {
-        return lastReadHeader == null ? false : lastReadHeader.lastFlag();
+    public boolean isLast() {
+        if (lastReadHeader == null) {
+            return false;
+        }
+        
+        return available() == 0 && lastReadHeader.lastFlag() == true;
     }
     
     @Override

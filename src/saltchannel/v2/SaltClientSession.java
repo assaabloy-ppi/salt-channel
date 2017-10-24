@@ -45,7 +45,7 @@ public class SaltClientSession {
     private M3Packet m3;
     private M4Packet m4;
     private TTPacket tt;
-    private AppChannelV2 appChannel;
+    private ApplicationChannel appChannel;
     private boolean ticketRequested;
     private byte[] m2Bytes;
     private PacketHeader m2Header;
@@ -140,8 +140,8 @@ public class SaltClientSession {
      * @throws IllegalStateException 
      *          If the channel is not available, has not been created yet.
      */
-    public AppChannelV2 getChannel() {
-        AppChannelV2 result = this.appChannel;
+    public ApplicationChannel getChannel() {
+        ApplicationChannel result = this.appChannel;
         if (result == null) {
             throw new IllegalStateException("this.appChannel == null");
         }
@@ -291,14 +291,14 @@ public class SaltClientSession {
     private void createEncryptedChannelForNewSession() {
         this.sessionKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m2.serverEncKey);
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, Role.CLIENT);
-        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
+        this.appChannel = new ApplicationChannel(this.encryptedChannel, timeKeeper, timeChecker);
     }
     
     private void createEncryptedChannelForResumedSession() {
         this.sessionKey = this.ticketData.sessionKey;
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, 
                 Role.CLIENT, this.ticketData.sessionNonce);
-        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
+        this.appChannel = new ApplicationChannel(this.encryptedChannel, timeKeeper, timeChecker);
     }
 
     private void checkThatEncKeyPairWasSet() {

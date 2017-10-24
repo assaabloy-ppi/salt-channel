@@ -47,7 +47,7 @@ public class SaltServerSession {
     private M2Packet m2;
     private byte[] m2Hash;
     private M4Packet m4;
-    private AppChannelV2 appChannel;
+    private ApplicationChannel appChannel;
     private ResumeHandler resumeHandler;
     private byte[] m1Bytes;
     private PacketHeader m1Header;
@@ -299,7 +299,7 @@ public class SaltServerSession {
     private void createEncryptedChannelFromKeyAgreement() {
         this.sessionKey = CryptoLib.computeSharedKey(encKeyPair.sec(), m1.clientEncKey);
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, Role.SERVER);
-        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
+        this.appChannel = new ApplicationChannel(this.encryptedChannel, timeKeeper, timeChecker);
     }
     
     /**
@@ -311,7 +311,7 @@ public class SaltServerSession {
         this.clientSigKey = data.clientSigKey;
         this.encryptedChannel = new EncryptedChannelV2(this.clearChannel, sessionKey, 
                 Role.SERVER, data.sessionNonce);
-        this.appChannel = new AppChannelV2(this.encryptedChannel, timeKeeper, timeChecker);
+        this.appChannel = new ApplicationChannel(this.encryptedChannel, timeKeeper, timeChecker);
     }
     
     private boolean resumeSupported() {

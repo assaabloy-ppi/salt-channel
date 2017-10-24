@@ -7,14 +7,14 @@ import saltchannel.Tunnel;
 import saltchannel.util.TimeChecker;
 import saltchannel.util.TimeKeeper;
 
-public class AppChannelV2Test {
+public class ApplicationChannelTest {
 
     @Test
     public void testSanity() {
         // One app message, single write.
         Tunnel tunnel = new Tunnel();
-        AppChannelV2 c1 = new AppChannelV2(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
-        AppChannelV2 c2 = new AppChannelV2(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
         
         c1.write(new byte[]{0x10});
         byte[] message = c2.read();
@@ -27,8 +27,8 @@ public class AppChannelV2Test {
         // Two app message in one write, MultiAppPacket should be used.
         
         Tunnel tunnel = new Tunnel();
-        AppChannelV2 c1 = new AppChannelV2(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
-        AppChannelV2 c2 = new AppChannelV2(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
         
         c1.write(false, new byte[]{0x10}, new byte[]{0x20, 0x21});
         byte[] message1 = c2.read();
@@ -37,6 +37,49 @@ public class AppChannelV2Test {
         Assert.assertArrayEquals(new byte[]{0x10}, message1);
         Assert.assertArrayEquals(new byte[]{0x20, 0x21}, message2);
     }
+    
+    @Test
+    public void testAvailable() {
+        Tunnel tunnel = new Tunnel();
+        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
+        
+        c1.write(false, new byte[]{0x10}, new byte[]{0x20, 0x21});
+        c2.read();
+        
+        Assert.assertEquals(1, c2.available());
+    }
+    
+    // TODO D. implement tests for lastFlag.
+    //@Test
+    public void testLastFlag1() {
+        Tunnel tunnel = new Tunnel();
+        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
+        
+        c1.write(false, new byte[]{0x10});
+        c1.write(true, new byte[]{0x20}, new byte[]{0x30});
+        
+        c2.read();
+        Assert.assertEquals("isLast1", false, c2.isLast());
+        c2.read();
+        Assert.assertEquals("isLast2", false, c2.isLast());
+        c2.read();
+        Assert.assertEquals("isLast3", true, c2.isLast());
+    }
+    
+    @Test
+    public void testLastFlag2() {
+        Tunnel tunnel = new Tunnel();
+        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
+        
+        c1.write(false, new byte[]{0x10});
+        c2.read();
+        
+        Assert.assertEquals(false, c2.isLast());
+    }
+    
     
     @Test(expected = TimeException.class)
     public void testDelay1() {
@@ -63,8 +106,8 @@ public class AppChannelV2Test {
         };
         
         Tunnel tunnel = new Tunnel();
-        AppChannelV2 c1 = new AppChannelV2(tunnel.channel1(), timeKeeper, TimeChecker.NULL);
-        AppChannelV2 c2 = new AppChannelV2(tunnel.channel2(), TimeKeeper.NULL, timeChecker);
+        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), timeKeeper, TimeChecker.NULL);
+        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, timeChecker);
         
         c1.write(new byte[]{0x10});
         byte[] message = c2.read();
@@ -97,8 +140,8 @@ public class AppChannelV2Test {
         };
         
         Tunnel tunnel = new Tunnel();
-        AppChannelV2 c1 = new AppChannelV2(tunnel.channel1(), timeKeeper, TimeChecker.NULL);
-        AppChannelV2 c2 = new AppChannelV2(tunnel.channel2(), TimeKeeper.NULL, timeChecker);
+        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), timeKeeper, TimeChecker.NULL);
+        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, timeChecker);
         
         c1.write(new byte[]{0x10}, new byte[]{0x20, 0x21});
         byte[] message1 = c2.read();
