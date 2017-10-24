@@ -16,7 +16,6 @@ import saltchannel.v2.SaltClientSession;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
-
 /**
  * Created by simonj on 2017-10-12.
  *
@@ -107,7 +106,7 @@ public class TcpEchoTester {
         }
     }
 
-    private void go(String[] args) throws Exception {
+    private void go(String[] args) throws Throwable {
 
         if (args.length > 0) {
             hostAddr = args[0];
@@ -117,7 +116,7 @@ public class TcpEchoTester {
         }
 
         /* Step 1 */
-        a1RequestTest("A2 Server should response \"SC2-------\",\"ECHO------\" without public key included in A1", null, false);
+        a1RequestTest("A2 Server should response \"SCv2------\",\"ECHO------\" without public key included in A1", null, false);
 
         /* Step 2 */
         byte[] hostPub = handshakeTest("Normal handshake without public key included should work", null, null);
@@ -126,7 +125,7 @@ public class TcpEchoTester {
         dummyPub[4] += 1;
 
         /* Step 3 */
-        a1RequestTest("A2 Server should response \"SC2-------\",\"ECHO------\" when public key is included in A1", hostPub, false);
+        a1RequestTest("A2 Server should response \"SCv2------\",\"ECHO------\" when public key is included in A1", hostPub, false);
 
         /* Step 4 */
         a1RequestTest("A2 Server should response NO_SUCH_SERVER when an invalid public key is included in A1", dummyPub, true);
@@ -138,15 +137,48 @@ public class TcpEchoTester {
         handshakeTest("Handshake should should response NO_SUCH_SERVER when unexpected public key is included in M1", dummyPub, new NoSuchServer());
 
         /* Step 7 */
-        singlePackageEchoTest(null);
+        singlePackageEchoTest();
+        singlePackageEchoTest(hostPub);
+        singlePackageEchoTest(hostPub, true);
 
         /* Step 8 */
         multiPackageEchoTest();
+        multiPackageEchoTest(hostPub);
+        multiPackageEchoTest(hostPub, true);
+
+        /* Step 9 */
+        versionTest();
+
+        /* Step 10 */
+        sendDataTest();
+
+        /* Step 11 */
+        closeTest();
 
     }
 
-    public static void main(String[] args) throws Exception {
-        new TcpEchoTester().go(args);
+    public static void main(final String[] args) throws Throwable {
+
+        int n = 1;
+        if (args.length > 2) {
+            n = Integer.parseInt(args[2]);
+        }
+
+        for (int i = 0; i < n; i++) {
+            new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        new TcpEchoTester().go(args);
+                    } catch (Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+
+
     }
 
     private abstract class Test {
@@ -182,11 +214,11 @@ public class TcpEchoTester {
             environment.socket.close();
         }
 
-        public void go() throws IOException {
+        public void go() throws Throwable {
             System.out.println("Running test: " + doc);
             environment = setup();
             boolean passed = false;
-            Exception e = null;
+            Throwable e = null;
             try {
                 run();
                 teardown();
@@ -195,10 +227,12 @@ public class TcpEchoTester {
                 if (expectException != null && ex.getClass().equals(expectException.getClass())) {
                     passed = true;
                 }
+                e = ex;
             }
 
             if (!passed && e != null) {
                 System.out.println("Result: Failed");
+                throw new Throwable(e);
             }
 
             System.out.println("Result: Passed");
@@ -206,7 +240,7 @@ public class TcpEchoTester {
         }
     }
 
-    public void a1RequestTest(String doc, final byte[] hostPub, final boolean expectNoSuchServer) throws IOException {
+    public void a1RequestTest(String doc, final byte[] hostPub, final boolean expectNoSuchServer) throws Throwable {
         new Test(doc) {
             @Override
             public void run() {
@@ -246,7 +280,7 @@ public class TcpEchoTester {
         }.go();
     }
 
-    public byte[] handshakeTest(String doc, final byte[] expectedPub, final Exception expectedException) throws IOException {
+    public byte[] handshakeTest(String doc, final byte[] expectedPub, final Exception expectedException) throws Throwable {
 
         final byte[][] hostPub = {null};
 
@@ -265,12 +299,18 @@ public class TcpEchoTester {
         return hostPub[0];
     }
 
-    public void singlePackageEchoTest(final byte[] expectedPub) throws IOException {
+    public void singlePackageEchoTest() throws Throwable {
+        singlePackageEchoTest(null, false);
+    }
+    public void singlePackageEchoTest(byte[] expectedPub) throws Throwable {
+        singlePackageEchoTest(expectedPub, false);
+    }
+    public void singlePackageEchoTest(final byte[] expectedPub, final boolean bufferM4) throws Throwable {
         new Test("Echo request in single encrypted package should work") {
 
             @Override
             public void run() throws IOException {
-                environment.handshake(false, expectedPub);
+                environment.handshake(bufferM4, expectedPub);
 
                 byte[] request = new byte[]{0x01, 0x02, 0x03};
 
@@ -285,12 +325,18 @@ public class TcpEchoTester {
         }.go();
     }
 
-    public void multiPackageEchoTest() throws IOException {
+    public void multiPackageEchoTest() throws Throwable {
+        multiPackageEchoTest(null, false);
+    }
+    public void multiPackageEchoTest(final byte[] expectedPub) throws Throwable {
+        multiPackageEchoTest(expectedPub, false);
+    }
+    public void multiPackageEchoTest(final byte[] expectedPub, final boolean bufferM4) throws Throwable {
         new Test("Multiple Echo requests in multi encrypted package should work") {
 
             @Override
             public void run() throws IOException {
-                environment.handshake(false, null);
+                environment.handshake(bufferM4, expectedPub);
 
                 byte[] request1 = new byte[]{0x01, 0x02, 0x03};
                 byte[] request2 = new byte[]{0x01, 0x02, 0x03};
@@ -305,6 +351,70 @@ public class TcpEchoTester {
 
                 if (!Arrays.equals(request2, response2)) {
                     throw new AssertionError("Response 2 differs from request");
+                }
+
+            }
+        }.go();
+    }
+
+    public void versionTest() throws Throwable {
+        new Test("ECHO protocol version should work") {
+
+            @Override
+            public void run() throws IOException {
+                environment.handshake(false, null);
+
+                byte[] request = new byte[]{0x00};
+
+                environment.saltChannel.write(false, request);
+                byte[] response = environment.saltChannel.read();
+
+                if (!Arrays.equals(response, new byte[]{0x00, 0x01})) {
+                    throw new AssertionError("Response differs from request");
+                }
+
+
+            }
+        }.go();
+    }
+
+    public void sendDataTest() throws Throwable {
+        new Test("ECHO send data request should work") {
+
+            @Override
+            public void run() throws IOException {
+                environment.handshake(false, null);
+
+                byte[] request = new byte[]{0x02, 0x05, 0x00, 0x00, 0x00, 0x7f};
+
+                environment.saltChannel.write(false, request);
+                byte[] response = environment.saltChannel.read();
+
+                byte[] expectedResponse = new byte[]{0x02, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f};
+
+                if (!Arrays.equals(response, expectedResponse)) {
+                    throw new AssertionError("Response 1 differs from request");
+                }
+
+
+            }
+        }.go();
+    }
+
+    public void closeTest() throws Throwable {
+        new Test("ECHO close should work") {
+
+            @Override
+            public void run() throws IOException {
+                environment.handshake(false, null);
+
+                byte[] request = new byte[]{0x03};
+
+                environment.saltChannel.write(false, request);
+                byte[] response = environment.saltChannel.read();
+
+                if (!Arrays.equals(response, request)) {
+                    throw new AssertionError("Response 1 differs from request");
                 }
 
             }
