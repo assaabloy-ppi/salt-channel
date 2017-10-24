@@ -14,7 +14,7 @@ public class BuildInfo {
     /**
      * Build time, for example: "160508.1435".
      */
-    public static final String TIME = identity("20171024.1211");
+    public static final String TIME = identity("20171024.1233");
         
     /**
      * Returns 's'; useful for avoiding compiler inlining of a final field.
