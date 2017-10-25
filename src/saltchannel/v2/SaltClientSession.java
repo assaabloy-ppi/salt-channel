@@ -11,8 +11,8 @@ import saltchannel.util.TimeChecker;
 import saltchannel.util.TimeKeeper;
 import saltchannel.util.NullTimeKeeper;
 import saltchannel.v2.EncryptedChannelV2.Role;
-import saltchannel.v2.packets.M1Packet;
-import saltchannel.v2.packets.M2Packet;
+import saltchannel.v2.packets.M1Message;
+import saltchannel.v2.packets.M2Message;
 import saltchannel.v2.packets.M3Packet;
 import saltchannel.v2.packets.M4Packet;
 import saltchannel.v2.packets.Packet;
@@ -38,9 +38,9 @@ public class SaltClientSession {
     private KeyPair sigKeyPair;
     private KeyPair encKeyPair;
     private byte[] wantedServerSigKey;
-    private M1Packet m1;
+    private M1Message m1;
     private byte[] m1Hash;
-    private M2Packet m2;
+    private M2Message m2;
     private byte[] m2Hash;
     private M3Packet m3;
     private M4Packet m4;
@@ -136,6 +136,9 @@ public class SaltClientSession {
     
     /**
      * Returns a channel to be used by layer above (application layer).
+     * Note, it is recommended that the caller uses the ByteChannel interface
+     * if possible rather than the specific ApplicationChannel implementation. 
+     * The API of the interface is likely more stable.
      * 
      * @throws IllegalStateException 
      *          If the channel is not available, has not been created yet.
@@ -169,7 +172,7 @@ public class SaltClientSession {
      * Creates and writes M1 message.
      */
     private void m1() {
-        this.m1 = new M1Packet();
+        this.m1 = new M1Message();
         m1.time = timeKeeper.getFirstTime();
         m1.clientEncKey = this.encKeyPair.pub();
         m1.serverSigKey = this.wantedServerSigKey;
@@ -200,7 +203,7 @@ public class SaltClientSession {
      * @throws NoSuchServer.
      */
     private void m2() {
-        this.m2 = M2Packet.fromBytes(m2Bytes, 0);
+        this.m2 = M2Message.fromBytes(m2Bytes, 0);
         if (m2.noSuchServer) {
             throw new NoSuchServer();
         }
@@ -223,7 +226,7 @@ public class SaltClientSession {
         if (this.bufferM4) {
             appChannel.setBufferedM4(m4);
         } else {
-            encryptedChannel.write(m4.toBytes());
+            encryptedChannel.write(false, m4.toBytes());
         }
     }
     

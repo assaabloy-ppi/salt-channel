@@ -7,21 +7,21 @@ public class M1PacketTest {
 
     @Test
     public void testSanity() {
-        M1Packet p = new M1Packet();
+        M1Message p = new M1Message();
         p.clientEncKey = new byte[32];
         p.serverSigKey = null;
         
         byte[] bytes1 = new byte[p.getSize()];
         p.toBytes(bytes1, 0);
         byte[] bytes2 = new byte[bytes1.length];
-        M1Packet.fromBytes(bytes1, 0).toBytes(bytes2, 0);
+        M1Message.fromBytes(bytes1, 0).toBytes(bytes2, 0);
         
         Assert.assertArrayEquals(bytes1, bytes2);
     }
     
     @Test
     public void testWithTicket() {
-        M1Packet p = new M1Packet();
+        M1Message p = new M1Message();
         p.clientEncKey = new byte[32];
         p.serverSigKey = null;
         p.ticket = new byte[20];    // dummy data
@@ -29,7 +29,7 @@ public class M1PacketTest {
         byte[] bytes1 = new byte[p.getSize()];
         p.toBytes(bytes1, 0);
         byte[] bytes2 = new byte[bytes1.length];
-        M1Packet.fromBytes(bytes1, 0).toBytes(bytes2, 0);
+        M1Message.fromBytes(bytes1, 0).toBytes(bytes2, 0);
         
         Assert.assertArrayEquals(bytes1, bytes2);
     }
@@ -37,7 +37,7 @@ public class M1PacketTest {
     
     @Test
     public void testWithTicketRequested() {
-        M1Packet p = new M1Packet();
+        M1Message p = new M1Message();
         p.clientEncKey = new byte[32];
         p.serverSigKey = null;
         p.ticketRequested = true;
@@ -45,7 +45,7 @@ public class M1PacketTest {
         byte[] bytes1 = new byte[p.getSize()];
         p.toBytes(bytes1, 0);
         byte[] bytes2 = new byte[bytes1.length];
-        M1Packet.fromBytes(bytes1, 0).toBytes(bytes2, 0);
+        M1Message.fromBytes(bytes1, 0).toBytes(bytes2, 0);
         
         Assert.assertArrayEquals(bytes1, bytes2);
     }

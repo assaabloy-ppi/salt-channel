@@ -9,14 +9,14 @@ import saltchannel.util.Serializer;
  * 
  * @author Frans Lundberg
  */
-public class M2Packet implements Packet {
+public class M2Message implements Packet {
     public static final int PACKET_TYPE = 2;
     public boolean noSuchServer;
     public int time;
     public byte[] serverEncKey;
     public boolean resumeSupported;
     
-    public M2Packet() {
+    public M2Message() {
         resumeSupported = false;
     }
     
@@ -57,8 +57,8 @@ public class M2Packet implements Packet {
         return result;
     }
     
-    public static M2Packet fromBytes(byte[] source, int offset) {
-        M2Packet p = new M2Packet();
+    public static M2Message fromBytes(byte[] source, int offset) {
+        M2Message p = new M2Message();
         Deserializer d = new Deserializer(source, offset);
         
         PacketHeader header = d.readHeader();

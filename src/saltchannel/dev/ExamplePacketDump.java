@@ -16,7 +16,7 @@ public class ExamplePacketDump {
     public ExamplePacketDump() {
     }
     
-    private void m1_print(int case_id, M1Packet m1) {
+    private void m1_print(int case_id, M1Message m1) {
         String sigkey_str = m1.serverSigKey != null? "+" : "null";
         String tik_str = m1.ticket != null? Hex.create(m1.ticket) : "null";
         System.out.println(String.format("-------------\nM1 CASE: %d -> time:  0x%x, serverSigKey: %s, ticket: %s, ticketRequested: %b ", 
@@ -25,10 +25,10 @@ public class ExamplePacketDump {
     }
 
     private void M1() {
-        M1Packet m1;
+        M1Message m1;
 
          // CASE 1 - NO ticket, NO server sig key, NO ticketRequested
-         m1 = new M1Packet();
+         m1 = new M1Message();
          m1.time = 0xdeadbeef;
          m1.clientEncKey = CryptoTestData.aEnc.pub();
          m1.serverSigKey = null;
@@ -39,7 +39,7 @@ public class ExamplePacketDump {
          m1 = null;       
 
          // CASE 2 - NO ticket, + server sig key,  + ticketRequested
-         m1 = new M1Packet();
+         m1 = new M1Message();
          m1.time = 0xdeadbeef;
          m1.clientEncKey = CryptoTestData.aEnc.pub();
          m1.serverSigKey = CryptoTestData.bSig.pub();
@@ -50,7 +50,7 @@ public class ExamplePacketDump {
          m1 = null;                
 
          // CASE 3 - + Ticket, NO server sig key:  + ticketRequested
-         m1 = new M1Packet();
+         m1 = new M1Message();
          m1.time = 0xdeadbeef;
          m1.clientEncKey = CryptoTestData.aEnc.pub();
          m1.serverSigKey = null;
@@ -63,7 +63,7 @@ public class ExamplePacketDump {
          m1 = null;      
 
          // CASE 4 - + Ticket, + server sig key:  + ticketRequested
-         m1 = new M1Packet();
+         m1 = new M1Message();
          m1.time = 0xdeadbeef;
          m1.clientEncKey = CryptoTestData.aEnc.pub();
          m1.serverSigKey = CryptoTestData.bSig.pub();
@@ -76,7 +76,7 @@ public class ExamplePacketDump {
          m1 = null;                                          
     }
     
-    private void m2_print(int case_id, M2Packet m2) {
+    private void m2_print(int case_id, M2Message m2) {
         String enckey_str = m2.serverEncKey != null? "+" : "null";
         System.out.println(String.format("-------------\nM2 CASE: %d -> time:  0x%x, ServerEncKey: %s, resumeSupported: %b ", 
                                        case_id, m2.time, enckey_str,  m2.resumeSupported));        
@@ -84,9 +84,9 @@ public class ExamplePacketDump {
     }
 
   private void M2() {
-         M2Packet m2;
+         M2Message m2;
 
-         m2 = new M2Packet();
+         m2 = new M2Message();
          m2.time = 0xdeadbeef;
          m2.resumeSupported = true;
          m2.serverEncKey = CryptoTestData.bEnc.pub();

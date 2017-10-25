@@ -16,8 +16,8 @@ import saltchannel.util.TimeKeeper;
 import saltchannel.util.NullTimeKeeper;
 import saltchannel.v2.EncryptedChannelV2.Role;
 import saltchannel.v2.packets.BadTicket;
-import saltchannel.v2.packets.M1Packet;
-import saltchannel.v2.packets.M2Packet;
+import saltchannel.v2.packets.M1Message;
+import saltchannel.v2.packets.M2Message;
 import saltchannel.v2.packets.M3Packet;
 import saltchannel.v2.packets.M4Packet;
 import saltchannel.v2.packets.Packet;
@@ -42,9 +42,9 @@ public class SaltServerSession {
     private A2Packet a2Packet;
     private KeyPair sigKeyPair;
     private KeyPair encKeyPair;
-    private M1Packet m1;
+    private M1Message m1;
     private byte[] m1Hash;
-    private M2Packet m2;
+    private M2Message m2;
     private byte[] m2Hash;
     private M4Packet m4;
     private ApplicationChannel appChannel;
@@ -174,9 +174,12 @@ public class SaltServerSession {
     
     /**
      * Returns the application channel after a successful handshake.
-     * The returned ByteChannel is for the application to use.
+     * The returned channel is for the application to use.
+     * Note, it is recommended that the caller uses the ByteChannel interface
+     * if possible rather than the specific ApplicationChannel implementation. 
+     * The API of the interface is likely more stable.
      */
-    public ByteChannel getChannel() {
+    public ApplicationChannel getChannel() {
         return this.appChannel;
     }
     
@@ -198,7 +201,7 @@ public class SaltServerSession {
         // Only one server sig key is allowed here.
         
         this.m1Hash = CryptoLib.sha512(m1Bytes);
-        this.m1 = M1Packet.fromBytes(m1Bytes, 0);
+        this.m1 = M1Message.fromBytes(m1Bytes, 0);
         timeChecker.reportFirstTime(m1.time);
         
         if (m1.serverSigKeyIncluded() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
@@ -224,7 +227,7 @@ public class SaltServerSession {
     }
     
     private void m2() {
-        this.m2 = new M2Packet();
+        this.m2 = new M2Message();
         m2.time = timeKeeper.getFirstTime();
         m2.noSuchServer = false;
         m2.serverEncKey = this.encKeyPair.pub();
@@ -293,7 +296,7 @@ public class SaltServerSession {
         p.time = timeKeeper.getTime();
         p.ticket = t.ticket;
         p.sessionNonce = t.sessionNonce;
-        encryptedChannel.write(p.toBytes());
+        encryptedChannel.write(false, p.toBytes());
     }
 
     private void createEncryptedChannelFromKeyAgreement() {
@@ -346,7 +349,7 @@ public class SaltServerSession {
     }
     
     private byte[] noSuchServerM2Raw() {
-        M2Packet m2 = new M2Packet();
+        M2Message m2 = new M2Message();
         m2.time = timeKeeper.getFirstTime();
         m2.noSuchServer = true;
         m2.serverEncKey = new byte[32];

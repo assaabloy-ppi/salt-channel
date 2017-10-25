@@ -2,6 +2,7 @@ package saltchannel.v2;
 
 import org.junit.Assert;
 import org.junit.Test;
+import saltaa.SaltLib;
 import saltchannel.TimeException;
 import saltchannel.Tunnel;
 import saltchannel.util.TimeChecker;
@@ -47,37 +48,53 @@ public class ApplicationChannelTest {
         c1.write(false, new byte[]{0x10}, new byte[]{0x20, 0x21});
         c2.read();
         
-        Assert.assertEquals(1, c2.available());
+        Assert.assertEquals(1, c2.availableFromMultiAppPacket());
     }
     
-    // TODO D. implement tests for lastFlag.
-    //@Test
+    @Test
     public void testLastFlag1() {
+        // Note, the lastFlag is implemented in EncryptedChannelV2, so it must
+        // be included when testing this.
+        
         Tunnel tunnel = new Tunnel();
-        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
-        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
+        byte[] sharedKey = new byte[SaltLib.crypto_box_SHAREDKEYBYTES];
+        sharedKey[9] = 0x09;
+        EncryptedChannelV2 c1e = new EncryptedChannelV2(tunnel.channel1(), sharedKey, EncryptedChannelV2.Role.CLIENT);
+        EncryptedChannelV2 c2e = new EncryptedChannelV2(tunnel.channel2(), sharedKey, EncryptedChannelV2.Role.SERVER);
         
-        c1.write(false, new byte[]{0x10});
-        c1.write(true, new byte[]{0x20}, new byte[]{0x30});
+        ApplicationChannel c1a = new ApplicationChannel(c1e, TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c2a = new ApplicationChannel(c2e, TimeKeeper.NULL, TimeChecker.NULL);
         
-        c2.read();
-        Assert.assertEquals("isLast1", false, c2.isLast());
-        c2.read();
-        Assert.assertEquals("isLast2", false, c2.isLast());
-        c2.read();
-        Assert.assertEquals("isLast3", true, c2.isLast());
+        c1a.write(true, new byte[]{0x10});
+        
+        Assert.assertEquals("lastFlag1", false, c2a.lastFlag());
+        c2a.read();
+        Assert.assertEquals("lastFlag2", true, c2a.lastFlag());
     }
     
     @Test
     public void testLastFlag2() {
+        // Note, the lastFlag is implemented in EncryptedChannelV2, so it must
+        // be included when testing this.
+        
         Tunnel tunnel = new Tunnel();
-        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
-        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
+        byte[] sharedKey = new byte[SaltLib.crypto_box_SHAREDKEYBYTES];
+        sharedKey[9] = 0x09;
+        EncryptedChannelV2 c1e = new EncryptedChannelV2(tunnel.channel1(), sharedKey, EncryptedChannelV2.Role.CLIENT);
+        EncryptedChannelV2 c2e = new EncryptedChannelV2(tunnel.channel2(), sharedKey, EncryptedChannelV2.Role.SERVER);
         
-        c1.write(false, new byte[]{0x10});
-        c2.read();
+        ApplicationChannel c1a = new ApplicationChannel(c1e, TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c2a = new ApplicationChannel(c2e, TimeKeeper.NULL, TimeChecker.NULL);
         
-        Assert.assertEquals(false, c2.isLast());
+        c1a.write(false, new byte[]{0x10});
+        c1a.write(true, new byte[]{0x20}, new byte[]{0x30});
+        
+        c2a.read();
+        Assert.assertEquals("lastFlag1", false, c2a.lastFlag());
+        c2a.read();
+        Assert.assertEquals("lastFlag2", true, c2a.lastFlag());
+        c2a.read();
+        Assert.assertEquals("lastFlag3", true, c2a.lastFlag());
     }
     
     

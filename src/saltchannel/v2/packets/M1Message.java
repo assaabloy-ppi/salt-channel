@@ -9,7 +9,7 @@ import saltchannel.util.Serializer;
  * 
  * @author Frans Lundberg
  */
-public class M1Packet implements Packet {
+public class M1Message implements Packet {
     public static final int PACKET_TYPE = 1;
     public static final int BIT_INDEX_SERVER_SIG_KEY_INCLUDED = 0;
     public static final int BIT_INDEX_TICKET_INCLUDED = 1;
@@ -79,8 +79,8 @@ public class M1Packet implements Packet {
         return result;
     }
     
-    public static M1Packet fromBytes(byte[] source, int offset) {
-        M1Packet data = new M1Packet();
+    public static M1Message fromBytes(byte[] source, int offset) {
+        M1Message data = new M1Message();
         
         Deserializer d = new Deserializer(source, offset);        
         

@@ -8,7 +8,7 @@ import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.util.Bytes;
-import saltchannel.v2.packets.EncryptedPacket;
+import saltchannel.v2.packets.EncryptedMessage;
 import saltchannel.v2.packets.TTPacket;
 
 /**
@@ -29,7 +29,7 @@ public class EncryptedChannelV2 implements ByteChannel {
     private final ByteChannel channel;
     private byte[] pushbackMessage;
     private byte[] sessionNonce;
-    
+    private EncryptedMessage lastReadEncryptedPacket = null;    
     private SaltLib salt = SaltLibFactory.getLib();
 
     /**
@@ -86,11 +86,19 @@ public class EncryptedChannelV2 implements ByteChannel {
     @Override
     public byte[] read() throws ComException, BadPeer {
         byte[] message = readOrTakePushback();
-        byte[] encrypted = unwrapToBytes(message);
+        this.lastReadEncryptedPacket = unwrap(message);
+        byte[] encrypted = lastReadEncryptedPacket.body;
         byte[] clear = decrypt(encrypted);
         
         increaseReadNonce();
         return clear;
+    }
+    
+    /**
+     * Returns the lastFlag of the last read packet.
+     */
+    public boolean lastFlag() {
+        return lastReadEncryptedPacket == null ? false : lastReadEncryptedPacket.lastFlag();
     }
     
     private byte[] readOrTakePushback() {
@@ -106,6 +114,9 @@ public class EncryptedChannelV2 implements ByteChannel {
         return bytes;
     }
     
+    /**
+     * @deprecated
+     */
     @Override
     public void write(byte[]...messages) throws ComException {
         write(false, messages);
@@ -207,7 +218,7 @@ public class EncryptedChannelV2 implements ByteChannel {
      * Wrap encrypted bytes in EncryptedPacket.
      */
     static byte[] wrap(boolean isLast, byte[] bytes) {
-        EncryptedPacket p = new EncryptedPacket();
+        EncryptedMessage p = new EncryptedMessage();
         p.body = bytes;
         p.lastFlag = isLast;
         byte[] result = new byte[p.getSize()];
@@ -216,11 +227,11 @@ public class EncryptedChannelV2 implements ByteChannel {
     }
     
     static byte[] unwrapToBytes(byte[] packetBytes) {
-        EncryptedPacket p = unwrap(packetBytes);
+        EncryptedMessage p = unwrap(packetBytes);
         return p.body;
     }
     
-    static EncryptedPacket unwrap(byte[] packetBytes) {
-        return EncryptedPacket.fromBytes(packetBytes, 0, packetBytes.length);
+    static EncryptedMessage unwrap(byte[] packetBytes) {
+        return EncryptedMessage.fromBytes(packetBytes, 0, packetBytes.length);
     }
 }

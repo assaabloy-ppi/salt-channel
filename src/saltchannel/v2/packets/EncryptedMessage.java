@@ -4,7 +4,7 @@ import saltchannel.BadPeer;
 import saltchannel.util.Deserializer;
 import saltchannel.util.Serializer;
 
-public class EncryptedPacket implements Packet {
+public class EncryptedMessage implements Packet {
     public static final int PACKET_TYPE = 6;
     public byte[] body;
     public boolean lastFlag = false;
@@ -33,8 +33,8 @@ public class EncryptedPacket implements Packet {
         s.writeBytes(body);
     }
     
-    public static EncryptedPacket fromBytes(byte[] source, int offset, int messageSize) {
-        EncryptedPacket p = new EncryptedPacket();
+    public static EncryptedMessage fromBytes(byte[] source, int offset, int messageSize) {
+        EncryptedMessage p = new EncryptedMessage();
         Deserializer d = new Deserializer(source, offset);
         
         PacketHeader header = d.readHeader();

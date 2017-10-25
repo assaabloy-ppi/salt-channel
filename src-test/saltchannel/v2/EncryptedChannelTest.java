@@ -45,7 +45,7 @@ public class EncryptedChannelTest {
                 EncryptedChannelV2.Role.SERVER);
         
         byte[] clear1 = "AAAA".getBytes("UTF-8");
-        e1.write(clear1);
+        e1.write(false, clear1);
         byte[] clear2 = e2.read();
         
         Assert.assertArrayEquals(clear1, clear2);
@@ -63,8 +63,8 @@ public class EncryptedChannelTest {
         byte[] m1 = new byte[]{1};
         byte[] m2 = new byte[]{2};
         
-        e1.write(m1);
-        e1.write(m2);
+        e1.write(false, m1);
+        e1.write(false, m2);
         
         byte[] m1b = e2.read();
         byte[] m2b = e2.read();
@@ -85,7 +85,7 @@ public class EncryptedChannelTest {
         byte[] m1 = new byte[]{1};
         byte[] m2 = new byte[]{2};
         
-        e1.write(m1, m2);
+        e1.write(false, m1, m2);
         
         byte[] m1b = e2.read();
         byte[] m2b = e2.read();
@@ -110,23 +110,22 @@ public class EncryptedChannelTest {
         byte[] m3 = new byte[]{1};
         byte[] m4 = new byte[]{2};
         
-        e1.write(m1);
+        e1.write(false, m1);
         byte[] m1b = e2.read();
         Assert.assertArrayEquals(m1, m1b);
         
-        e2.write(m2);
+        e2.write(false, m2);
         byte[] m2b = e1.read();
         Assert.assertArrayEquals(m2, m2b);
         
-        e1.write(m3);
+        e1.write(false, m3);
         byte[] m3b = e2.read();
         Assert.assertArrayEquals(m3, m3b);
         
-        e2.write(m4);
+        e2.write(false, m4);
         byte[] m4b = e1.read();
         Assert.assertArrayEquals(m4, m4b);
     }
-    
     
     @Test
     public void testFirstMessageFromClient() {
@@ -140,11 +139,11 @@ public class EncryptedChannelTest {
         byte[] m1 = new byte[]{1};
         byte[] m2 = new byte[]{2};
         
-        e2.write(m1);
+        e2.write(false, m1);
         byte[] m1b = e1.read();
         Assert.assertArrayEquals(m1, m1b);
         
-        e1.write(m2);
+        e1.write(false, m2);
         byte[] m2b = e2.read();
         Assert.assertArrayEquals(m2, m2b);
     }

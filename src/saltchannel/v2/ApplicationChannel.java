@@ -13,7 +13,10 @@ import saltchannel.v2.packets.Packet;
 import saltchannel.v2.packets.PacketHeader;
 
 /**
- * An application message channel on top of an underlying ByteChannel (EncryptedChannelV2).
+ * A message channel for the application layer to use after a successful
+ * handshake has been completed.
+ * 
+ * The channel works on top of an underlying ByteChannel (EncryptedChannelV2).
  * Adds a small header to messages (2-bytes header + time).
  * Also, this class decides how to encode application messages 
  * using AppPacket or MultiAppPacket.
@@ -26,18 +29,29 @@ public class ApplicationChannel implements ByteChannel {
     private TimeChecker timeChecker;
     private M4Packet bufferedM4 = null;
     private LinkedBlockingQueue<byte[]> readQ;
-    private PacketHeader lastReadHeader;
+    private boolean readLast = false;
+    private EncryptedChannelV2 encryptedChannel;
     
     public ApplicationChannel(ByteChannel channel, TimeKeeper timeKeeper, TimeChecker timeChecker) {
         this.channel = channel;
+        if (channel instanceof EncryptedChannelV2) {
+            encryptedChannel = (EncryptedChannelV2) channel;
+        } else {
+            encryptedChannel = null;
+        }
+        
         this.timeKeeper = timeKeeper;
         this.timeChecker = timeChecker;
         this.readQ = new LinkedBlockingQueue<byte[]>();
-        this.lastReadHeader = null;
     }
 
     @Override
     public byte[] read() throws ComException {
+        //
+        // Note, APP_PACKET and TYPE_MULTI_APP_PACKET do not contain the 
+        // lastFlag; it in included in ENCRYPTED_MESSAGE.
+        //
+        
         if (readQ.size() > 0) {
             try {
                 return readQ.take();
@@ -47,8 +61,11 @@ public class ApplicationChannel implements ByteChannel {
         }
         
         byte[] bytes = channel.read();
+        if (encryptedChannel != null) {
+            this.readLast = encryptedChannel.lastFlag();
+        }
+        
         PacketHeader header = new PacketHeader(bytes, 0);
-        this.lastReadHeader = header;
         int type = header.getType();
         byte[] result;
         
@@ -73,24 +90,21 @@ public class ApplicationChannel implements ByteChannel {
     }
     
     /**
-     * Returns the number of remaining application messages left to
-     * read in the buffer. This is the same as the number of further message
+     * Returns the number of remaining application buffered application
+     * messages. This is the same as the number of further messages
      * of an MultiAppPacket that are buffered by this implementation.
      */
-    public int available() {
+    public int availableFromMultiAppPacket() {
         return readQ.size();
     }
     
     /**
      * Returns true if the last packet read with read() is the last
-     * message of the application session.
+     * batch of messages of the application session.
+     * If available() returns 0, the last message of the session was read.
      */
-    public boolean isLast() {
-        if (lastReadHeader == null) {
-            return false;
-        }
-        
-        return available() == 0 && lastReadHeader.lastFlag() == true;
+    public boolean lastFlag() {
+        return this.readLast;
     }
     
     @Override
