@@ -104,6 +104,13 @@ public class A2Packet implements Packet {
         }
     }
     
+    public static A2Packet createNoSuchServerPacket() {
+        A2Packet a2 = new A2Packet();
+        a2.noSuchServer = true;
+        a2.prots = new A2Packet.Prot[0];
+        return a2;
+    }
+    
     /**
      * @throws BadPeer
      *          If data is not formatted correctly.

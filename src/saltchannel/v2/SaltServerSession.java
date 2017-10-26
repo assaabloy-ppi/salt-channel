@@ -5,6 +5,7 @@ import java.util.Arrays;
 import saltchannel.BadPeer;
 import saltchannel.ByteChannel;
 import saltchannel.CryptoLib;
+import saltchannel.a1a2.A1Packet;
 import saltchannel.a1a2.A2Packet;
 //import saltchannel.TweetNaCl;
 import saltaa.*;
@@ -207,8 +208,17 @@ public class SaltServerSession {
      */
     private void a2() {
         checkThatA2WasSet();
-        byte[] buffer = new byte[a2Packet.getSize()];
-        a2Packet.toBytes(buffer, 0);
+        A2Packet a2 = this.a2Packet;
+        
+        A1Packet a1 = A1Packet.fromBytes(m1Bytes, 0);
+        
+        if (a1.addressType == A1Packet.ADDRESS_TYPE_PUBKEY 
+                && (!Arrays.equals(this.sigKeyPair.pub(), a1.address))) {
+            a2 = A2Packet.createNoSuchServerPacket();
+        }
+        
+        byte[] buffer = new byte[a2.getSize()];
+        a2.toBytes(buffer, 0);
         clearChannel.write(true, buffer);    // LastFlag is set.
     }
 
@@ -224,7 +234,7 @@ public class SaltServerSession {
         timeChecker.reportFirstTime(m1.time);
         
         if (m1.serverSigKeyIncluded() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {
-            clearChannel.write(true, noSuchServerM2Raw());      //LastFlag is set
+            clearChannel.write(true, noSuchServerM2Raw());    // LastFlag is set
             throw new NoSuchServer();
         }
         
