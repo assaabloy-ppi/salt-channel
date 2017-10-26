@@ -55,6 +55,9 @@ public class SaltServerSession {
     private byte[] clientSigKey;
     private SaltLib salt = SaltLibFactory.getLib();
     private boolean bufferM2 = false;
+    
+    /** Set to true in handshake after an A1A2 session. */
+    private boolean isDone = false;
 
     public SaltServerSession(KeyPair sigKeyPair, ByteChannel clearChannel) {
         this.clearChannel = clearChannel;
@@ -68,7 +71,7 @@ public class SaltServerSession {
     private void initDefaultA2() {
         this.a2Packet = new A2Packet();
         a2Packet.prots = new A2Packet.Prot[1];
-        a2Packet.prots[0] = new A2Packet.Prot("SC2-------", "----------");
+        a2Packet.prots[0] = new A2Packet.Prot(A2Packet.SC2_PROT_STRING, "----------");
     }
     
     /**
@@ -126,6 +129,7 @@ public class SaltServerSession {
         
         if (m1Header.getType() == Packet.TYPE_A1) {
             a2();
+            this.isDone = true;
             return;
         }
         
@@ -145,6 +149,15 @@ public class SaltServerSession {
         validateSignature2();
         
         tt();
+    }
+    
+    /**
+     * If the session is complete after handshake() has been called, this
+     * method returns true. If so, the consumer must not call getChannel() to 
+     * receive an application channel.
+     */
+    public boolean isDone() {
+        return isDone;
     }
     
     private void readM1() {
@@ -178,8 +191,14 @@ public class SaltServerSession {
      * Note, it is recommended that the caller uses the ByteChannel interface
      * if possible rather than the specific ApplicationChannel implementation. 
      * The API of the interface is likely more stable.
+     * 
+     * @throws IllegalStateException 
+     *          If the session ended already, due to an A1A2 session.
      */
     public ApplicationChannel getChannel() {
+        if (isDone) {
+            throw new IllegalStateException("session is done, no application channel available");
+        }
         return this.appChannel;
     }
     

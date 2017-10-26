@@ -19,7 +19,6 @@ public class A2Packet implements Packet {
     public static final int PROT_STRING_SIZE = Prot.P_SIZE;
     public static final String SC2_PROT_STRING = "SCv2------";
     public static final String UNSPECIFIED_PROT_STRING = "----------";
-    
     public Prot[] prots;
     public boolean noSuchServer = false;
 
@@ -42,6 +41,21 @@ public class A2Packet implements Packet {
      */
     public int getSize() {
         return PacketHeader.SIZE + 1 + prots.length * (2 * Prot.P_SIZE);
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        Prot[] prots = getProts();
+        
+        for (int i = 0; i < prots.length; i++) {
+            Prot p = prots[i];
+            if (i != 0) {
+                b.append(", ");
+            }
+            b.append(p.p1 + "/" + p.p2);
+        }
+        return b.toString();
     }
     
     public void toBytes(byte[] destination, int offset) {

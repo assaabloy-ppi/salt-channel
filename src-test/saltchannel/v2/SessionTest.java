@@ -275,7 +275,7 @@ public class SessionTest {
         A2Packet a2 = client.go();
         
         Assert.assertEquals(1, a2.prots.length);
-        Assert.assertEquals("SC2-------", a2.prots[0].p1());
+        Assert.assertEquals("SCv2------", a2.prots[0].p1());
         Assert.assertEquals("----------", a2.prots[0].p2());
     }
     
@@ -301,6 +301,69 @@ public class SessionTest {
         Assert.assertEquals(2, a2b.prots.length);
         Assert.assertEquals("SCv2------", a2.prots[0].p1());
         Assert.assertEquals("MyProtV3--", a2.prots[0].p2());
+    }
+    
+    
+    @Test
+    public void testA1A2SessionAndIsDone() {
+        Tunnel tunnel = new Tunnel();
+        
+        final A1Client client = new A1Client(tunnel.channel1());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
+        server.setEncKeyPair(CryptoTestData.bEnc);
+        final boolean[] myIsDone = new boolean[]{false};
+        final ToWaitFor toWaitFor = new ToWaitFor();
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                server.handshake();
+                myIsDone[0] = server.isDone();
+                toWaitFor.reportHappened();
+            }
+        });
+        thread.start();
+        
+        A2Packet a2 = client.go();
+        
+        toWaitFor.waitForIt(1000);
+        
+        Assert.assertTrue(toWaitFor.hasHappened());
+        Assert.assertEquals(true, myIsDone[0]);
+        Assert.assertEquals("SCv2------", a2.prots[0].p1());
+    }
+    
+    @Test
+    public void testTheGetChannelThrowsForA1A2Session() {
+        Tunnel tunnel = new Tunnel();
+        
+        final A1Client client = new A1Client(tunnel.channel1());
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
+        server.setEncKeyPair(CryptoTestData.bEnc);
+        final Exception[] exception = new Exception[]{null};
+        final ToWaitFor toWaitFor = new ToWaitFor();
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                server.handshake();
+                try {
+                    server.getChannel();
+                } catch (IllegalStateException e) {
+                    exception[0] = e;
+                }
+                
+                toWaitFor.reportHappened();
+            }
+        });
+        thread.start();
+        
+        A2Packet a2 = client.go();
+        
+        toWaitFor.waitForIt(1000);
+        
+        Assert.assertTrue(toWaitFor.hasHappened());
+        Assert.assertTrue(exception[0] != null);
+        Assert.assertEquals(IllegalStateException.class.getName(), exception[0].getClass().getName());
+        Assert.assertEquals("SCv2------", a2.prots[0].p1());
     }
     
     @Test

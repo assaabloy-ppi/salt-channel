@@ -5,6 +5,15 @@ Release history. The implementation started in 2016, but formal
 releases starts with release 2.0.
 
 
+Release v2.3, 2017-xx-xx
+========================
+
+* SaltServerSession.isDone() method added.
+
+* SaltServerSession.getChannel() throws exception if session is done 
+  (A1A2 session).
+
+
 
 Release v2.2, 2017-10-25
 ========================
