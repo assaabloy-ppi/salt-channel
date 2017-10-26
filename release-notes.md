@@ -5,13 +5,16 @@ Release history. The implementation started in 2016, but formal
 releases starts with release 2.0.
 
 
-Release v2.3, 2017-xx-xx
+Release v2.3, 2017-10-26
 ========================
 
 * SaltServerSession.isDone() method added.
 
 * SaltServerSession.getChannel() throws exception if session is done 
   (A1A2 session).
+  
+* Fixed issue #12, now A2 with NoSuchServer flag set is sent when
+  it should.
 
 
 
