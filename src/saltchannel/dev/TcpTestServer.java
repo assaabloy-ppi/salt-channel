@@ -14,8 +14,8 @@ import saltchannel.v2.SaltServerSession;
  * A test TCP server running Salt Channel and a user-specified protocol
  * on top of that.
  * Note, this is for development purposes only. A fixed ephemeral key pair
- * to allow for deterministic sessions. This is not a secure practice
- * for production, of course.
+ * to allow for deterministic sessions. This is, of course, not a secure 
+ * practice for production.
  * 
  * @author Frans Lundberg
  */
@@ -139,6 +139,9 @@ public class TcpTestServer {
         session.setEncKeyPair(CryptoTestData.aEnc);
         session.setBufferM2(true);
         session.handshake();
+        if (session.isDone()) {
+            return;
+        }
         
         ByteChannelServerSession s = this.sessionFactory.createSession();
         s.runSession(session.getChannel());
