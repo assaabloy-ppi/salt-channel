@@ -7,7 +7,7 @@ About
 
 About this document.
 
-*Date*: 2017-10-20.
+*Date*: 2017-10-26.
 
 *Status*: DRAFT.
 
@@ -859,15 +859,16 @@ The Time field can be used by a server to protect against delay attacks
 by recording the time at which M1 arrived as ClientEpoch. For subsequent packets 
 the server can compute an expected value of the Time field by taking the 
 current time in milliseconds and subtracting ClientEpoch. If the difference 
-between the expected Time field value and the actual Time field value the server 
-can reject the message. A client that supports timestamping can perform the analogous
-steps to protect against delay attacks. A peer that supports timestamping 
-therefore have to store both MyEpoch and TheirEpoch, recording the time at which the 
-first message was sent and received respectively, in order to send a correct value
-in the Time field and verify the value in the Time field of incoming packets.
+between the expected value and the actual Time field value from the client 
+is too large, the server can reject the message. A client that supports 
+timestamping can perform the analogous steps to protect against delay attacks.
+A peer that supports timestamping therefore have to store both MyEpoch and 
+TheirEpoch, recording the time at which the first message was sent and 
+received respectively, in order to send a correct value in the Time field 
+and verify the value in the Time field of incoming packets.
 
 Format: Integer in [0, 2^31-1]. This means that either a signed or an 
-unsigned 32-bit integer canbe used to represent the time. Note that 
+unsigned 32-bit integer can be used to represent the time. Note that 
 2^31-1 milliseconds is more than 24 days.
 
 
