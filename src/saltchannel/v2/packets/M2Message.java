@@ -15,6 +15,7 @@ public class M2Message implements Packet {
     public int time;
     public byte[] serverEncKey;
     public boolean resumeSupported;
+    public boolean lastFlag;
     
     public M2Message() {
         resumeSupported = false;
@@ -45,6 +46,7 @@ public class M2Message implements Packet {
         PacketHeader header = new PacketHeader(PACKET_TYPE);
         header.setBit(0, noSuchServer);
         header.setBit(1, resumeSupported);
+        header.setBit(7, lastFlag);
         
         s.writeHeader(header);
         s.writeInt32(time);
@@ -69,6 +71,7 @@ public class M2Message implements Packet {
         
         p.noSuchServer = header.getBit(0);
         p.resumeSupported = header.getBit(1);
+        p.lastFlag = header.getBit(7);
         
         p.time = d.readInt32();
         if (p.time < 0) {

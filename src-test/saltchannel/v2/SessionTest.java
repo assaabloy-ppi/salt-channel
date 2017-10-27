@@ -15,6 +15,7 @@ import saltchannel.util.CryptoTestData;
 import saltchannel.util.KeyPair;
 import saltchannel.util.Rand;
 import saltchannel.util.TimeChecker;
+import saltchannel.v2.packets.PacketHeader;
 
 /**
  * Testing full client-server sessions; in-memory.
@@ -252,6 +253,45 @@ public class SessionTest {
         byte[] response = channel.read();
         
         Assert.assertArrayEquals(app1, response);
+    }
+    
+    @Test
+    public void testNoSuchServer() {
+        // Session with noSuchServer set in M2.
+        
+        Tunnel tunnel = new Tunnel();
+        LoggingByteChannel ch1 = new LoggingByteChannel(tunnel.channel1());
+        
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, ch1);
+        client.setEncKeyPair(CryptoTestData.aEnc);
+        client.setWantedServer(new byte[CryptoLib.SIGN_PUBLIC_KEY_BYTES]);
+        
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
+        server.setEncKeyPair(CryptoTestData.bEnc);
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    server.handshake();
+                } catch (NoSuchServer e) {
+                    // empty
+                }
+            }
+        });
+        thread.start();
+        
+        try {
+            client.handshake();
+        } catch (NoSuchServer e) {
+            // empty
+        }
+        
+        List<LoggingByteChannel.Entry> entries = ch1.getLog();
+        LoggingByteChannel.Entry last = entries.get(1);
+        PacketHeader header = new PacketHeader(last.bytes, 0);
+        
+        Assert.assertEquals(2, entries.size());
+        Assert.assertEquals(true, header.lastFlag());
     }
     
     @Test

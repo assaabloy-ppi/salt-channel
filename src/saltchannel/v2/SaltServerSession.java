@@ -121,6 +121,8 @@ public class SaltServerSession {
      * given an A1 request.
      * 
      * @throws NoSuchServer
+     *          If the client requested to connect to a server given
+     *          a public key and such a server does not exist.
      * @throws BadPeer
      */
     public void handshake() {
@@ -224,6 +226,8 @@ public class SaltServerSession {
 
     /**
      * Returns true if the session was resumed using a ticket in M1.
+     * 
+     * @throws NoSuchServer
      */
     private boolean processM1() {
         // Note the missing support for "virtual hosting". 
@@ -381,6 +385,7 @@ public class SaltServerSession {
         M2Message m2 = new M2Message();
         m2.time = timeKeeper.getFirstTime();
         m2.noSuchServer = true;
+        m2.lastFlag = true;
         m2.serverEncKey = new byte[32];
         byte[] raw = new byte[m2.getSize()];
         m2.toBytes(raw, 0);
