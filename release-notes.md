@@ -10,6 +10,8 @@ Release v2.4, 2017-xx-xx
 
 Next version here.
 
+* Fixed Issue #13: LastFlag not set in M2 for NoSuchServer condition.
+
 
 
 Release v2.3, 2017-10-26
