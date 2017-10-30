@@ -256,6 +256,50 @@ public class SessionTest {
     }
     
     @Test
+    public void testDropOne() {
+        // Client drops one message, leads to "invalid encryption".
+        
+        Tunnel tunnel = new Tunnel();
+        DropOneByteChannel ch1 = new DropOneByteChannel(tunnel.channel1());
+        
+        final SaltClientSession client = new SaltClientSession(CryptoTestData.aSig, ch1);
+        client.setEncKeyPair(CryptoTestData.aEnc);
+        
+        final SaltServerSession server = new SaltServerSession(CryptoTestData.bSig, tunnel.channel2());
+        server.setEncKeyPair(CryptoTestData.bEnc);
+        
+        Thread thread = new Thread(new Runnable() {
+            public void run() {
+                server.handshake();
+                byte[] appMessage = server.getChannel().read();
+                server.getChannel().write(false, appMessage);
+                server.getChannel().write(true, appMessage);
+            }
+        });
+        thread.start();
+        
+        client.handshake();
+        
+        byte[] app1 = new byte[3000];
+        app1[2999] = 99;
+        
+        ByteChannel channel = client.getChannel();
+        channel.write(false, app1);
+        ch1.dropNext();
+        
+        Exception ex = null;
+        try {
+            channel.read();
+        } catch (BadPeer e) {
+            ex = e;
+        }
+        
+        Assert.assertTrue(ex != null);
+        Assert.assertTrue(ex instanceof BadPeer);
+        Assert.assertTrue(ex.getMessage().contains("invalid encryption"));
+    }
+    
+    @Test
     public void testNoSuchServer() {
         // Session with noSuchServer set in M2.
         
