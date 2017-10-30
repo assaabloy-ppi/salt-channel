@@ -16,7 +16,7 @@ import saltchannel.v2.SaltServerSession;
  * 
  * @author Frans Lundberg
  */
-public class ExampleSessionData2 {
+public class ExampleSession2 {
     private Tunnel tunnel;
     private KeyPair serverSigKeyPair;
     private KeyPair serverEncKeyPair;
@@ -31,10 +31,10 @@ public class ExampleSessionData2 {
     }
 
     public static void main(String[] args) {
-        new ExampleSessionData2().go();
+        new ExampleSession2().go();
     }
     
-    public ExampleSessionData2() {
+    public ExampleSession2() {
         tunnel = new Tunnel();
         serverSigKeyPair = CryptoTestData.bSig;
         serverEncKeyPair = CryptoTestData.bEnc;

@@ -11,6 +11,7 @@ Release v2.4, 2017-xx-xx
 Next version here.
 
 * Fixed Issue #13: LastFlag not set in M2 for NoSuchServer condition.
+* Fixed Issue #14: ExampleSession3, now correct TimeKeeper in test data.
 
 
 
