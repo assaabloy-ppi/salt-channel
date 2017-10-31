@@ -17,7 +17,7 @@ public class ApplicationChannelTest {
         ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
         ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
         
-        c1.write(new byte[]{0x10});
+        c1.write(false, new byte[]{0x10});
         byte[] message = c2.read();
         
         Assert.assertArrayEquals(new byte[]{0x10}, message);
@@ -126,7 +126,7 @@ public class ApplicationChannelTest {
         ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), timeKeeper, TimeChecker.NULL);
         ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, timeChecker);
         
-        c1.write(new byte[]{0x10});
+        c1.write(false, new byte[]{0x10});
         byte[] message = c2.read();
         
         Assert.assertArrayEquals(new byte[]{0x10}, message);
@@ -160,7 +160,7 @@ public class ApplicationChannelTest {
         ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), timeKeeper, TimeChecker.NULL);
         ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, timeChecker);
         
-        c1.write(new byte[]{0x10}, new byte[]{0x20, 0x21});
+        c1.write(false, new byte[]{0x10}, new byte[]{0x20, 0x21});
         byte[] message1 = c2.read();
         byte[] message2 = c2.read();
         Assert.assertArrayEquals(new byte[]{0x10}, message1);

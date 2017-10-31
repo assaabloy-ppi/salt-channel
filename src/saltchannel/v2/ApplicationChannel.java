@@ -16,10 +16,10 @@ import saltchannel.v2.packets.PacketHeader;
  * A message channel for the application layer to use after a successful
  * handshake has been completed.
  * 
- * The channel works on top of an underlying ByteChannel (EncryptedChannelV2).
- * Adds a small header to messages (2-bytes header + time).
+ * The channel works on top of an underlying byte channel (an EncryptedChannelV2).
+ * It adds a small header to the messages (2-bytes header + time).
  * Also, this class decides how to encode application messages 
- * using AppPacket or MultiAppPacket.
+ * using either AppPacket or MultiAppPacket.
  * 
  * @author Frans Lundberg
  */
@@ -49,7 +49,7 @@ public class ApplicationChannel implements ByteChannel {
     public byte[] read() throws ComException {
         //
         // Note, APP_PACKET and TYPE_MULTI_APP_PACKET do not contain the 
-        // lastFlag; it in included in ENCRYPTED_MESSAGE.
+        // lastFlag; it is included in ENCRYPTED_MESSAGE.
         //
         
         if (readQ.size() > 0) {
@@ -107,6 +107,9 @@ public class ApplicationChannel implements ByteChannel {
         return this.readLast;
     }
     
+    /**
+     * @deprecated Deprecated from 2017-10-31, use write(isLast, messages) instead.
+     */
     @Override
     public void write(byte[]... messages) throws ComException {
         write(false, messages);

@@ -181,8 +181,8 @@ Goals
 The following are the main goals of the protocol.
 
 * **128-bit security**. 
-    The best attack SHOULD be a 2^128 brute force attack. 
-    No attack SHOULD be feasible until there are (if there ever will be) 
+    The best attack should be a 2^128 brute force attack. 
+    No attack should be feasible until there are (if there ever will be) 
     large-enough quantum computers.
 
 * **Forward secrecy**.
@@ -194,14 +194,14 @@ The following are the main goals of the protocol.
     public key of the client. Tracking of the client is impossible.
     
 * **Simple protocol**.
-    It SHOULD be possible to implement in few lines of code. 
+    It should be possible to implement in few lines of code. 
     Should be auditable just like TweetNaCl.
 
 * **Compact protocol** (few bytes).
     Designed for Bluetooth Low Energy and other low-bandwidth channels.
 
 * **Independent packet parsing**.
-    It SHOULD be possible to parse each packet *independently* of any 
+    It should be possible to parse each packet *independently* of any 
     session state. The pack/unpack code is thus simplified. There is 
     little to gain from not following this principle.
 
@@ -216,7 +216,7 @@ Salt Channel is limited in scope in the following ways:
     Using certificates together with the Salt Channel public keys
     is possible, but not included in the protocol.
     
-* **No quantum sequrity**.
+* **No quantum security**.
     The protocol is not intended to be secure for an 
     attacker with a large quantum computer. Such a computer does not exist.
     This is a limitation from the underlying TweetNaCl library.
