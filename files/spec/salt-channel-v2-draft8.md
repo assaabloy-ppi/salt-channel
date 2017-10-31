@@ -7,7 +7,7 @@ About
 
 About this document.
 
-*Date*: 2017-10-26.
+*Date*: 2017-10-31.
 
 *Status*: DRAFT.
 
@@ -181,13 +181,25 @@ Goals
 The following are the main goals of the protocol.
 
 * **128-bit security**. 
-    The best attack should be a 2^128 brute force attack. 
+    The best attack should be a 2^128 brute force attack.
     No attack should be feasible until there are (if there ever will be) 
     large-enough quantum computers.
+
+* **Internet-capable**.
+    The protocol should protect against all attacks that can occur
+    on public communication channels. The attacker can read, modify, 
+    redirect all packages sent between any pair of peers. The attacker has 
+    access to every Salt Channel package ever sent and packages from 
+    all currently active Salt Channel sessions world-wide.
 
 * **Forward secrecy**.
     Recorded communication will not be possible to decrypt even 
     if one or both peer's private keys are compromised.
+    
+* **Delay attack protection**.
+    The protocol should protect against *delay attacks*. If the attacker
+    delays a package, the receiving peer should detect this if the
+    delay is abnormal.
 
 * **Secret client identity**.
     An active or passive attacker cannot retrieve the long-term 
@@ -200,10 +212,6 @@ The following are the main goals of the protocol.
 * **Compact protocol** (few bytes).
     Designed for Bluetooth Low Energy and other low-bandwidth channels.
 
-* **Independent packet parsing**.
-    It should be possible to parse each packet *independently* of any 
-    session state. The pack/unpack code is thus simplified. There is 
-    little to gain from not following this principle.
 
 
 Limitations
@@ -299,10 +307,10 @@ and the client finishes the handshake by sending M4. When the first application
 message is sent by the client, this message SHOULD be sent together with M4 by
 the underlying layer to achieve a one round-trip overhead (instead 
 of two). Application layer messages (AppPacket:s) are sent by both client and 
-server in any order. The notation "E()" is used to denote authenticated encryption, 
-see the section on [EncryptedMessage](#encryptedmessage). This notation MAY be 
-omitted for clarity. Note that only M1 and M2 are sent in cleartext, M3 and all 
-subsequent packets are always encrypted.
+server in any order. The notation "E()" is used to denote authenticated 
+encryption, see the section on [EncryptedMessage](#encryptedmessage). 
+This notation MAY be omitted for clarity. Note that only M1 and M2 are sent 
+in cleartext, M3 and all subsequent packets are always encrypted.
 
 An overview of a typical Salt Channel session is shown below.
     
@@ -333,7 +341,9 @@ Later sections will describe these messages in detail.
 A1A2 session
 ------------
 
-A Salt Channel session can also consist of the A1 and A2 messages. The A1A2 session allows the client to ask the server about its public server protocol information.
+A Salt Channel session can also consist of the A1 and A2 messages. The A1A2 
+session allows the client to ask the server about its public server protocol
+information.
     
     Session = A1 A2
     
@@ -394,11 +404,13 @@ Packets are presented below with fields of specified sizes.
 If the size has a "b" suffix, the size is in bits, otherwise 
 it is in bytes.
 
-Regarding byte and bit order, the *little-endian* byte order MUST be used.
-The first byte (Byte 0) is the least significant byte of an integer.
-Bit order: the first bit (Bit 0) of a byte is the least-significant bit.
+*Little-endian* byte order MUST be used. The first byte (Byte 0) is 
+the least significant byte of an integer.
 
-Unless otherwise stated explicitly, bits are set to 0.
+*LSB 0* bit numbering (bit order) MUST be used. The first bit (Bit 0) is 
+the least significant bit of a byte.
+
+Unless otherwise stated explicitly, bits MUST be set to 0.
 
 The valid range for an integer is expressed using the standard range notation
 for closed intervals. [0, 127] denotes the closed interval between 0 and 127 
@@ -495,10 +507,10 @@ Message A2 has the following format:
         have the value 0.
         
     6b  Zero.
-        Bits set to zero.
+        Bits 1-6 are set to zero.
         
     1b  LastFlag.
-        Always set to 1 for this message to indicate that this is
+        Bit 7 is always set to 1 for this message to indicate that this is
         the last message of the the session.
     
     
@@ -519,7 +531,8 @@ The strings on P1 and P2 MUST only contain ASCII characters in the following
 set: 'A'-'Z', 'a'-'z', '0'-'9', '-', '.', '/', '\_'. That is, English letters, 
 upper-case or lower case, digits, dash, period, slash, and underscore are the 
 allowed characters. This translates to the following ranges of valid values for the
-bytes making up the P1 and P2 strings: [0x2D, 0x39], [0x41, 0x5A], [0x5F, 0x5F], and [0x61, 0x7A].
+bytes making up the P1 and P2 strings: [0x2D, 0x39], [0x41, 0x5A], 
+[0x5F, 0x5F], and [0x61, 0x7A].
 
 The server MUST use protocol ID "SCv2------" for Salt Channel v2. 
 The plan is that future versions of Salt Channel will use the same 
@@ -572,10 +585,10 @@ Details:
         The value is 1 for this packet.
     
     1b  ServerSigKeyIncluded.
-        Set to 1 when ServerSigKey is included in the message.
+        Bit 0 is set 1 when ServerSigKey is included in the message.
         
     7b  Zero.
-        Bits set to 0.
+        Bits 1-6 are set to 0.
     
 
 
@@ -624,10 +637,10 @@ on the same endpoint.
         condition happens.
         
     6b  Zero.
-        Bits set to zero.
+        Bits 1-6 are set to zero.
     
     1b  LastFlag.
-        Set to 1 when this is the last message of the session.
+        Bit 7 is set to 1 when this is the last message of the session.
         That is, when the NoSuchServer bit is set.
     
 
@@ -828,12 +841,11 @@ ciphertext of those packets are included in the field EncryptedMessage/Body.
         The value is 6 for this packet.
     
     7b  Zero.
-        Bits set to 0.
+        Bits 0-6 are set to 0.
         
     1b  LastFlag.
-        Set to 0
-        Unless it is the very last message of the Salt Channel session,
-        in which case it is set to 1
+        Bit 7 is set to 0 unless it is the very last message of the 
+        Salt Channel session, in which case it is set to 1
        
 
 See the section "Crypto" for details of the authenticated encryption.
