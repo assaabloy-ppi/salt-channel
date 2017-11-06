@@ -5,6 +5,12 @@ Release history. The implementation started in 2016, but formal
 releases starts with release 2.0.
 
 
+v2.5, 2017-xx-xx
+================
+
+XXX next release.
+
+
 Release v2.4, 2017-11-06
 ========================
 
