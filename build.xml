@@ -16,8 +16,8 @@ NOTE: compile with Java 7! (mainly due to Android).
     </tstamp>
 
     <!-- VERSION, first line below is for DEV build, second for _RELEASE build. -->
-    <property name="version" value="2.3.${date}"/>
-    <!-- <property name="version" value="2.3"/> -->
+    <!-- <property name="version" value="2.4.${date}"/> -->
+    <property name="version" value="2.4"/>
     
     <property name="time" value="${dateAndMinute}"/>
 

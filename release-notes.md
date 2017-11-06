@@ -5,10 +5,10 @@ Release history. The implementation started in 2016, but formal
 releases starts with release 2.0.
 
 
-Release v2.4, 2017-xx-xx
+Release v2.4, 2017-11-06
 ========================
 
-Next version here.
+Implements v2-draft8.md. No known bugs.
 
 * Fixed Issue #13: LastFlag not set in M2 for NoSuchServer condition.
 * Fixed Issue #14: ExampleSession3, now correct TimeKeeper in test data.
