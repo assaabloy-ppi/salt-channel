@@ -110,6 +110,9 @@ public class WsTestServer {
                     for (int i = 0; i < messages.length; i++) {
                         socket.send(messages[i]);
                     }
+                    if (isLast) { // close socket if last message has been sent
+                        socket.close();
+                    }
                 }
             };
             
