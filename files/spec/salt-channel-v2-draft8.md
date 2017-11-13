@@ -64,8 +64,9 @@ Table of contents
   * [Goals](#goals)
   * [Limitations](#limitations)
 * [Layer below](#layer-below)
-  * [Salt Channel over a stream](#salt-channel-over-a-stream)
+  * [Salt Channel over TCP](#salt-channel-over-tcp)
   * [Salt Channel over WebSocket](#salt-channel-over-websocket)
+  * [Salt Channel over a byte stream](#salt-channel-over-a-byte-stream)
 * [Salt Channel sessions](#salt-channel-sessions)
   * [Handshaked session](#handshaked-session)
   * [A1A2 session](#a1a2-session)
@@ -249,33 +250,37 @@ Layer below
 
 Salt Channel can be implemented on top of any underlying channel that provides
 reliable, order-preserving, bidirectional communication. This section 
-describes how Salt Channel is implemented on top of a stream-type of 
-channel such as TCP, and how it is implemented on top of a WebSocket.
+describes how Salt Channel is implemented on top of a TCP, WebSocket and
+a general stream similar to TCP.
 
-Excluding this section, this specification only deals with byte arrays 
+Note, except for this section, this specification only deals with byte arrays 
 *of known size*. The underlying layer provides an order-preserving 
 exchange of byte arrays, each with a known size.
 
 
-Salt Channel over a stream
---------------------------
+Salt Channel over TCP
+---------------------
 
-When Salt Channel is implemented on top of a stream, such as TCP, the following
-format is used:
+When Salt Channel is implemented on top of TCP, the following
+"chunking format" is used:
 
     Stream = (Size Message)+
     
 *Size* is a 32-bit integer with the byte size of 
 the following Message. Its valid range is [0, 2^31-1], so either
 an unsigned or signed 32-bit integer work for storing it in computer memory.
-*Message* is the raw message bytes. The different of message types
+*Message* is the raw message bytes. The different message types
 are defined in the [Message details](#message-details) section.
+
+Is is RECOMMENDED that the TCP connection is closed when the Salt Channel 
+session is closed. This behavior MUST be the default behavior of compliant 
+implementations.
 
 
 Salt Channel over WebSocket
 ---------------------------
 
-WebSocket [WS] connections are already in the "chunked" format and transmit 
+WebSocket [WS] connections are already in a "chunked" format and transmit 
 binary data either as ArrayBuffer (byte array-like object) or Blob 
 (file-like object). Because WebSockets using the binary type ArrayBuffer 
 delivers a stream of byte arrays of known size, as opposed to individual 
@@ -283,6 +288,17 @@ bytes, Salt Channel over WebSocket is very simple. There is no need for the
 size prefix that is needed when implementing Salt Channel over TCP. Each 
 WebSocket message is a message as specified in this document.
 
+Is is RECOMMENDED that the WebSocket connection is closed when the Salt Channel 
+session is closed. This behavior MUST be the default behavior of compliant 
+implementations.
+
+
+Salt Channel over a byte stream
+-------------------------------
+
+The chunking format as defined for PoT over TCP is RECOMMENDED when PoT is 
+implemented over any type of byte stream similar to TCP; for example for 
+PoT over RS232 ("serial port").
 
 
 
