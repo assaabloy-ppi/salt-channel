@@ -272,7 +272,7 @@ an unsigned or signed 32-bit integer work for storing it in computer memory.
 *Message* is the raw message bytes. The different message types
 are defined in the [Message details](#message-details) section.
 
-Is is RECOMMENDED that the TCP connection is closed when the Salt Channel 
+It is RECOMMENDED that the TCP connection is closed when the Salt Channel 
 session is closed. This behavior MUST be the default behavior of compliant 
 implementations.
 
@@ -288,7 +288,7 @@ bytes, Salt Channel over WebSocket is very simple. There is no need for the
 size prefix that is needed when implementing Salt Channel over TCP. Each 
 WebSocket message is a message as specified in this document.
 
-Is is RECOMMENDED that the WebSocket connection is closed when the Salt Channel 
+It is RECOMMENDED that the WebSocket connection is closed when the Salt Channel 
 session is closed. This behavior MUST be the default behavior of compliant 
 implementations.
 
