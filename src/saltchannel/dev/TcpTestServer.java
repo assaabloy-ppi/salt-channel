@@ -11,8 +11,8 @@ import saltchannel.util.Util;
 import saltchannel.v2.SaltServerSession;
 
 /**
- * A test TCP server running Salt Channel and a user-specified protocol
- * on top of that.
+ * An INSECURE test TCP server running Salt Channel and a 
+ * user-specified protocol on top of that.
  * Note, this is for development purposes only. A fixed ephemeral key pair
  * to allow for deterministic sessions. This is, of course, not a secure 
  * practice for production.
@@ -27,6 +27,7 @@ public class TcpTestServer {
     private ServerSocket ss;
     private ServerSessionFactory sessionFactory;
     private KeyPair keyPair;
+    private Listener listener = Listener.NULL;
     
     public TcpTestServer(int port, ServerSessionFactory sessionFactory) {
         // Inits things.
@@ -34,29 +35,40 @@ public class TcpTestServer {
         
         this.port = port;
         this.sessionFactory = sessionFactory;
-        
         this.keyPair = CryptoTestData.bSig;   // server is "Bob"
         
         this.thread = new Thread(new Runnable() {
             public void run() {
-                TcpTestServer.this.run();
+                TcpTestServer.this.runIt();
             }
         });
         thread.setName("Server-thread");
+    }
+    
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
+    
+    /**
+     * Helper function that creates an echo server based on the implementation
+     * in EchoServerSession. The DEFAULT_PORT is used.
+     */
+    public static TcpTestServer createEchoServer() {
+        return createEchoServer(DEFAULT_PORT);
     }
     
     /**
      * Helper function that creates an echo server based on the implementation
      * in EchoServerSession.
      */
-    public static TcpTestServer createEchoServer() {
+    public static TcpTestServer createEchoServer(int port) {
         ServerSessionFactory sessionFactory = new ServerSessionFactory() {
             public ByteChannelServerSession createSession() {
                 return new EchoServerSession();
             }
         };
         
-        return new TcpTestServer(DEFAULT_PORT, sessionFactory);
+        return new TcpTestServer(port, sessionFactory);
     }
     
     /**
@@ -67,7 +79,7 @@ public class TcpTestServer {
     public void start() throws IOException {
         ss = new ServerSocket(port);
         thread.start();
-        System.out.println("SERVER: started on port " + port + ".");
+        listener.println("SERVER: started on port " + port + ".");
     }
     
     /**
@@ -88,7 +100,7 @@ public class TcpTestServer {
         return port;
     }
     
-    private void run() {       
+    private void runIt() {       
         try {
             while (shutdown != true) {
                 final Socket socket;
@@ -97,7 +109,7 @@ public class TcpTestServer {
                     socket = ss.accept();
                     socket.setTcpNoDelay(true);
                 } catch (IOException e) {
-                    // This is expected when other code calls ss.close().
+                    // This is expected when other thread calls ss.close().
                     break;
                 }
                 
@@ -119,7 +131,7 @@ public class TcpTestServer {
         try {
             reallyHandleSocket(socket);
         } catch (ComException e) {
-            System.out.println("SERVER: ComException while communicating with client, " + socket.getInetAddress() + ", " + e.getMessage());
+            listener.println("SERVER: ComException while communicating with client, " + socket.getInetAddress() + ", " + e.getMessage());
         } finally {
             Util.close(socket);
         }
@@ -145,6 +157,17 @@ public class TcpTestServer {
         
         ByteChannelServerSession s = this.sessionFactory.createSession();
         s.runSession(session.getChannel());
+    }
+    
+    public static interface Listener {
+        public static final Listener NULL = new Listener() {
+            public void println(String string) {}
+        };
+        
+        /**
+         * Prints a debug message to the listener.
+         */
+        public void println(String string);
     }
     
     public static void main(String[] args) throws IOException, InterruptedException {
