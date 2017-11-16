@@ -1,3 +1,10 @@
+Log 2017-11-16
+==============
+
+Frans: Salt Channel v2 declared FINAL! 
+Doc: salt-channel-v2-final1.md.
+
+
 Log 2017-10-16
 ==============
 
