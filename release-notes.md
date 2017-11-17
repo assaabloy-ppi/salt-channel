@@ -6,12 +6,13 @@ releases starts with release 2.0, November 2017.
 
 
 
-v2.5, 2017-11-xx
+v2.5, 2017-11-17
 ================
 
 Implements salt-channel-v2-final1. 
 
-* Minor refactoring.
+* Minor refactorings.
+* Fixed issues #16, #17, #18. 
 
 
 
