@@ -23,12 +23,6 @@ public class ExampleSession2 {
     private LoggingByteChannel loggingByteChannel;
     private static final String P1 = A2Packet.SC2_PROT_STRING;
     private static final String P2 = "ECHO------";
-    private static final byte[] pubkey = new byte[32];
-    static {
-        for (int i = 0; i < pubkey.length; i++) {
-            pubkey[i] = 0x09;
-        }
-    }
 
     public static void main(String[] args) {
         new ExampleSession2().go();

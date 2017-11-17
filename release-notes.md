@@ -2,13 +2,16 @@ salt-channel/releases-notes.txt
 ===============================
 
 Release history. The implementation started in 2016, but formal 
-releases starts with release 2.0.
+releases starts with release 2.0, November 2017.
 
 
-v2.5, 2017-xx-xx
+
+v2.5, 2017-11-xx
 ================
 
-XXX next release.
+Implements salt-channel-v2-final1. 
+
+* Minor refactoring.
 
 
 
