@@ -15,10 +15,13 @@ import saltchannel.dev.EchoServerSession;
 import saltchannel.dev.ServerSessionFactory;
 import saltchannel.util.CryptoTestData;
 import saltchannel.util.KeyPair;
+import saltchannel.util.Pair;
 import saltchannel.v2.SaltServerSession;
+import saltchannel.v2.packets.PacketHeader;
 
 /**
  * WebSocket echo server over Salt Channel.
+ * Just for testing; an example implementation, not for production use.
  * 
  * @author Frans Lundberg
  */
@@ -57,10 +60,18 @@ public class WsTestServer {
             @Override
             public void onMessage(WebSocket socket, java.nio.ByteBuffer message) {
                 byte[] bytes = message.array();
+                
+                if (bytes.length < PacketHeader.SIZE) {
+                    // Could be logged if this were production code.
+                    socket.close();
+                }
+                
+                PacketHeader header = new PacketHeader(bytes, 0);
+                
                 synchronized (this) {
                     WebSocketInfo info = sockets.get(socket);
                     if (info != null) {
-                        info.messageQ.add(bytes);
+                        info.messageQ.add(new Pair<byte[], Boolean>(bytes, header.lastFlag()));
                     }
                 }
             }
@@ -95,11 +106,21 @@ public class WsTestServer {
             
             ByteChannel clearChannel = new ByteChannel() {
                 public byte[] read() throws ComException {
+                    Pair<byte[], Boolean> pair;
                     try {
-                        return socketInfo.messageQ.take();
+                        pair = socketInfo.messageQ.take();
                     } catch (InterruptedException e) {
                         throw new ComException(e.getMessage());
                     }
+                    
+                    byte[] bytes = pair.getValue0();
+                    boolean isLast = pair.getValue1();
+                    
+                    if (isLast) {
+                        socket.close();
+                    }
+                    
+                    return bytes;
                 }
 
                 public void write(byte[]... messages) throws ComException {
@@ -110,6 +131,7 @@ public class WsTestServer {
                     for (int i = 0; i < messages.length; i++) {
                         socket.send(messages[i]);
                     }
+                    
                     if (isLast) { // close socket if last message has been sent
                         socket.close();
                     }
@@ -132,10 +154,10 @@ public class WsTestServer {
     }
 
     private static class WebSocketInfo {
-        BlockingQueue<byte[]> messageQ;
+        BlockingQueue<Pair<byte[], Boolean>> messageQ;
         
         WebSocketInfo() {
-            this.messageQ = new LinkedBlockingQueue<byte[]>();
+            this.messageQ = new LinkedBlockingQueue<Pair<byte[], Boolean>>();
         }
     }
     
