@@ -16,8 +16,8 @@ Implements salt-channel-v2-final1.
 
 
 
-Release v2.4, 2017-11-06
-========================
+v2.4, 2017-11-06
+================
 
 Implements v2-draft8.md. No known bugs.
 
@@ -26,8 +26,8 @@ Implements v2-draft8.md. No known bugs.
 
 
 
-Release v2.3, 2017-10-26
-========================
+v2.3, 2017-10-26
+================
 
 Implements v2-draft8.md. No known bugs.
 
@@ -41,8 +41,8 @@ Implements v2-draft8.md. No known bugs.
 
 
 
-Release v2.2, 2017-10-25
-========================
+v2.2, 2017-10-25
+================
 
 Implements salt-channel-v2-draft8.md. No known bugs.
 
@@ -51,14 +51,14 @@ Implements salt-channel-v2-draft8.md. No known bugs.
 
 
 
-Release v2.1, 2017-10-17
-========================
+v2.1, 2017-10-17
+================
 
 This release implements Salt Channel v2, draft8.
 
 
 
-Release v2.0, 2017-10-17
-========================
+v2.0, 2017-10-17
+================
 
 Implements Salt Channel v2, draft7 (spec-salt-channel-v2-draft7.md).
