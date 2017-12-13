@@ -3,8 +3,6 @@ package saltchannel;
 import org.junit.Assert;
 import org.junit.Test;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 public class ByteChannelWithListenerTest {
 
     @Test
@@ -42,7 +40,7 @@ public class ByteChannelWithListenerTest {
         
         ByteChannel ch1 = new ByteChannel() {
             public byte[] read() throws ComException {
-                throw new NotImplementedException();
+                throw new Error();
             }
 
             public void write(byte[]... messages) throws ComException {}
