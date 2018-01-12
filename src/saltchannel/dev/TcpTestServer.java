@@ -3,6 +3,8 @@ package saltchannel.dev;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import saltchannel.ByteChannel;
 import saltchannel.ComException;
 import saltchannel.SocketChannel;
 import saltchannel.util.CryptoTestData;
@@ -28,6 +30,7 @@ public class TcpTestServer {
     private ServerSessionFactory sessionFactory;
     private KeyPair keyPair;
     private Listener listener = Listener.NULL;
+    private boolean useEncryption = true;
     
     public TcpTestServer(int port, ServerSessionFactory sessionFactory) {
         // Inits things.
@@ -47,6 +50,14 @@ public class TcpTestServer {
     
     public void setListener(Listener listener) {
         this.listener = listener;
+    }
+    
+    /**
+     * If true (the default), the server will use Salt Channel connections.
+     * Otherwise, cleartext is used.
+     */
+    public void setUseEncryption(boolean useEncryption) {
+        this.useEncryption = useEncryption;
     }
     
     /**
@@ -141,22 +152,30 @@ public class TcpTestServer {
         System.out.println("SERVER: client connected: " + socket.getRemoteSocketAddress());
         
         SocketChannel clearChannel;
+        ByteChannel channel;
+        
         try {
             clearChannel = new SocketChannel(socket);
         } catch (IOException e) {
             throw new ComException(e.getMessage());
         }
         
-        SaltServerSession session = new SaltServerSession(keyPair, clearChannel);
-        session.setEncKeyPair(CryptoTestData.aEnc);
-        session.setBufferM2(true);
-        session.handshake();
-        if (session.isDone()) {
-            return;
+        if (useEncryption) {
+            SaltServerSession session = new SaltServerSession(keyPair, clearChannel);
+            session.setEncKeyPair(CryptoTestData.aEnc);
+            session.setBufferM2(true);
+            session.handshake();
+            if (session.isDone()) {
+                return;
+            }
+            
+            channel = session.getChannel();
+        } else {
+            channel = clearChannel;
         }
         
         ByteChannelServerSession s = this.sessionFactory.createSession();
-        s.runSession(session.getChannel());
+        s.runSession(channel);
     }
     
     public static interface Listener {
