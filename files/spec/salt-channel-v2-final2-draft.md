@@ -626,7 +626,7 @@ Because M2 and M3 are sent separately it is possible to encrypt M3 the same way
 as application messages are encrypted. Also, it makes it possible to perform 
 the signature computations (Signature1, Signature2) in parallel. The server
 MAY send the M2 message before Signature1 is computed. This can decrease the 
-overall handshake time cases when computation time is long compared to 
+overall handshake time in cases when computation time is long compared to 
 communication time.
 
 Note that M2 depends on the contents of M1, therefore the server MUST read M1 
@@ -713,7 +713,7 @@ M4
 
 M4 is sent by the client. When M4 has been sent and received both peers 
 have authenticated themselves to each other, and they have agreed upon 
-a symmetric encryption key, i.e. the Salt Channel handhsake is complete. 
+a symmetric encryption key, i.e. the Salt Channel handshake is complete. 
     
     **** M4 ****
     
