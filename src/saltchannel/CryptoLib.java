@@ -134,7 +134,7 @@ public class CryptoLib {
         byte[] sec = new byte[SaltLib.crypto_sign_SECRETKEYBYTES];
         byte[] pub = new byte[SaltLib.crypto_sign_PUBLICKEYBYTES];
         rand.randomBytes(sec);
-        salt.crypto_sign_keypair_not_random(pub, sec);
+        salt.crypto_sign_keypair_not_random(pub, sec);        
         return new KeyPair(sec, pub);
     }
     

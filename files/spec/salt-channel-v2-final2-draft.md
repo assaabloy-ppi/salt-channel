@@ -1,4 +1,4 @@
-salt-channel-v2-final1.md
+salt-channel-v2-final2.md
 =========================
 
 
@@ -7,11 +7,11 @@ About
 
 About this document.
 
-*Date*: 2017-11-16.
+*Date*: 2018-XX-XX.
 
 *Status*: FINAL.
 
-*Title*: salt-channel-v2-final1.md -- Specification of Salt Channel v2
+*Title*: salt-channel-v2-final2.md -- Specification of Salt Channel v2
 
 *Authors*:
  
@@ -31,6 +31,9 @@ About this document.
 
 History
 -------
+
+* 2018-XX-XX. FINAL2. Clarifications, improved wording. Based on security
+  analysis by Assured AB (report 2018-01-26).
 
 * 2017-11-16. FINAL1. This specification is declared final. No protocol
   changes are allowed from now on, only clarifications, examples and such.
@@ -451,8 +454,8 @@ even if/when Salt Channel is upgraded to v3, v4, and so on.
 
 No encryption is used. Information sent by the server SHOULD be 
 validated later once a secure channel has been established.
-The A2 response by the server is assumed to be static for days, weeks, or
-longer. The client is allowed to cache this information.
+The contents of the A2 response by the server is assumed to be static for 
+days, weeks, or longer. The client is allowed to cache this information.
     
     **** A1 ****
     
@@ -483,6 +486,7 @@ longer. The client is allowed to cache this information.
     8b  Zero.
         Bits set to 0.
         
+
 Two address types are currently supported.
 
 *AddressType 0* is the *any* type. The client does not specify a particular
@@ -522,8 +526,7 @@ Message A2 has the following format:
         
     1b  NoSuchServer.
         Set to 1 if no server could be found or connected to that matches
-        the Address field of A1. When this bit is set, A2/Count MUST 
-        have the value 0.
+        the Address field of A1.
         
     6b  Zero.
         Bits 1-6 are set to zero.
@@ -542,10 +545,8 @@ Message A2 has the following format:
     
     10  P2.
         Protocol ID of the protocol on top of Salt Channel. 
-        Exactly 10 ASCII bytes. If the server does not wish to reveal any 
-        information about the layer above, the server MUST use value 
-        "----------" for this field.
-    
+        Exactly 10 ASCII bytes.
+        
 The strings on P1 and P2 MUST only contain ASCII characters in the following
 set: 'A'-'Z', 'a'-'z', '0'-'9', '-', '.', '/', '\_'. That is, English letters, 
 upper-case or lower case, digits, dash, period, slash, and underscore are the 
@@ -558,13 +559,17 @@ The plan is that future versions of Salt Channel will use the same
 A1 and A2 messages. Salt Channel v3 SHOULD use "SCv3------" and 
 v4 SHOULD use "SCv4------" and so on.
 
-The server also has the ability to specify a higher-level layer
-protocol in the A2 message. This way a client can determine whether there 
-is any use of connecting to the server.
+The server can OPTIONALLY specify an application protocol on top of PoT in the
+A2/P2 field. This way a client can determine whether there is any use of 
+connecting to the server. Note, the application layer has to decide whether 
+publishing this information affects the overall security in any way.
+If the server does not wish to reveal any information about the layer above,
+the server MUST use the value "----------" for this field.
 
 Note that messages A1 and A2 together form a complete session.
 An M1 message following A1 and A2 MUST be considered a *new* 
 session that is completely independent of the previous A1A2 session.
+
 
 
 M1
