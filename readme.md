@@ -16,10 +16,12 @@ however, this property is included in the April 2017 TLS 1.3 draft.
 The development of the code in this repository and the protocol 
 itself has been financed by [ASSA ABLOY AB](http://www.assaabloy.com/) 
 -- the global leader in door opening solutions. Thank you for 
-supporting this work.
+supporting this work. We also thank Daniel Bernstein for developing the 
+underlying cryptographic algorithms. Our work is completely based on his work.
 
-We also thank Daniel Bernstein for developing the underlying cryptographic
-algorithms. Our work is completely based on his work.
+The protocol has been audited. [This statement](files/v2-review-statement-2018-02.pdf)
+is a summary of the result of the latest security audit. It was performed 
+by Assured AB, thank you!
 
 
 
