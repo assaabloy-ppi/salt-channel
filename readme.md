@@ -3,8 +3,8 @@ salt-channel
 
 This repo contains [the specification](files/spec/) and the 
 Java reference implementation of 
-*Salt Channel* - a simple, light-weight secure channel protocol based on 
-[TweetNaCl](http://tweetnacl.cr.yp.to/) by Bernstein et al.
+*Salt Channel* - a simple, light-weight secure channel protocol based on the 
+[TweetNaCl](http://tweetnacl.cr.yp.to/) API / library by Bernstein et al.
 Salt Channel is "Powered by Curve25519".
 
 Salt Channel is simpler than TLS and works well on small embedded processors.
@@ -22,16 +22,21 @@ We also thank Daniel Bernstein for developing the underlying cryptographic
 algorithms. Our work is completely based on his work.
 
 
+
 Versions
 ========
 
-Version v1 is the currently well-defined version of the protocol. 
-We work with the v2 specifications and implementations for it. 
-See [drafts](files/spec/).
+Version v2 as defined in [salt-channel-v2-final1.md](files/spec/salt-channel-v2-final1.md) 
+is the latest stable version of the protocol. New applications should use this version.
+We recommend that existing applications using v1 should eventually be migrated
+to v2. As of today (February 2018) we have found no immediate security concern 
+with v1, so from a security point of view, there is no rush.
+
 
 
 Implementations
 ===============
+
 
 Java (this repo)
 ----------------
@@ -40,8 +45,8 @@ This repository contains the Java implementation of Salt Channel. It is the refe
 implementation of the protocol. It is open source and released under the MIT License.
 
 
-C implementation
-----------------
+C
+---
 
 See [github.com/assaabloy-ppi/salt-channel-c](https://github.com/assaabloy-ppi/salt-channel-c) for the C implementation. It is suitable for both
 embedded devices and larger computers.
@@ -61,8 +66,8 @@ Available here: [github.com/assaabloy-ppi/salt-channel-swift](https://github.com
 Swift for iPhone and more, MIT license.
 
 
-Python implementation
----------------------
+Python
+------
 
 See [github.com/assaabloy-ppi/salt-channel-python](https://github.com/assaabloy-ppi/salt-channel-python), 
 Python 3 implementation, MIT License.
@@ -77,6 +82,9 @@ Protocol authors:
 * Frans Lundberg, ASSA ABLOY AB, Stockholm, Sweden.
 * Simon Johansson, ASSA ABLOY AB, Stockholm, Sweden.
 
+Feel free to contact us.
+
+
 
 Optimized crypto
 ================
@@ -89,6 +97,7 @@ The salt-aa repo allows seemless use of optimized binaries (Libsodium)
 when available. If no native implementation is available, a pure Java 
 implementation (github.com/InstantWebP2P/tweetnacl-java) is used. 
 This is handled dynamically.
+
 
 
 Build and develop
@@ -105,7 +114,8 @@ directories.
 
 * Include the libraries in lib, lib-dev.
 
-Should work fine with any IDE. We have worked with Eclipse and IntelliJ.
+Should work fine with any IDE. We have worked with Eclipse, IntelliJ, simple 
+text editors.
 
 
 

@@ -14,7 +14,7 @@ public class LoggingByteChannel implements ByteChannel {
     private ArrayList<LoggingByteChannel.Entry> log;
 
     public LoggingByteChannel(ByteChannel channel) {
-        this.log = new ArrayList<>();
+        this.log = new ArrayList<LoggingByteChannel.Entry>();
         this.inner = channel;
     }
     

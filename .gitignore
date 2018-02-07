@@ -3,6 +3,7 @@
 # Eclipse
 .project
 .classpath
+.settings
 
 # JVM crash logs
 hs_err_pid*

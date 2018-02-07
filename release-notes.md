@@ -5,6 +5,11 @@ Release history. The implementation started in 2016, but formal
 releases starts with release 2.0, November 2017.
 
 
+v2.x, 2018-xx-xx
+================
+
+
+
 
 v2.5, 2017-11-17
 ================
@@ -62,3 +67,4 @@ v2.0, 2017-10-17
 ================
 
 Implements Salt Channel v2, draft7 (spec-salt-channel-v2-draft7.md).
+
