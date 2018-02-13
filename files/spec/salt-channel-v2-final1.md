@@ -299,9 +299,10 @@ implementations.
 Salt Channel over a byte stream
 -------------------------------
 
-The chunking format as defined for PoT over TCP is RECOMMENDED when PoT is 
-implemented over any type of byte stream similar to TCP; for example for 
-PoT over RS232 ("serial port").
+The chunking format as defined in the section "Salt Channel over TCP"
+is RECOMMENDED when Salt Channel is implemented over any type of 
+byte stream similar to TCP; for example for Salt Channel 
+over RS232 ("serial port").
 
 
 
