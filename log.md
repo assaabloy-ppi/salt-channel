@@ -1,8 +1,21 @@
+Log 2018-02-13
+==============
+
+Frans Lundberg. Status of Salt Channel:
+Version 2 is stable, no breaking security issues has been found. 
+Assured AB has audited the protocol and Java the Java implementation. 
+Ready for production use! However, the specification could be improved
+in some areas and the Java implementation would also benefit from some
+addition love. An updated comparison with TLS would also be useful.
+
+
+
 Log 2017-11-16
 ==============
 
 Frans: Salt Channel v2 declared FINAL! 
 Doc: salt-channel-v2-final1.md.
+
 
 
 Log 2017-10-16
