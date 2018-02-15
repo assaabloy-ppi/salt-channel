@@ -275,7 +275,7 @@ an unsigned or signed 32-bit integer work for storing it in computer memory.
 *Message* is the raw message bytes.
 
 It is RECOMMENDED that the TCP connection is closed when the Salt Channel
-session is closed. This behavior MUST be the default behavior of compliant
+session has ended. This behavior MUST be the default behavior of compliant
 implementations of Salt Channel over TCP.
 
 
@@ -291,7 +291,7 @@ size prefix that is needed when implementing Salt Channel over TCP. Each
 WebSocket message is a Salt Channel message as specified in this document.
 
 It is RECOMMENDED that the WebSocket connection is closed when the Salt Channel
-session is closed. This behavior MUST be the default behavior of compliant
+session has ended. This behavior MUST be the default behavior of compliant
 implementations of Salt Channel over WebSocket.
 
 
@@ -455,15 +455,15 @@ Packets are presented below with fields of specified sizes.
 If the size has a "b" suffix, the size is in bits, otherwise
 it is in bytes.
 
-*Little-endian* byte order MUST be used. The first byte (Byte 0) is
+*Little-endian* byte order is used. The first byte (Byte 0) is
 the least significant byte of an integer.
 
-*LSB 0* bit numbering (bit order) MUST be used. The first bit (Bit 0) is
+*LSB 0* bit numbering (bit order) is used. The first bit (Bit 0) is
 the least significant bit of a byte.
 
 Unless otherwise stated explicitly, bits MUST be set to 0.
 
-The valid range for an integer is expressed using the standard range notation
+The valid range of an integer is expressed using the standard range notation
 for closed intervals. [0, 127] denotes the closed interval between 0 and 127
 (including 0 and 127).
 
@@ -498,6 +498,7 @@ days, weeks, or longer. The client is allowed to cache this information.
         Type of address that follows.
         MUST be 0 for the default address on the server.
         MUST be 1 for Salt Channel v2 public key (32 bytes).
+        The value of this field MUST be 0 or 1.
 
     2   AddressSize
         Byte size of Address field that follows.
@@ -524,9 +525,8 @@ server-side key holder to connect to, it connects to the server default.
 When AddressType is 0, AddressSize MUST be 0.
 
 *AddressType 1* is a public key address. The client can chose key holder
-based on its public. A 32-byte public signing key as defined in
-Salt Channel v2 MUST be used in the Address field. Thus, AddressSize MUST
-be 32 for this address type.
+based on its public key. A 32-byte public signing key MUST be used in
+the Address field. Thus, AddressSize MUST thus be 32 for this address type.
 
 More address types MAY be defined by later versions of the Salt Channel
 specification.
@@ -571,7 +571,7 @@ Message A2 has the following format:
     10  P1.
         Protocol ID of Salt Channel with version.
         Exactly 10 ASCII bytes. The value for this field in for this version
-        of Salt Channel MUST BE "SCv2------".
+        of Salt Channel MUST be "SCv2------".
 
     10  P2.
         Protocol ID of the protocol on top of Salt Channel.
@@ -590,8 +590,8 @@ The plan is that future versions of Salt Channel will use the same
 A1 and A2 messages. Salt Channel v3 SHOULD use "SCv3------" and
 v4 SHOULD use "SCv4------" and so on.
 
-The server can OPTIONALLY specify an application protocol on top of PoT in the
-A2/P2 field. This way a client can determine whether there is any use of
+The server can OPTIONALLY specify an application protocol on top of Salt Channel
+in the A2/P2 field. This way a client can determine whether there is any use of
 connecting to the server. Note, the application layer has to decide whether
 publishing this information affects the overall security in any way.
 If the server does not wish to reveal any information about the layer above,
@@ -701,8 +701,8 @@ on the same endpoint.
         That is, when the NoSuchServer bit is set.
 
 
-If the NoSuchServer condition occurs, the session is considered closed
-once M2 has been sent and received. Furthermore, the client's behavior
+If the NoSuchServer condition occurs, the session ends once M2 has
+been sent and received. Furthermore, the client's behavior
 MUST NOT be affected be the value of M2/ServerEncKey when NoSuchServer
 occurs. When the NoSuchServer bit is set the server MUST send 32 zero-valued
 bytes in the field M2/ServerEncKey.
@@ -922,26 +922,33 @@ attack. All peers that is capable of measuring relative time in milliseconds
 SHOULD support the Time field.
 
 If timestamping is not supported by a peer it MUST always set the Time
-field value to 0 in all messages and packets. Peers that support
-timestamping MUST set the Time field value to 1 in the first message,
-M1 for clients and M2 for servers. For all subsequent messages the Time
-field value is the number of milliseconds since the first message was sent.
+field value to 0 in all packets sent. Peers that support
+timestamping MUST set the Time field value to 1 in the first message
+(M1 for a clients and M2 for a server). For all subsequent messages the Time
+field value MUST be set to the number of milliseconds since the first
+message was sent.
 
 The Time field can be used by a server to protect against delay attacks
-by recording the time at which M1 arrived as ClientEpoch. For subsequent packets
+by recording the time at which M1 arrived as time0. For subsequent packets
 the server can compute an expected value of the Time field by taking the
-current time in milliseconds and subtracting ClientEpoch. If the difference
-between the expected value and the actual Time field value from the client
-is too large, the server can reject the message. A client that supports
-timestamping can perform the analogous steps to protect against delay attacks.
-A peer that supports timestamping therefore have to store both MyEpoch and
-TheirEpoch, recording the time at which the first message was sent and
-received respectively, in order to send a correct value in the Time field
+current time in milliseconds and subtracting time0. If the absolute
+difference between the expected value and the actual Time field value from
+the client exceeds a tolerance, the server can reject the message.
+A client that supports timestamping can perform the analogous steps to
+protect against delay attacks.
+A peer that supports timestamping therefore have to store both the time
+at which the first message was sent and the time the first message was
+received in order to send a correct value in the Time field
 and verify the value in the Time field of incoming packets.
 
-Format: Integer in [0, 2^31-1]. This means that either a signed or an
-unsigned 32-bit integer can be used to represent the time. Note that
-2^31-1 milliseconds is more than 24 days.
+The value of the Time field MUST be an integer in the range [0, 2^31-1].
+This means that either a signed or an unsigned 32-bit integer can be used to
+represent the time. Note that 2^31-1 milliseconds is more than 24 days.
+If a Salt Channel session should last more than 24 days, timestamping
+MUST NOT be used and the Time field MUST thus be set to 0.
+
+A peer that receives a messages that it considers delayed according to
+its rules for that MUST treat this situation as a BAD PEER condition.
 
 
 List of message types
@@ -996,16 +1003,16 @@ increasing by 2 for each message it sends.
 The rest of the bytes of the nonce MUST be set to zero.
 The nonce counters are reset for every Salt Channel session.
 Note, no assumption is made on the order in which the peers send
-application messages. For example, the server MAY send all
+application messages. For example, the server may send all
 application messages. The nonce values used by the client and those
 used by the server are disjoint sets. Note also that the nonce
 values used are *not* sent over the communication channel. This is
-not necessary; they can easily be computed.
+not necessary; they are easily computed.
 
 Signatures (fields M3/Signature1, M4/Signature2) are generated
 and verified using the signature scheme defined by the functions
 crypto_sign() and crypto_sign_open() of TweetNaCl
-[NACL, TWEET-1, TWEET-2]. This scheme uses Ed25519 and sha512
+[NACL, TWEET-1, TWEET-2]. This scheme uses ed25519 and SHA-512
 to produce signatures that are 64 bytes long.
 
 The term "encryption key" in this document refers to an x25519
@@ -1044,18 +1051,18 @@ However, in this case, R1 will not know when the Salt Channel session
 terminates. Same for relay R2. They only see encrypted application
 data in EncryptedMessage packets once the session has been established.
 This results in the situation where R2 MUST keep the BLE connection
-open even after the session is closed. This could waste valuable resources
+open even after the session ends. This could waste valuable resources
 and possibly hinder new connections from being established.
 
 These type of situations motivates the principle:
 
-    Anyone on the transport path of a Salt Channel (a relay server for example)
-    MUST be able to determine whether a Salt Channel session has been closed
+    Anyone on the transport path of a Salt Channel (a relay server, for example)
+    must be able to determine whether a Salt Channel session has ended
     without having access to the encrypted data.
 
 So, to conclude, we have to have a last message flag that is not encrypted.
-It MUST be set by the application layer for the last message
-of the Salt Channel session and have to be readable to any relay node on the
+It must be set by the application layer for the last message
+of the Salt Channel session and it has to be readable to any relay node on the
 transportation path between the client and the server.
 
 
