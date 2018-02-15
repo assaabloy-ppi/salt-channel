@@ -209,6 +209,10 @@ The following are the main goals of the protocol.
     An attacker (active or passive) should not be able to retrieve the long-term
     public key of the client. Tracking of the client should be impossible.
 
+* **Repudiation**.
+    The protocol should *not* provide non-repudiation. On the contrary,
+    repudiation should be guaranteed.
+
 * **Simple protocol**.
     It should be possible to implement in few lines of code.
     Should be auditable just like TweetNaCl.
