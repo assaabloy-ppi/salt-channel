@@ -424,6 +424,10 @@ Examples of when this condition occurs includes:
 
 * A specified size in a header does not match the actual data.
 
+* The client uses the M1/ServerSigKey field (to chose a server), but when
+  it receives M3 from the server, the M3/ServerSigKey is not identical
+  to M1/ServerSigKey.
+
 * A message is received that is larger than the implementation can handle.
   Note, this is not strictly a bad peer condition in the sense that
   the other peer did not follow the protocol. However, we include this
@@ -529,9 +533,10 @@ Two address types are currently supported.
 server-side key holder to connect to, it connects to the server default.
 When AddressType is 0, AddressSize MUST be 0.
 
-*AddressType 1* is a public key address. The client can chose key holder
-based on its public key. A 32-byte public signing key MUST be used in
-the Address field. Thus, AddressSize MUST thus be 32 for this address type.
+*AddressType 1* is a public key address. The client choses a particular
+key holder to communicate with based on its public key.
+The 32-byte public signing key (ed25519) of the key holder MUST be used in
+the Address field. AddressSize MUST thus be 32 for this address type.
 
 More address types MAY be defined by later versions of the Salt Channel
 specification.
@@ -694,9 +699,7 @@ on the same endpoint.
     1b  NoSuchServer.
         Set to 1 if ServerSigKey was included in M1 but a server with such a
         public signature key does not exist at this end-point or could not be
-        connected to. Note, when this happens, the client MUST ignore ServerEncKey.
-        The server MUST send zero-valued bytes in ServerEncKey if this
-        condition happens.
+        connected to.
 
     6b  Zero.
         Bits 1-6 are set to zero.
@@ -884,7 +887,7 @@ in the document.
 EncryptedMessage
 ----------------
 
-Packets of type M3, M4, AppPacket and MultiAppPacket are sent encrypted. The
+Packets of type M3, M4, AppPacket and MultiAppPacket are encrypted. The
 ciphertext of those packets are included in the field EncryptedMessage/Body.
 
 
@@ -894,8 +897,7 @@ ciphertext of those packets are included in the field EncryptedMessage/Body.
         Message type and flags.
 
     x   Body.
-        This is the ciphertext of the cleartext message.
-        The message authentication prefix (16 bytes) is included.
+        This is the authenticated ciphertext of the cleartext message.
         This field is 16 bytes longer than the corresponding cleartext.
 
 
@@ -913,7 +915,8 @@ ciphertext of those packets are included in the field EncryptedMessage/Body.
         Salt Channel session, in which case it is set to 1
 
 
-See the section "Crypto" for details of the authenticated encryption.
+See the "Crypto details" section for details of the authenticated ciphertext
+stored in EncryptedMessage/Body.
 
 
 The Time field
