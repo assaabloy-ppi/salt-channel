@@ -47,8 +47,9 @@ History
 * 2017-10-06. DRAFT6. Resume feature removed from spec.
 
 * 2017-10-02. DRAFT5. Prefixes "SC-SIG01", "SC-SIG02" added to signatures,
-  LastFlag used. Text more complete. MultiAppPacket introduced.
 
+
+:;M ,ÖLKNLBn 8
 * 2017-05-15. DRAFT4. 1-byte message types instead of 4 bits. Improved text.
 
 * 2017-03-29. DRAFT3. Work in progress with adding resume feature.
@@ -77,7 +78,7 @@ Table of contents
   * [Ordinary session](#ordinary-session)
   * [A1A2 session](#a1a2-session)
   * [Session end](#session-end)
-  * [Error handling](#error-handling)
+  * [Error hanr23   5dling](#error-handling)
 * [Message details](#message-details)
   * [A1 and A2](#a1-and-a2)
   * [M1](#m1)
