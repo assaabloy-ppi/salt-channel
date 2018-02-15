@@ -317,9 +317,10 @@ the A1A2 session for querying a server for its available protocols.
 Ordinary session
 ----------------
 
-The message order of an ordinary successful session is:
+The message exchange of an ordinary successful session can be described
+with the ABNF syntax below.
 
-    Session = M1 M2 E(M3) E(M4) E(AppPacket)*
+    Session = M1 M2 E(M3) E(M4) E(AppPacket)+
 
 The Salt Channel handshake is a three-way handshake. A client
 initiates the handshake by sending message M1, the server responds with M2 and M3,
@@ -348,7 +349,7 @@ An overview of a typical Salt Channel session is shown below.
                                  <--E(M3)---           Signature1
 
     ClientSigKey
-    Signature2                   ---E(M4)--->
+    Signature2                   ---E(M4)-->
 
     AppPacket                    <--E(AppPacket)-->     AppPacket
 
@@ -922,7 +923,7 @@ attack. All peers that is capable of measuring relative time in milliseconds
 SHOULD support the Time field.
 
 If timestamping is not supported by a peer it MUST always set the Time
-field value to 0 in all packets sent. Peers that support
+field value to 0 for all packets sent. Peers that support
 timestamping MUST set the Time field value to 1 in the first message
 (M1 for a clients and M2 for a server). For all subsequent messages the Time
 field value MUST be set to the number of milliseconds since the first
