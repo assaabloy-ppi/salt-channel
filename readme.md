@@ -95,7 +95,7 @@ The library depends on the repo:
 [github.com/assaabloy-ppi/salt-aa](https://github.com/assaabloy-ppi/salt-aa).
 Note that this dependency is *copied* into this repo.
 
-The salt-aa repo allows seemless use of optimized binaries (Libsodium) 
+The salt-aa repo allows seamless use of optimized binaries (Libsodium) 
 when available. If no native implementation is available, a pure Java 
 implementation (github.com/InstantWebP2P/tweetnacl-java) is used. 
 This is handled dynamically.
