@@ -14,8 +14,8 @@ The protocol supports secret client IDs. TLS does not currently do this,
 however, this property is included in the April 2017 TLS 1.3 draft.
 
 The development of the code in this repository and the protocol 
-itself has been financed by [ASSA ABLOY AB](http://www.assaabloy.com/) 
--- the global leader in door opening solutions. Thank you for 
+itself has been financed by [ASSA ABLOY AB](http://www.assaabloy.com/) -- the 
+global leader in door opening solutions. Thank you for 
 supporting this work. We also thank Daniel Bernstein for developing the 
 underlying cryptographic algorithms. Our work is completely based on his work.
 
@@ -23,6 +23,9 @@ The protocol has been audited. [This statement](files/v2-review-statement-2018-0
 is a summary of the result of the latest security audit. It was performed 
 by Assured AB, thank you!
 
+Also, the protocol has been analysed with formal methods using Proverif. 
+It proves, within a realistic mathematical model, that the main security goals
+have been met. See the results in [the report](files/Proverif-SaltChannelReport1.1-2018.pdf).
 
 
 Versions
@@ -121,8 +124,10 @@ text editors.
 
 
 
-Code conventions
-================
+Code conventions (Java)
+=======================
+
+The following code conventions apply to the Java code in this repository.
 
 The old Sun code conventions 
 (http://www.oracle.com/technetwork/java/codeconvtoc-136057.html)
