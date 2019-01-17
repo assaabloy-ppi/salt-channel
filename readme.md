@@ -10,8 +10,7 @@ Salt Channel is "Powered by Curve25519".
 Salt Channel is simpler than TLS and works well on small embedded processors.
 It has a lower handshake overhead. See [this comparison](files/salt-channel-vs-tls-2017-05.md).
 Salt Channel *always* uses mutual authentication and forward secrecy.
-The protocol supports secret client IDs. TLS does not currently do this,
-however, this property is included in the April 2017 TLS 1.3 draft.
+The protocol hides the identity of the client.
 
 The development of the code in this repository and the protocol 
 itself has been financed by [ASSA ABLOY AB](http://www.assaabloy.com/) -- the 
