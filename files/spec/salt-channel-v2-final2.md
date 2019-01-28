@@ -75,9 +75,9 @@ About this document.
   * [Salt Channel session key, key agreement](#salt-channel-session-key,-key-agreement)
   * [Message encryption](#message-encryption)
   * [Salt Channel handshake authentication](#salt-channel-handshake-authentication)
-* [Use case: multi-link session](#use-case:-multi-link-session)
+* [Multi-link session](#multi-link-session)
 * [References](#references)
-* [Appendix A: Example session data](#appendix-a:-example-session-data)
+* [Appendix A - Example session data](#appendix-a---example-session-data)
 * [Appendix B - Byte order, bit order and bit numbering](#appendix-b---byte-order,-bit-order-and-bit-numbering)
   * [Notation, byte and bit order](#notation,-byte-and-bit-order)
   * [Examples](#examples)
@@ -91,8 +91,10 @@ Salt Channel is "Powered by Curve25519". The cryptographic algorithms required c
 * Authenticated public-key encryption use x25519+xsalsa20+poly1305.
 * Secure hashing uses sha512.
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119].
+
 # Protocol design
 This section describes the design goals for Salt Channel and the limitations.
+
 ## Priorities
 The following priorities were used when designing the protocol.
 1. The first priority is to achieve high security.
@@ -100,6 +102,7 @@ The following priorities were used when designing the protocol.
 3. The third priority is to allow for low code complexity, and low CPU requirements of the communicating peers.
 
 Low complexity is also, in itself, important to achieve high security.
+
 ## Goals
 The following are the main goals of the protocol.
 * **128-bit security**. The best attack should be a 2128 brute force attack. No attack should be feasible until there are (if there ever will be) large-enough quantum computers.
@@ -109,22 +112,25 @@ The following are the main goals of the protocol.
 * **Secret client identity**. An active or passive attacker cannot retrieve the long-term public key of the client. Tracking of the client is impossible.
 * **Simple protocol**. It should be possible to implement in few lines of code and should be practically auditable.
 * **Compact protocol (few bytes)**. Designed for Bluetooth Low Energy and other low-bandwidth channels.
+
 ## Limitations
 Salt Channel is limited in scope in the following ways:
 * **No certificates**. Simplicity and compactness are preferred. Using certificates together with the Salt Channel public keys is possible, but not included in the protocol.
 * **No quantum security**. The protocol is not intended to be secure for an attacker with a large quantum computer. Such a computer does not exist.
 * **Public length, sequence and timing**. No attempt is made to hide the length, sequence, or timing of the communicated messages.
 * **No DoS protection**. No attempt is made to protect against denial-of-service attacks. This is an important topic. Perhaps important enough to warrant a dedicated protocol. Anyway, the possibility of denial-of-service attacks varies profoundly with the situation, such as the type of the underlying reliable channel. Solving this in a generic way is too complex to include in this protocol.
+
 # Layer below
 Salt Channel can be implemented on top of any underlying channel that provides reliable, order-preserving, bidirectional communication. This section describes how Salt Channel is implemented on top of a TCP, WebSocket and a general stream similar to TCP.
 Note, except for this section, this specification only deals with byte arrays of known size. The underlying layer provides an order-preserving exchange of byte arrays, each with a known size.
+
 ## Salt Channel over TCP
 When Salt Channel is implemented on top of TCP, the following "chunking format" is used:
 ```
 Stream = StreamMessage+
 
 StreamMessage
-             0               1               2               3
+              0               1               2               3
        7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  0    | Size                                                          |
@@ -151,18 +157,22 @@ Example stream message
 ```
 The different message and packet types are defined in the [Message details](#message-details) section.
 It is RECOMMENDED that the TCP connection is closed when the Salt Channel session is closed. This behavior MUST be the default behavior of compliant implementations.
+
 ## Salt Channel over WebSocket
 WebSocket [WS] connections are already in a "chunked" format and transmit binary data either as ArrayBuffer (byte array-like object) or Blob (file-like object). Because WebSockets using the binary type ArrayBuffer delivers a stream of byte arrays of known size, as opposed to individual bytes, Salt Channel over WebSocket is very simple. There is no need for the size prefix that is needed when implementing Salt Channel over TCP. Each WebSocket message is a message as specified in this document.
 
 It is RECOMMENDED that the WebSocket connection is closed when the Salt Channel session is closed. This behavior MUST be the default behavior of compliant implementations.
+
 ## Salt Channel over a byte stream
 The chunking format as defined in the section "Salt Channel over TCP" is RECOMMENDED when Salt Channel is implemented over any type of byte stream similar to TCP; for example for Salt Channel over RS232 ("serial port").
+
 # Salt Channel sessions
 This section describes the two different types of Salt Channel sessions, the ordinary handshaked session for exchanging application messages and the A1A2 session for querying about a servers available protocols.
+
 ## Handshaked session
 The message order of an ordinary successful Salt Channel session is:
 ```
-Session = M1 M2 E(M3) E(M4) [E(AppPacket)|E(MultiAppPacket)]*
+Session = M1 M2 E(M3) E(M4) [E(AppPacket)|E(MultiAppPacket)]+
 ```
 Where E() denotes the packet type EncryptedMessage that carries encrypted payload. The encrypted payload has been encrypted using an authenticated encryption scheme. Note that only M1 and M2 are sent in cleartext, M3 and all subsequent packets are always encrypted.
 
@@ -187,13 +197,14 @@ An overview of a typical Salt Channel session is shown below, header and time fi
     AppPacket                  <--E(AppPacket)-->        AppPacket
 
     AppPacket                  <--E(AppPacket)-->        AppPacket
-                              With LastFlag
+                              With LastFlag = 1
     
         Figure: Salt Channel messages. "E()" is used to indicate that a 
         message is encrypted and authenticated. Header and Time fields are not
         included in the figure. They are included in every message.
 ```
 Later sections describes these messages in detail.
+
 ## A1A2 session
 The A1 and A2 messages also form a Salt Channel session, the A1A2 session, which allows the client to ask the server about its public server protocol information. This message exchange is intended to stay stable even if/when Salt Channel is upgraded to v3, v4 and so on. No confidentiality or integrity protection is used during an A1A2 session. Information sent by the server SHOULD therefore be validated once a secure channel has been established.
 
@@ -202,6 +213,7 @@ The session is initiated by the client by sending the A1 message and the server 
 A1A2Session = A1 A2
 ```
 Note that the session is closed when the client has received the A2 response from the server. See the [Message details](#message-details) section for more information about the specifics of the A1 and A2 messages.
+
 ## Session close
 The Salt Channel protocol is designed so that both peers will be able to agree on when a Salt Channel ends.
 The underlying reliable channel MAY be reused for multiple sequential Salt Channel sessions. Multiple concurrent sessions over a single underlying channel is not within scope of this protocol.
@@ -212,6 +224,7 @@ A Salt Channel session ends after a message with the LastFlag set is sent by eit
 3. After an EncryptedMessage is sent by either peer and its LastFlag bit is set to 1.
 
 A Salt Channel session also ends if a peer receives a packet that does not follow the protocol. This can happen, but is not limited to, if either one of the signatures in M3 or M4 cannot be verified, if a peer receives an EncryptedMessage with a Body field that cannot be decrypted, if the PacketType field value in the header does not match the expected value. If such an error occurs the peer that received the bad packet MUST immediately close the Salt Channel without notifying the peer that sent the packet. It is up to the implementation and/or the code that uses the Salt Channel to decide if the underlying layer is closed or not.
+
 # Message details
 This section describes how the different message and packet types are defined as an array of bytes. The size of a packet is always known from the underlying layer. When the layer below is a stream (like TCP for example) each message is prefixed with the byte size of the message as described in the section "Salt Channel over a stream". The following list defines some notational conventions for this document and implementation requirements:
 Message is used for a byte array that is a complete protocol message.
@@ -220,7 +233,8 @@ Message is used for a byte array that is a complete protocol message.
 * Packets are presented below with fields of specified sizes.
 * Bit values that has not been explicitly stated MUST be set to 0.
 
-See [Appendix B](#appendix-b) for format specification of messages.
+See [Appendix B](#appendix-b---byte-order,-bit-order-and-bit-numbering) for format specification of messages.
+
 ## A1
 A1 is the first message in the A1A2 session and is sent by the client to query the server for which protocols it supports.
 ```
@@ -237,10 +251,13 @@ A1
 X  | Address                                                       |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### A1/PacketType
-A byte used as packet type identifier. Always 0x08 for A1. See section [List of packet](#list-of-packets) types for details.
+A byte used as packet type identifier. Always 0x08 for A1. See section [List of packet types](#list-of-packet-types) for details.
+
 ### A1/Zero
 Zero indicates that all 8 bits in the Zero field MUST be set to 0.
+
 ### A1/AddressType
 Two address types are currently supported.
 ```
@@ -258,10 +275,13 @@ value
  
 0x02-0x7F         Reserved for future use.
 ```
+
 ### A1/AddressSize
 The byte size of the Address field. An unsigned 16 bit integer indicating the size of the A1/Address field. Valid range is [0, 65535].
+
 ### A1/Address
 The raw representation of the address on the format as defined by its address type and address size.
+
 ## A2
 The A2 message is the response from the server which holds what Salt Channel protocol versions are used, and possibly what application layer protocols that are used on top of each respective version.
 ```
@@ -279,8 +299,10 @@ A2
 20 | Prot*                                         |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### A2/PacketType
 A byte used as packet type identifier. Always 0x09 for A2. See section [List of packet](#list-of-packets) types for details.
+
 ### A2/L
 A2/L (LastFlag) is a flag indicating that this is the last message in the session.
 ```
@@ -292,8 +314,10 @@ Value       Description
             Indicating that the Salt Channel session is
             to be considered closed.
 ```
+
 ### A2/Zero
 Zero indicates that all 6 bits in the Zero field MUST be set to 0.
+
 ### A2/N
 A2/N (NoSuchServer) is a flag indicating that the server specified in A1/Address could not be connected to.
 ```
@@ -306,8 +330,10 @@ Value       Description
             When A2/N is set to 1, A2/Count MUST be set to 0
             and there MUST be zero occurences of A2/Prot.
 ```
+
 ### A2/Count
 Number of following Prot fields. An 8 bit signed integer with valid range [0,127]. For a given count, the message size of A2 will be length(A2) = 3 + Count * 20.
+
 ### A2/Prot
 The Prot field consists of two fields making up a pair, P1 and P2. They contain the raw byte representation of two protocol identifier strings. P1 is a protocol identifier for a Salt Channel version that is available on the server. P2 is a protocol identifier for an application layer protocol available on top of the protocol specified by the P1 string.
 ```
@@ -347,6 +373,7 @@ The strings on P1 and P2 MUST only contain ASCII characters from the following s
 I.e. the closed intervals:
 [0x2D, 0x39], [0x41, 0x5A], [0x5F, 0x5F], and [0x61, 0x7A]
 ```
+
 ## M1
 The first message of a Salt Channel handshake MUST be the M1 message. It is sent from the client to the server. It includes a protocol indicator, the client's public ephemeral encryption key and optionally the server's public signing key.
 ```
@@ -381,6 +408,7 @@ M1
 72 | ServerSigPub?                 |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### M1/ProtocolIndicator
 The protocol indicator field. Indicates which Salt Channel version the client expects that it is connecting to. For Salt Channel v2 the field MUST be the ASCII bytes for "SCv2". The field MUST be on the format defined below.
 ```
@@ -391,10 +419,13 @@ M1/ProtocolIndicator
 0  | 0x53          | 0x43          | 0x76          | 0x32          |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### M1/PacketType
 A byte used as packet type identifier. Always 0x01 for M1. See section [List of packet types](#list-of-packet-types) for details.
+
 ### M1/Zero
 Zero indicates that all 7 bits in the Zero field MUST be set to 0.
+
 ### M1/S
 One bit indicating wheter or not a desired identity for the server's public signature key (ServerSigPub) is included or not.
 ```
@@ -407,6 +438,7 @@ Value       Description
 1           The server's public signature key is included in M1.
             Total M1 message size: 74 bytes
 ```
+
 ### M1/TimeSupported
 This is a 32 bit integer with valid range [0, 1]. See section [Time  field](#time--field) for details.
 ```
@@ -422,10 +454,13 @@ Value       Description
             MUST contain a relative timestamp: M4/Time, AppPacket/Time
             and MultiAppPacket/Time.
 ```
+
 ### M1/ClientEncPub
 The 32 byte public part of the ephemeral x25519 key pair used by the client for the upcoming Salt Channel session. See section [Crypto details](#crypto-details) for details.
+
 ### M1/ServerSigPub
 The 32 byte public part of a Ed25519 key pair. This field MUST only be included if the M1/S bit is set to 1. This public key is the identity that the client wishes to communicate with. See section [Crypto details](#crypto-details) for details.
+
 ## M2
 M2 is the first message sent by the server during a Salt Channel handshake. It is followed directly by M3, also sent by the server.
 ```M2
@@ -447,8 +482,10 @@ M2 is the first message sent by the server during a Salt Channel handshake. It i
 36 | ServerEncPub                  |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### M2/PacketType
 A byte used as packet type identifier. Always 0x02 for M2. See section [List of packet types](#list-of-packet-types) for details.
+
 ### M2/L and M2/N
 M2/L (LastFlag) is a flag indicating if this is the last message in the session and that the session is to be considered closed.
 
@@ -475,10 +512,13 @@ M2/N (NoSuchServer) is a flag indicating that the server with the identity speci
 Note, these flags MUST have the same bit value, i.e. M2/L MUST only be set to 1 if and only if M2/N is set to 1.
 
 This is because the only reason for closing the session at this stage is if the requested server in M1/Address is not possible to connect to. All other errors (e.g. not supported M1/ProtocolIndicator, wrong PacketType or wrong packet lengths) MUST cause an immediate close of the underlaying layer, thus M2 is not sent at all.
+
 ### M2/Zero
 Zero indicates that all 6 bits in the Zero field MUST be set to 0.
+
 ### M2/TimeSupported
 This is a 32 bit integer with valid range [0, 1]. See section [Time  field](#time--field) for details.
+
 ### M2/Time
 ```
 Value       Description
@@ -491,8 +531,10 @@ Value       Description
             MUST contain a relative timestamp: M3/Time, AppPacket/Time
             and MultiAppPacket/Time.
 ```
+
 ### M2/ServerEncPub
 The 32 byte public part of the ephemeral x25519 key pair used by the server for the upcoming Salt Channel session. See section [Crypto details](#crypto-details) for details.
+
 ## M3
 M3 is encrypted and the ciphertext is sent within the body of an EncryptedMessage. This section defines the clear text for M3. M3 is sent by the server. When the client has received M3 it has enough information to verify the identity of the server, and decide if wheter to proceed with the handshake and sent M4 or not. See the section [EncryptedMessage](#encryptedmessage) for details.
 ```
@@ -533,16 +575,22 @@ M3
 100 | Sig01                         |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### M3/PacketType
 A byte used as packet type identifier. Always 0x03 for M3. See section [List of packet types](#list-of-packet-types) for details.
+
 ### M3/Zero
 Zero indicates that all 8 bits in the Zero field MUST be set to 0.
+
 ### M3/Time
 This is a 32 bit integer with valid range is [0, 2<sup>31</sup>-1]. As such it can be stored as both a signed and unsigned 32 bit integer. See section [Time  field](#time--field) for details.
+
 ### M3/ServerSigPub
 The public part of the server's Ed25519 key pair. See section [Crypto details](#crypto-details) for details.
+
 ### M3/Sig01
 A 64 byte signature. M3/Sig01 together with the M3/ServerSigPub is used by the client to verify the identity of the server. See section [Crypto details](#crypto-details) for details.
+
 ## M4
 M4 is encrypted and the ciphertext is sent within the body of an EncryptedMessage. This section defines the clear text for M4. M4 is sent by the client. When M4 has been sent and received both peers have authenticated themselves to each other, and they have agreed upon a symmetric encryption key, i.e. the Salt Channel handshake is complete. See the section [EncryptedMessage](#encryptedmessage) for details.
 ```
@@ -583,16 +631,22 @@ M4
 100 | Sig02                         |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### M4/PacketType
 A byte used as packet type identifier. Always 0x04 for M4. See section [List of packet types](#list-of-packet-types) for details.
+
 ### M4/Zero
 Zero indicates that all 8 bits in the Zero field MUST be set to 0.
+
 ### M4/Time
 This is a 32 bit integer with valid range is [0, 2<sup>31</sup>-1]. As such it can be stored as both a signed and unsigned 32 bit integer. See section [Time  field](#time--field) for details.
+
 ### M4/ClientSigPub
 The public part of the client's Ed25519 key pair. See section [Crypto details](#crypto-details) for details.
+
 ### M4/Sig02
 A 64 byte signature. M4/Sig02 together with the M4/ClientSigPub is used by the server to verify the identity of the client. See section [Crypto details](#crypto-details) for details.
+
 ## AppPacket
 AppPackets are encrypted and the ciphertext is sent within the body of an EncryptedMessage. This section defines the clear text for AppPacket. When the Salt Channel handshake is complete the peers can start exchanging application packets as either AppPacket or MultiAppPacket. AppPacket is the simplest packet type that can be used to send application layer data.
 ```
@@ -609,14 +663,19 @@ AppPacket
 X  | Data                                                          |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### AppPacket/PacketType
 A byte used as packet type identifier. Always 0x05 for AppPacket. See section [List of packet types](#list-of-packet-types) for details.
+
 ### AppPacket/Zero
 Zero indicates that all 8 bits in the Zero field MUST be set to 0.
+
 ### AppPacket/Time
 This is a 32 bit integer with valid range is [0, 2<sup>31</sup>-1]. As such it can be stored as both a signed and unsigned 32 bit integer. See section [Time  field](#time--field) for details. 
+
 ### AppPacket/Data
 The application layer data.
+
 ## MultiAppPacket
 MultiAppPackets are encrypted and the ciphertext is sent within the body of an EncryptedMessage. This section defines the clear text for MultiAppPacket.
 
@@ -647,19 +706,27 @@ MultiAppPacket/Message
 X  | Data                                                          |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### MultiAppPacket/PacketType
 A byte used as packet type identifier. Always 0x0B for MultiAppPacket. See section [List of packet types](#list-of-packet-types) for details.
+
 ### MultiAppPacket/Zero
 Zero indicates that all 8 bits in the Zero field MUST be set to 0.
+
 ### MultiAppPacket/Time
 This is a 32 bit integer with valid range is [0, 2<sup>31</sup>-1]. As such it can be stored as both a signed and unsigned 32 bit integer. See section [Time  field](#time--field) for details.
+
 ### MultiAppPacket/Count
 Number of following Message fields. A 16 bit unsigned integer with valid range [1, 65535].
+
 ### MultiAppPacket/Message
+
 #### MultiAppPacket/Message/Length
 Size of the following MultiAppPacket/Message/Data field. A 16 bit unsigned integer with valid range [0, 65535].
+
 #### MultiAppPacket/Message/Data
 The application layer data. If MultiAppPacket/Message/Length is zero, this field is zero bytes in length.
+
 ## EncryptedMessage
 Packets of type M3, M4, AppPacket and MultiAppPacket are sent encrypted. The ciphertext and MAC of those packets are included in the field EncryptedMessage/Body. See section [Crypto details](#crypto-details) for details.
 ```
@@ -674,14 +741,19 @@ EncryptedMessage
 X  | Body                                                          |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
 ### EncryptedMessage/PacketType
 A byte used as packet type identifier. Always 0x06 for EncryptedMessage. See section [List of packet types](#list-of-packet-types) for details.
+
 ### EncryptedMessage/L
 EncryptedMessage/L (LastFlag) is a flag indicating if this is the last message in the session. When this bit is set to 1 this indicates that the session is to be considered closed and that no more messages are to be sent in by either peer.
+
 ### EncryptedMessage/Zero
 Zero indicates that all 7 bits in the Zero field MUST be set to 0.
+
 ### EncryptedMessage/Body
 See section Crypto Details for details on the authenticated encryption.
+
 ## Time  field
 Some messages have a Time field, a little endian 32 bit integer in the range [0, 2<sup>31</sup>-1]. The reason to introduce these timestamps is to protect against delay attacks, i.e. a man-in-the-middle attacker that affects the application behavior by delaying a message sent between the two peers. The blog post at [DELAY-ATTACK] describes this type of attack. All peers that are capable of measuring relative time in milliseconds SHOULD support the Time field.
 
@@ -696,6 +768,7 @@ A client that supports timestamping and uses the Time field to protect against d
 When the delay attack protection computation generates a result indicating a delayed message it is RECOMMENDED that the peer immediately closes the underlying layer without notifying the other peer. The threshold for when a message is regarded as delayed will depend on the use case. A possible use case can be that a user (client) connects via BLE to a door lock (server). The threshold would then depends on how long it takes for the user to give up on waiting for the lock to react and walk away, this might be somewhere around 10 seconds. The precision of the clock in client and server must also be considered. Too large clock drift can cause the delay attack protection mechanism to falsely detect a message as delayed.
 
 When only one of the peers sets the TimeSupported field to 1 to indicate that they wish to use the delay attack protection it is RECOMMENDED that both peers ignore the Time field for this session. However a peer MAY require delay protection and MAY simply close the underlying layer if the other peer does not support delay attack protection. If a client closes the underlying layer due to lack of support for delay attack protection it is RECOMMENDED that the user is notified that the connection was closed due to this fact.
+
 ## List of packet types
 ```
 PacketType       Name
@@ -714,13 +787,16 @@ PacketType       Name
     11           MultiAppPacket
     12-127       Not used
 ```
+
 # Crypto details
+
 ## Identity
 Salt Channel uses Ed25519 key pairs for identity.
-EdDSA Edwards-Curve Digital Signature Algorithm https://tools.ietf.org/html/rfc8032 [RFC8032]
+EdDSA Edwards-Curve Digital Signature Algorithm [RFC8032]
+
 ## Salt Channel session key, key agreement
 To meet the goal forward secrecy every salt-channel session uses a unique key to encrypt the messages sent during the session. Salt-channel uses x25519 which is an elliptic curve Diffie-Hellman key exchange using Curve25519 to agree on a symmetric key for the session. This means that, prior to the handshake, both peers MUST generate a new x25519 key pair from a good source of entropy. Based on those ephemeral key pairs, a shared key is calculated. This key is later used for encrypting and decrypting the payload sent during the session.
-Details about x25519 can be found in: https://tools.ietf.org/html/rfc7748 [RFC7748]
+Details about x25519 can be found in: [RFC7748]
 Examples of such key pairs is:
 ```
 The client generates 32 random bytes as the secret key:
@@ -737,6 +813,7 @@ ServerEncPub: de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
 SharedKey = X25519(ClientEncPub, ServerEncSec) = X25519(ServerEncPub, ClientEncSec)
 CommonEncSec: 1b27556473e985d462cd51197a9a46c76009549eac6474f206c4ee0844f68389
 ```
+
 ## Message encryption
 The symmetric session key is used to encrypt and decrypt the messages sent during the salt-channel session. Salt-channel uses xsalsa20 + poly1305 for authenticated encryption and the specific details can be found in [XSALSA20] and [POLY1305]. The functions to encrypt and decrypt take a 24-byte nonce as a parameter. Both the client and the server use the first 8 bytes of the nonce to store a signed 64-bit integer in little-endian byte order. This integer is 1, 3, 5, ... for messages sent by the client; increasing by 2 for each message it sends. This integer is 2, 4, 6, ... for messages sent by Server; increasing by 2 for each message it sends. The rest of the bytes of the nonce MUST be set to zero. The nonce counters are reset for every Salt Channel session. Note, no assumption is made on the order in which the peers send application messages. For example, the server MAY send all application messages. The nonce values used by the client and those used by the server are disjoint sets. Note also that the nonce values used are not sent over the communication channel to reduce network overhead. This is not necessary as they can easily be computed.
 ```
@@ -764,8 +841,9 @@ Examples of using xsalsa20 + Poly1305 to encrypt and authenticate a payload usin
 | 05000000010505050505 | 040000000000000000000000000000000000000000000000 | 82eb9d3660b82984f3c1c1051f8751ab5585b7d0ad354d9b5c56f755 |
 --------------------------------------------------------------------------------------------------------------------------------------
 ```
+
 ## Salt Channel handshake authentication
-After the M1 and M2 message, the two communicating peers has agreed on a symmetric key to encrypt the messages sent during the session. However, at this point there is no authentication. I.e., the peers doesn't know each others identities. The Ed25519 key pairs are used as identity, and the M3 and M4 messages are used to authenticate and prove this identity. For authentication, the Ed25519 signature scheme is used to sign a challenge based on the M1 and M2 messages. Ed25519 uses the elliptic curve Curve25519 and SHA-512 for hashing, see https://tools.ietf.org/html/rfc8032#section-3.2. [RFC8032]
+After the M1 and M2 message, the two communicating peers has agreed on a symmetric key to encrypt the messages sent during the session. However, at this point there is no authentication. I.e., the peers doesn't know each others identities. The Ed25519 key pairs are used as identity, and the M3 and M4 messages are used to authenticate and prove this identity. For authentication, the Ed25519 signature scheme is used to sign a challenge based on the M1 and M2 messages. Ed25519 uses the elliptic curve Curve25519 and SHA-512 for hashing, see [RFC8032]
 
 The first part to prove the identity is the server. A challenge, Challenge01, is created with a fixed prefix and the SHA512 hashes of M1 and M2. The server signs this challenge with the private part (ServerSigSec) of the server's ed25519 keypair. The output is a 64 byte signature, Sig01, which is sent in M3 along with the public part (ServerSigPub) of the key pair. Note that Challenge01 is not sent to the client since the client has al information to recreate it.
 
@@ -829,7 +907,8 @@ Server side:
 | byte 0                                         byte 7 |
 ---------------------------------------------------------
 ```
-# Use case: multi-link session
+
+# Multi-link session
 This section is not normative.
 Consider the use case shown in the figure below.
 ```
@@ -849,25 +928,20 @@ Anyone on the transport path of a Salt Channel (a relay server for example)
     without having access to the encrypted data.
 ```
 So, to conclude, we have to have a last message flag that is not encrypted. It MUST be set by the application layer for the last message of the Salt Channel session and have to be readable to any relay node on the transportation path between the client and the server.
+
 # References
-* STS, Authentication and authenticated key exchanges,
-Diffie, W., Van Oorschot, P.C. & Wiener, M.J. Des Codes Crypt (1992) 2: 107. doi:10.1007/BF00124891.
-* WS, RFC 7936 The WebSocket Protocol, December 2011, 
-https://tools.ietf.org/html/rfc7936
-* DELAY-ATTACK, A blog post by Frans Lundberg explaining the delay attack, 
-http://blog.franslundberg.com/2017/02/delay-attacks-forgotten-attack.html
-* RFC2119, RFC 2119 - Key words for use in RFCs to Indicate Requirement Levels, by S. Bradner, 
-https://tools.ietf.org/html/rfc2119
-* ED25519, RFC 8032 - Edwards-Curve Digital Signature Algorithm (EdDSA), 
-https://tools.ietf.org/html/rfc8032
-* X25519, RFC 7748 - Elliptic Curves for Security, 
-https://tools.ietf.org/html/rfc7748
-* XSALSA20, Extending the Salsa20 nonce, 
-https://cr.yp.to/snuffle/xsalsa-20110204.pdf
-* SHA512, RFC 6234 - US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF), 
-https://tools.ietf.org/html/rfc6234
-* POLY1305, RFC 7539 - ChaCha20 and Poly1305 for IETF Protocols, 
-https://tools.ietf.org/html/rfc7539
+* STS, Authentication and authenticated key exchanges, Diffie, W., Van Oorschot, P.C. & Wiener, M.J. Des Codes Crypt (1992) 2: 107. doi:10.1007/BF00124891.
+* WS, RFC 7936 The WebSocket Protocol, December 2011, https://tools.ietf.org/html/rfc7936
+* DELAY-ATTACK, A blog post by Frans Lundberg explaining the delay attack, http://blog.franslundberg.com/2017/02/delay-attacks-forgotten-attack.html
+* RFC2119, RFC 2119 - Key words for use in RFCs to Indicate Requirement Levels, by S. Bradner, https://tools.ietf.org/html/rfc2119
+* ED25519, RFC 8032 - Edwards-Curve Digital Signature Algorithm (EdDSA), https://tools.ietf.org/html/rfc8032
+* X25519, RFC 7748 - Elliptic Curves for Security, https://tools.ietf.org/html/rfc7748
+* XSALSA20, Extending the Salsa20 nonce, https://cr.yp.to/snuffle/xsalsa-20110204.pdf
+* SHA512, RFC 6234 - US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF), https://tools.ietf.org/html/rfc6234
+* POLY1305, RFC 7539 - ChaCha20 and Poly1305 for IETF Protocols, https://tools.ietf.org/html/rfc7539
+* RFC8032, RFC 8032 Edwards-Curve Digital Signature Algorithm (EdDSA), https://tools.ietf.org/html/rfc8032
+* RFC7748, RFC 7748 Elliptic Curves for Security, https://tools.ietf.org/html/rfc7748
+
 # Appendix A - Example session data
 Example session data for a simple echo server scenario. Fixed key pairs are used for a deterministic result. Obviously, such an approach MUST NOT be used in production. The encryption key pair MUST be generated for each session to achieve the security goals.
 
@@ -919,9 +993,12 @@ total bytes: 380
 total bytes, handshake only: 320
 Note to authors: the above output was generated with the Java class saltchannel.dev.ExampleSession1, date: 2018-12-21.
 ```
+
 # Appendix B - Byte order, bit order and bit numbering
+
 ## Notation, byte and bit order
 This appendix defines the byte order, bit order and bit numbering used in this document.
+
 ### Byte and bit order
 * Bytes and bits are zero-indexed, i.e. the leftmost byte and bit is numbered 0.
 * Little endian byte order is used for integers, i.e. Least Significant Byte is the leftmost byte.
@@ -931,16 +1008,16 @@ Considered an unsigned byte, then the value of bit X is 2<sup>X</sup>, i.e.
 the value of bit 0 is 2<sup>0</sup> = 0x01 = 1, 
 the value of bit 5 is 2<sup>5</sup> = 0x10 = 16
 * Bits are numbered in octal, i.e. 0 to 7. This makes it easy to distinguish between bytes.
+
 ### Notation for optional fields, and quantification of fields
-* "?" (the question mark character)
-"?" used to mark a field that MAY or MAY NOT exist in the packet, i.e. the field is prestent zero or one time. 
+* "?" (the question mark character) is used to mark a field that MAY or MAY NOT exist in the packet, i.e. the field is prestent zero or one time. 
 It does not necessarily indicate an optional field in the sense that it MAY independently exist or not. Wheter a field's existance is optional, mandatory or forbidden could depend on other fields and/or the state of the communication session so far.
-* "+" (the plus sign character)
-"+" is used to mark that a field is present one or more times.
-* "*" (the star sign character)
-"*" is used to mark that a field is present zero or more times.
+* "+" (the plus sign character) is used to mark that a field is present one or more times.
+* "*" (the star sign character) is used to mark that a field is present zero or more times.
+
 ### Notation for value ranges
 The valid range for an integer is expressed using the standard range notation for closed intervals. [0, 127] denotes the closed interval from 0 to 127, including both 0 and 127.
+
 ## Examples
 The following diagram shows the indices of the individual bytes in messages if the message is stored as a zero indexed array of 8 bit bytes.
 ```
