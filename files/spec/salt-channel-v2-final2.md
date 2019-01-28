@@ -1,13 +1,16 @@
-# About
+# salt-channel-v2-final2.md
+
+## About
 About this document.
 
-*Date*: 2019-01-24
+*Date*: 2019-01-28
 
 *Status*: FINAL.
 
 *Title*: Specification of Slat Channel v2
 
-* Authors*:
+*Authors*:
+
 * Frans Lundberg. ASSA ABLOY AB, Stockholm, frans.lundberg@assaabloy.com, 
   phone: +46707601861.
 * Simon Johansson, ASSA ABLOY AB, Stockholm, simon.johansson@assaabloy.com.
