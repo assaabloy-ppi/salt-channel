@@ -43,8 +43,8 @@ About this document.
 
 * 2017-02-22. DRAFT1.
 
-# Table of Content
-* [Table of Content](#table-of-content)
+# Table of Contents
+* [Table of Contents](#table-of-contents)
 * [Introduction](#introduction)
 * [Protocol design](#protocol-design)
   * [Priorities](#priorities)
@@ -72,14 +72,14 @@ About this document.
   * [List of packet types](#list-of-packet-types)
 * [Crypto details](#crypto-details)
   * [Identity](#identity)
-  * [Salt Channel session key, key agreement](#salt-channel-session-key,-key-agreement)
+  * [Salt Channel session key, key agreement](#salt-channel-session-key-key-agreement)
   * [Message encryption](#message-encryption)
   * [Salt Channel handshake authentication](#salt-channel-handshake-authentication)
 * [Multi-link session](#multi-link-session)
 * [References](#references)
 * [Appendix A - Example session data](#appendix-a---example-session-data)
-* [Appendix B - Byte order, bit order and bit numbering](#appendix-b---byte-order,-bit-order-and-bit-numbering)
-  * [Notation, byte and bit order](#notation,-byte-and-bit-order)
+* [Appendix B - Byte order, bit order and bit numbering](#appendix-b---byte-order-bit-order-and-bit-numbering)
+  * [Notation, byte and bit order](#notation-byte-and-bit-order)
   * [Examples](#examples)
 
 # Introduction
