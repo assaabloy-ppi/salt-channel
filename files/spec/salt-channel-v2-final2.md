@@ -795,11 +795,11 @@ PacketType       Name
 
 ## Identity
 Salt Channel uses Ed25519 key pairs for identity.
-EdDSA Edwards-Curve Digital Signature Algorithm [RFC8032]
+EdDSA Edwards-Curve Digital Signature Algorithm [ED25519]
 
 ## Salt Channel session key, key agreement
 To meet the goal forward secrecy every salt-channel session uses a unique key to encrypt the messages sent during the session. Salt-channel uses x25519 which is an elliptic curve Diffie-Hellman key exchange using Curve25519 to agree on a symmetric key for the session. This means that, prior to the handshake, both peers MUST generate a new x25519 key pair from a good source of entropy. Based on those ephemeral key pairs, a shared key is calculated. This key is later used for encrypting and decrypting the payload sent during the session.
-Details about x25519 can be found in: [RFC7748]
+Details about x25519 can be found in: [X25519]
 Examples of such key pairs is:
 ```
 The client generates 32 random bytes as the secret key:
@@ -846,7 +846,7 @@ Examples of using xsalsa20 + Poly1305 to encrypt and authenticate a payload usin
 ```
 
 ## Salt Channel handshake authentication
-After the M1 and M2 message, the two communicating peers has agreed on a symmetric key to encrypt the messages sent during the session. However, at this point there is no authentication. I.e., the peers doesn't know each others identities. The Ed25519 key pairs are used as identity, and the M3 and M4 messages are used to authenticate and prove this identity. For authentication, the Ed25519 signature scheme is used to sign a challenge based on the M1 and M2 messages. Ed25519 uses the elliptic curve Curve25519 and SHA-512 for hashing, see [RFC8032]
+After the M1 and M2 message, the two communicating peers has agreed on a symmetric key to encrypt the messages sent during the session. However, at this point there is no authentication. I.e., the peers doesn't know each others identities. The Ed25519 key pairs are used as identity, and the M3 and M4 messages are used to authenticate and prove this identity. For authentication, the Ed25519 signature scheme is used to sign a challenge based on the M1 and M2 messages. Ed25519 uses the elliptic curve Curve25519 and SHA-512 for hashing, see [ED25519]
 
 The first part to prove the identity is the server. A challenge, Challenge01, is created with a fixed prefix and the SHA512 hashes of M1 and M2. The server signs this challenge with the private part (ServerSigSec) of the server's ed25519 keypair. The output is a 64 byte signature, Sig01, which is sent in M3 along with the public part (ServerSigPub) of the key pair. Note that Challenge01 is not sent to the client since the client has al information to recreate it.
 
@@ -942,8 +942,7 @@ So, to conclude, we have to have a last message flag that is not encrypted. It M
 * XSALSA20, Extending the Salsa20 nonce, https://cr.yp.to/snuffle/xsalsa-20110204.pdf
 * SHA512, RFC 6234 - US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF), https://tools.ietf.org/html/rfc6234
 * POLY1305, RFC 7539 - ChaCha20 and Poly1305 for IETF Protocols, https://tools.ietf.org/html/rfc7539
-* RFC8032, RFC 8032 Edwards-Curve Digital Signature Algorithm (EdDSA), https://tools.ietf.org/html/rfc8032
-* RFC7748, RFC 7748 Elliptic Curves for Security, https://tools.ietf.org/html/rfc7748
+
 
 # Appendix A - Example session data
 Example session data for a simple echo server scenario. Fixed key pairs are used for a deterministic result. Obviously, such an approach MUST NOT be used in production. The encryption key pair MUST be generated for each session to achieve the security goals.
