@@ -1,7 +1,7 @@
 salt-channel
 ============
 
-This repo contains [the specification](files/spec/) and the 
+This repo contains [the specification](files/spec/salt-channel-v2-final2.md) and the 
 Java reference implementation of 
 *Salt Channel* - a simple, light-weight secure channel protocol based on the 
 [TweetNaCl](http://tweetnacl.cr.yp.to/) API / library by Bernstein et al.
@@ -30,11 +30,11 @@ have been met. See the results in [the report](files/Proverif-SaltChannelReport1
 Versions
 ========
 
-Version v2 as defined in [salt-channel-v2-final1.md](files/spec/salt-channel-v2-final1.md) 
+Version v2 as defined in [salt-channel-v2-final2.md](files/spec/salt-channel-v2-final2.md) 
 is the latest stable version of the protocol. New applications should use this version.
 We recommend that existing applications using v1 should eventually be migrated
-to v2. As of today (February 2018) we have found no immediate security concern 
-with v1, so from a security point of view, there is no rush.
+to v2. As of today (February 2019) we have found no critical security concern 
+with v1, so from a security point of view, there is no rush to upgrade.
 
 
 
