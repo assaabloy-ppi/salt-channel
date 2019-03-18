@@ -804,7 +804,7 @@ Examples of such key pairs is:
 ```
 The client generates 32 random bytes as the secret key:
 ClientEncSec: 77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a
-Then calculates the corresponding public key using x25510:
+Then calculates the corresponding public key using x25519:
 ClientEncPub = X25519(ClientEncSec, 9)
 ClientEncPub: 8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a
  
@@ -814,6 +814,7 @@ ServerEncPub: de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f
  
  
 SharedKey = X25519(ClientEncPub, ServerEncSec) = X25519(ServerEncPub, ClientEncSec)
+CommonEncSec = HSalsa20(SharedKey, 0)
 CommonEncSec: 1b27556473e985d462cd51197a9a46c76009549eac6474f206c4ee0844f68389
 ```
 
