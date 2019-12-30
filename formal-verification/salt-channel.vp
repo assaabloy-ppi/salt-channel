@@ -62,6 +62,11 @@ queries[
     confidentiality? s
     confidentiality? c
 
+    authentication? Server -> Client: m3a
+    authentication? Server -> Client: m3b
+    authentication? Client -> Server: m4a
+    authentication? Client -> Server: m4b
+
     // Plaintext is confidential and cannot be spoofed
 	confidentiality? pt1
 	authentication? Client -> Server: req
