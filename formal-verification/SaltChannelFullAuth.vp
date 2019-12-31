@@ -1,0 +1,89 @@
+// SPDX-FileCopyrightText: © 2019 Monadnock Systems Ltd.
+// SPDX-License-Identifier: MIT
+
+attacker[active]
+
+principal Server [
+    knows public c0 // Associated data unused by protocol, but a required arg to AEAD_{ENC,DEC}
+    knows private s // Server private key
+    gs = G^s        // Server public key
+]
+
+principal Client [
+    knows public c0
+    knows private c // Client private key
+    gc = G^c        // Client public key
+]
+
+// Server pre-auth
+Server -> Client: [gs]
+Client -> Server: [gc]
+
+// Session begins
+principal Client [
+    generates ec    // Ephemeral client key
+    m1a = G^ec  // Ephemeral client public key (is m1)
+    // Not a 1:1 mapping, verifpal doesn't assigning values to values (renaming).
+    // and we cannot "re-send" gs (even-though that's the protocol)
+    // The HASH(gs) allows us to rename and preserve the semantics of the check
+    m1b = HASH(gs)
+]
+
+Client -> Server: m1a, m1b
+
+principal Server [
+    ssk_known = ASSERT(m1b, HASH(gs))? // Disconnect if ServerSigKey is unknown
+    generates es     // Ephemeral server key
+    m2 = G^es        // Ephemeral server public key (is m2)
+    shared_s = m1a^es
+    m3a = AEAD_ENC(shared_s, gs, c0)
+    m3b = AEAD_ENC(shared_s, SIGN(s, HASH(m1a, m1b, m2)), c0)
+]
+
+Server -> Client: m2, m3a, m3b
+
+principal Client [
+    shared_c = m2^ec
+    gs_dec = AEAD_DEC(shared_c, m3a, c0)? // Decrypted server public key
+    s_is_preauth = ASSERT(gs_dec, gs)?  // Disconnect if server key isn't the pre-authorized one
+    m3b_dec = AEAD_DEC(shared_c, m3b, c0)?
+    valid_c = SIGNVERIF(gs, HASH(m1a, m1b, m2), m3b_dec)?
+    m4a = AEAD_ENC(shared_c, gc, c0)
+    m4b = AEAD_ENC(shared_c, SIGN(c, HASH(m1a, m1b, m2)), c0)
+    generates pt1
+    req = AEAD_ENC(shared_c, pt1, c0)
+]
+
+Client -> Server: m4a, m4b, req
+
+principal Server [
+    gc_dec = AEAD_DEC(shared_s, m4a, c0)?
+    c_is_preauth = ASSERT(gc_dec, gc)?
+    m4b_dec = AEAD_DEC(shared_s, m4b, c0)?
+    valid_s = SIGNVERIF(gc_dec, HASH(m1a, m1b, m2), m4b_dec)?
+    req_dec = AEAD_DEC(shared_s, req, c0)?
+    generates pt2
+    resp = AEAD_ENC(shared_s, pt2, c0)
+]
+
+Server -> Client: resp
+
+principal Client [
+    resp_dec = AEAD_DEC(shared_c, resp, c0)?
+]
+
+queries[
+    // Long-term keys aren't leaked
+    confidentiality? s
+    confidentiality? c
+
+    // M3 only depends only on m1 & m2 (seen by an attacker)
+    // Only messages m4 and later can be authenticated
+    authentication? Client -> Server: m4a
+    authentication? Client -> Server: m4b
+    authentication? Client -> Server: req
+    authentication? Server -> Client: resp
+	
+    confidentiality? pt1
+    confidentiality? pt2
+]
