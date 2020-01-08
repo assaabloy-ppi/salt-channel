@@ -108,7 +108,7 @@ Low complexity is also, in itself, important to achieve high security.
 
 ## Goals
 The following are the main goals of the protocol.
-* **128-bit security**. The best attack should be a 2128 brute force attack. No attack should be feasible until there are (if there ever will be) large-enough quantum computers.
+* **128-bit security**. The best attack should be a 2<sup>128</sup> brute force attack. No attack should be feasible until there are (if there ever will be) large-enough quantum computers.
 * **Internet-capable**. The protocol should protect against all attacks that can occur on public communication channels. The attacker can read, modify, redirect all packages sent between any pair of peers. The attacker has access to every Salt Channel package ever sent and packages from all currently active Salt Channel sessions world-wide.
 * **Forward secrecy**. Recorded communication will not be possible to decrypt even if one or both peer's private keys are compromised.
 * **Delay attack protection**. The protocol should protect against delay attacks. If the attacker delays a package, the receiving peer should detect this if the delay is abnormal.
