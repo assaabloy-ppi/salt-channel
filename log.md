@@ -1,3 +1,10 @@
+Log 2020-04-24
+==============
+
+Merged work by Shawn Nock, https://github.com/nocko, into main branch.
+Work on formal verification using Verifpal.
+
+
 Log 2018-02-13
 ==============
 

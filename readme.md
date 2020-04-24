@@ -38,6 +38,23 @@ with v1, so from a security point of view, there is no rush to upgrade.
 
 
 
+Contributors
+============
+
+## Protocol authors
+
+* Frans Lundberg, ASSA ABLOY AB, Stockholm, Sweden.
+* Simon Johansson, ASSA ABLOY AB, Stockholm, Sweden.
+
+Feel free to contact us.
+
+## Thanks!
+
+Thank you, Shawn Nock (https://github.com/nocko), for your work on formal verification 
+using Verifpal.
+
+
+
 Implementations
 ===============
 
@@ -75,18 +92,6 @@ Python
 
 See [github.com/assaabloy-ppi/salt-channel-python](https://github.com/assaabloy-ppi/salt-channel-python), 
 Python 3 implementation, MIT License.
-
-
-
-Authors
-=======
-
-Protocol authors:
-
-* Frans Lundberg, ASSA ABLOY AB, Stockholm, Sweden.
-* Simon Johansson, ASSA ABLOY AB, Stockholm, Sweden.
-
-Feel free to contact us.
 
 
 
