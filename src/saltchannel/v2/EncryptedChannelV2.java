@@ -192,6 +192,11 @@ public class EncryptedChannelV2 implements ByteChannel {
      * Not private intentionally. Used by ServerChannel.
      */
     void increaseWriteNonce() {
+	// Since we will never in practice have overflow of writeNonceInteget an Error is thrown.
+	if (writeNonceInteger > Long.MAX_VALUE - 2) {
+	    throw new Error("writeNonce too big");
+	}
+	
         setWriteNonce(writeNonceInteger + 2);
     }
     
@@ -201,6 +206,12 @@ public class EncryptedChannelV2 implements ByteChannel {
     }
     
     private void increaseReadNonce() {
+	// Since we will never in practice have overflow of readNonceInteger an Error is thrown.
+	
+	if (readNonceInteger > Long.MAX_VALUE - 2) {
+	    throw new Error("readNonce too big");
+	}
+	
         setReadNonce(readNonceInteger + 2);
     }
     
