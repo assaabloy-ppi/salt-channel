@@ -7,7 +7,7 @@ About this document.
 
 *Status*: FINAL.
 
-*Title*: Specification of Slat Channel v2
+*Title*: Specification of Salt Channel v2
 
 *Authors*:
 
