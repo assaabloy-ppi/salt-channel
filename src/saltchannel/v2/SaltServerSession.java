@@ -235,6 +235,11 @@ public class SaltServerSession {
         
         this.m1Hash = CryptoLib.sha512(m1Bytes);
         this.m1 = M1Message.fromBytes(m1Bytes, 0);
+        
+        if (m1.time != 0 && m1.time != 1) {
+            throw new BadPeer("time in m1 was " + m1.time + ", must be 0 or 1");
+        }
+        
         timeChecker.reportFirstTime(m1.time);
         
         if (m1.serverSigKeyIncluded() && !Arrays.equals(this.sigKeyPair.pub(), m1.serverSigKey)) {

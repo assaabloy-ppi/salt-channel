@@ -207,6 +207,11 @@ public class SaltClientSession {
         if (m2.noSuchServer) {
             throw new NoSuchServer();
         }
+        
+        if (m2.time != 0 && m2.time != 1) {
+            throw new BadPeer("time in m2 was " + m2.time + ", should be 0 or 1");
+        }
+        
         this.timeChecker.reportFirstTime(m2.time);
         
         this.m2Hash = CryptoLib.sha512(m2.toBytes());

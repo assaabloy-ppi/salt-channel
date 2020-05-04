@@ -40,6 +40,42 @@ public class ApplicationChannelTest {
     }
     
     @Test
+    public void testMultiAppPacket2() {
+	// For Issue #20
+        
+        Tunnel tunnel = new Tunnel();
+        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
+        
+        c1.write(false, new byte[] {0x01});
+        c1.write(false, new byte[] {0x02}, new byte[] {0x03}, new byte[] {0x04});
+        c1.write(false, new byte[] {0x05});
+       
+        Assert.assertArrayEquals(new byte[]{0x01}, c2.read());
+        Assert.assertArrayEquals(new byte[]{0x02}, c2.read());
+        Assert.assertArrayEquals(new byte[]{0x03}, c2.read());
+        Assert.assertArrayEquals(new byte[]{0x04}, c2.read());
+        Assert.assertArrayEquals(new byte[]{0x05}, c2.read());
+    }
+    
+    @Test
+    public void testMultiAppPacket3() {
+	// For Issue #20
+        
+        Tunnel tunnel = new Tunnel();
+        ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);
+        ApplicationChannel c2 = new ApplicationChannel(tunnel.channel2(), TimeKeeper.NULL, TimeChecker.NULL);
+        
+        c1.write(false, new byte[] {1}, new byte[] {2}, new byte[] {3}, new byte[] {4});
+        c1.write(false, new byte[] {5}, new byte[] {6});
+        c1.write(true, new byte[] {7});
+       
+        for (byte i = 1; i <= 7; i++) {
+            Assert.assertArrayEquals("Message " + i, new byte[]{i}, c2.read());
+        }
+    }
+    
+    @Test
     public void testAvailable() {
         Tunnel tunnel = new Tunnel();
         ApplicationChannel c1 = new ApplicationChannel(tunnel.channel1(), TimeKeeper.NULL, TimeChecker.NULL);

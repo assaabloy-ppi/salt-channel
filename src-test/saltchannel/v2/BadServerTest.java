@@ -7,6 +7,7 @@ import saltchannel.ByteChannel;
 import saltchannel.dev.ManipulableByteChannel;
 import saltchannel.dev.ManipulableByteChannel.Manipulation;
 import saltchannel.testutil.Env1;
+import saltchannel.v2.packets.M2Message;
 
 /**
  * Tests sessions with bad data from the server.
@@ -94,5 +95,29 @@ public class BadServerTest {
         
         env.appChannel.write(false, new byte[]{1, 2, 3});
         env.appChannel.read();
+    }
+    
+    @Test
+    public void testBadTimeInM2() {
+	Env1 env = new Env1();
+        
+        ManipulableByteChannel m = new ManipulableByteChannel(env.ch2);
+        m.addManipulation(1, new Manipulation() {
+            public byte[] manipulate(int packetIndex, byte[] originalBytes) {
+        	M2Message m2 = M2Message.fromBytes(originalBytes, 0);
+                m2.time = 22333;
+        	return m2.toBytes();
+            }
+        });
+        env.ch2 = m;
+        
+        try {
+            env.start();
+        } catch (BadPeer e) {
+            String errorMessage = e.getMessage();
+            if (!errorMessage.contains("22333")) {
+        	throw new RuntimeException("unexpected error message: " + errorMessage);
+            }
+        }
     }
 }
