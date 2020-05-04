@@ -1,0 +1,515 @@
+(* ---------------------------------------------------------------- *)
+(* PARAMETERS                                                       *)
+(* ---------------------------------------------------------------- *)
+
+set attacker = active.
+
+(* ---------------------------------------------------------------- *)
+(* TYPES                                                            *)
+(* ---------------------------------------------------------------- *)
+
+type phasen.
+type principal.
+type stage.
+
+type key.
+type nonce.
+type keypair.
+type aead.
+
+fun msg_a(principal, principal):bitstring [private].
+fun msg_b(principal, principal):bitstring [private].
+fun msg_c(principal, principal):bitstring [private].
+fun msg_d(principal, principal):bitstring [private].
+
+fun sigKey(principal):key [private].
+fun encKey(principal, principal):key  [private].
+
+fun key2bit(key):bitstring     [typeConverter].
+fun bit2key(bitstring):key     [typeConverter].
+
+fun nonce2bit(nonce):bitstring [typeConverter].
+fun bit2nonce(bitstring):nonce [typeConverter].
+
+fun keypairpack(key, key):keypair [data].
+reduc forall publicKey:key, privateKey:key;
+	keypairunpack(keypairpack(publicKey, privateKey))
+		= (publicKey, privateKey).
+reduc forall publicKey:key, privateKey:key;
+	getPublicKey(keypairpack(publicKey, privateKey))
+		= publicKey.
+	
+fun aeadpack(bool, bitstring, bitstring):aead [data].
+reduc forall b:bool, ad:bitstring, plaintext:bitstring;
+  aeadunpack(aeadpack(b, ad, plaintext)) = (b, ad, plaintext).
+
+(* ---------------------------------------------------------------- *)
+(* CONSTANTS                                                        *)
+(* ---------------------------------------------------------------- *)
+
+const zero:bitstring     [data].
+const one:bitstring      [data].
+const two:bitstring      [data].
+const three:bitstring    [data].
+const four:bitstring     [data].
+const five:bitstring     [data].
+const six:bitstring      [data].
+const seven:bitstring    [data].
+
+const phase0:phasen      [data].
+const phase1:phasen      [data].
+
+const stage_a:stage      [data].
+const stage_b:stage      [data].
+const stage_c:stage      [data].
+const stage_d:stage      [data].
+const stage_e:stage      [data].
+const stage_f:stage      [data].
+const stage_g:stage      [data].
+const stage_h:stage      [data].
+
+const alice:principal    [data].
+const bob:principal      [data].
+const charlie:principal  [data].
+
+const g:key              [data].
+const nonce_0:nonce      [data].
+const nonce_1:nonce      [data].
+const nonce_2:nonce      [data].
+const nonce_3:nonce      [data].
+const nonce_4:nonce      [data].
+const nonce_5:nonce      [data].
+const nonce_6:nonce      [data].
+const nonce_7:nonce      [data].
+
+const empty:bitstring    [data].
+const scsig01:bitstring  [data].
+const scsig02:bitstring  [data].
+
+(* ---------------------------------------------------------------- *)
+(* STRING CONCATENATION                                             *)
+(* ---------------------------------------------------------------- *)
+
+fun concat2(bitstring, bitstring): bitstring [data].
+reduc forall a:bitstring, b:bitstring;
+	deconcat2(concat2(a, b)) = (a, b).
+
+fun concat3(bitstring, bitstring, bitstring): bitstring [data].
+reduc forall a:bitstring, b:bitstring, c:bitstring;
+	deconcat3(concat3(a, b, c)) = (a, b, c).
+
+fun concat4(bitstring, bitstring, bitstring, bitstring): bitstring [data].
+	reduc forall a:bitstring, b:bitstring, c:bitstring, d:bitstring;
+		deconcat4(concat4(a, b, c, d)) = (a, b, c, d).
+
+(* ---------------------------------------------------------------- *)
+(* PRIMITIVES                                                       *)
+(* ---------------------------------------------------------------- *)
+
+fun incrementNonce(nonce):nonce.
+fun decrementNonce(nonce):nonce reduc
+	forall n:nonce;
+		decrementNonce(incrementNonce(n)) = n.
+
+fun dhexp(key, key):key.
+equation forall a:key, b:key;
+	dhexp(b, dhexp(a, g)) = dhexp(a, dhexp(b, g)).
+
+letfun dh(myKeypair:keypair, pubkey:key) =
+	let (myPublicKey:key, myPrivateKey:key) = keypairunpack(myKeypair) in
+	dhexp(myPrivateKey, pubkey).
+
+letfun generateEncPair(basis:key) =
+	let publicKey = dhexp(basis, g) in
+	keypairpack(publicKey, basis).
+
+fun encrypt(key, nonce, bitstring, bitstring):bitstring.
+
+fun decrypt(key, nonce, bitstring, bitstring):aead reduc
+	forall k:key, n:nonce, ad:bitstring, plaintext:bitstring;
+    decrypt(k, n, ad, encrypt(k, n, ad, plaintext)) = aeadpack(true, ad, plaintext)
+  otherwise forall k:key, n:nonce, ad:bitstring, ciphertext:bitstring;
+    decrypt(k, n, ad, ciphertext) = aeadpack(false, empty, empty).
+		
+fun hash(bitstring, bitstring):bitstring.
+
+fun hmac1(key, key):key.
+fun hmac2(key, key):key.
+fun hmac3(key, key):key.
+
+letfun hkdf(ck:key, ikm:key) =
+	let output1 = hmac1(ck, ikm) in
+	let output2 = hmac2(ck, ikm) in
+	let output3 = hmac3(ck, ikm) in
+	(output1, output2, output3).
+
+fun sigexp(key):key.
+
+letfun generateSigPair(basis:key) =
+	let publicKey = sigexp(basis) in
+	keypairpack(publicKey, basis).
+
+fun sign(key, bitstring):bitstring.
+
+fun verifySig(key, bitstring, bitstring):bool reduc
+	forall sk:key, m:bitstring;
+		verifySig(sigexp(sk), sign(sk, m), m) = true
+	otherwise forall pk:key, s:bitstring, m:bitstring;
+		verifySig(pk, s, m) = false.
+
+(* ---------------------------------------------------------------- *)
+(* CHANNELS                                                         *)
+(* ---------------------------------------------------------------- *)
+
+const pub:channel.
+
+(* ---------------------------------------------------------------- *)
+(* EVENTS & QUERIES                                                 *)
+(* ---------------------------------------------------------------- *)
+
+event HandshakeEstablished(principal, principal).
+event Signature2CheckFail(principal, principal).
+event M4DecFail(principal, principal).
+event SendMsgA(principal, principal).
+event RecvMsgA(principal, principal).
+event SendMsgB(principal, principal).
+event RecvMsgB(principal, principal).
+event ClientInitialized(principal, principal).
+event ServerInitialized(principal, principal).
+
+query a:principal, b:principal, c:principal, s:stage, m:bitstring, p:phasen;
+  event(RecvMsgA(alice, bob)) ==> event(SendMsgA(bob, alice));
+  event(RecvMsgB(bob, alice)) ==> event(SendMsgB(alice, bob));
+  attacker(msg_a(bob, alice)) phase 1;
+  attacker(msg_b(alice, bob)) phase 2;
+  attacker(msg_a(bob, alice)) phase 3;
+  attacker(msg_b(alice, bob)) phase 3;
+  attacker(sigexp(sigKey(alice))) phase 0 ==> event(ClientInitialized(alice, charlie)).
+
+
+(* ---------------------------------------------------------------- *)
+(* PROCESSES                                                        *)
+(* ---------------------------------------------------------------- *)
+
+(*
+CLIENT                                          SERVER
+
+ProtocolIndicator
+ClientEncKey
+[ServerSigKey]             ----M1--->
+
+						   <---M2----       ServerEncKey
+
+											ServerSigKey
+						   <--E(M3)--       Signature1
+
+ClientSigKey
+Signature2                 ---E(M4)->       
+
+AppPacket              <--E(AppPacket)-->   AppPacket
+
+*)
+
+let client(me:principal, them:principal) =
+  event ClientInitialized(me, them);
+  let clientEncPair = generateEncPair(encKey(me, them)) in
+  let clientSigPair = generateSigPair(sigKey(me)) in
+  let serverEncPair = generateEncPair(encKey(them, me)) in
+  let serverSigPair = generateSigPair(sigKey(them)) in
+	((
+		(* M1 scenario where no particular server signing key is mandated. *)
+    out(pub, getPublicKey(clientEncPair));
+    let m1Hash = hash(key2bit(getPublicKey(clientEncPair)), empty) in
+    (* M2/M3, we do not know which public key to expect. *)
+    in(pub, serverEncKeyPub:key);
+    let m2Hash = hash(key2bit(serverEncKeyPub), empty) in
+    in(pub, m3Enc:bitstring);
+    let (m3Valid:bool, m3Ad:bitstring, m3:bitstring) = aeadunpack(decrypt(
+      dh(clientEncPair, serverEncKeyPub),
+      nonce_0,
+      empty,
+      m3Enc
+    )) in
+    if (m3Valid) then (
+      let (serverSigKeyPubBitstring:bitstring, signature1:bitstring) = deconcat2(m3) in
+      let serverSigKeyPub = bit2key(serverSigKeyPubBitstring) in
+      if (
+        (serverSigKeyPub = serverSigKeyPub) &&
+        (verifySig(serverSigKeyPub, signature1, concat3(scsig01, m1Hash, m2Hash)))
+      ) then (
+        (* M3: everything is fine, proceed to M4 *)
+        let signature2 = sign(sigKey(me), concat3(
+          scsig02, m1Hash, m2Hash
+        )) in
+        let m4 = concat2(key2bit(getPublicKey(clientSigPair)), signature2) in
+        let m4Enc = encrypt(
+          dh(clientEncPair, serverEncKeyPub),
+          nonce_1,
+          empty,
+          m4
+        ) in
+        out(pub, m4Enc);
+        (* M4: everything is fine, receive a secret message *)
+        phase 1;
+        in(pub, secMsg_a:bitstring);
+        let (decMsg_aValid:bool, decMsg_aAd:bitstring, decMsg_a:bitstring) = aeadunpack(decrypt(
+          dh(clientEncPair, serverEncKeyPub),
+          nonce_2,
+          empty,
+          secMsg_a
+        )) in
+        if (decMsg_aValid) then (
+          event RecvMsgA(me, them);
+          phase 2;
+          let secMsg_b = encrypt(
+            dh(clientEncPair, serverEncKeyPub),
+            nonce_3,
+            empty,
+            msg_b(me, them)
+          ) in
+          event SendMsgB(me, them);
+          out(pub, secMsg_b);
+          phase 3;
+          out(pub, sigKey(me));
+          0
+        ) else (
+          0
+        )
+      ) else (
+        (* M3: Server signing pubkey check failed *)
+        0
+      )
+    ) else (
+      (* M3: Authenticated Decryption failed *)
+      0
+    )
+	) | (
+		(* M1 scenario where a particular server signing key is mandated. *)
+    out(pub, (getPublicKey(clientEncPair), getPublicKey(serverSigPair)));
+    let m1Hash = hash(key2bit(getPublicKey(clientEncPair)), key2bit(getPublicKey(serverSigPair))) in
+    (* M2/M3, we know which public key to expect. *)
+    in(pub, serverEncKeyPub:key);
+    let m2Hash = hash(key2bit(serverEncKeyPub), empty) in
+    in(pub, m3Enc:bitstring);
+    let (m3Valid:bool, m3Ad:bitstring, m3:bitstring) = aeadunpack(decrypt(
+      dh(clientEncPair, serverEncKeyPub),
+      nonce_0,
+      empty,
+      m3Enc
+    )) in
+    if (m3Valid) then (
+      let (serverSigKeyPubBitstring:bitstring, signature1:bitstring) = deconcat2(m3) in
+      let serverSigKeyPub = bit2key(serverSigKeyPubBitstring) in
+      if (
+        (serverSigKeyPub = getPublicKey(serverSigPair)) &&
+        (verifySig(serverSigKeyPub, signature1, concat3(scsig01, m1Hash, m2Hash)))
+      ) then (
+        (* M3: everything is fine, proceed to M4 *)
+        let signature2 = sign(sigKey(me), concat3(
+          scsig02, m1Hash, m2Hash
+        )) in
+        let m4 = concat2(key2bit(getPublicKey(clientSigPair)), signature2) in
+        let m4Enc = encrypt(
+          dh(clientEncPair, serverEncKeyPub),
+          nonce_1,
+          empty,
+          m4
+        ) in
+        out(pub, m4Enc);
+        (* M4: everything is fine, receive a secret message *)
+        phase 1;
+        in(pub, secMsg_a:bitstring);
+        let (decMsg_aValid:bool, decMsg_aAd:bitstring, decMsg_a:bitstring) = aeadunpack(decrypt(
+          dh(clientEncPair, serverEncKeyPub),
+          nonce_2,
+          empty,
+          secMsg_a
+        )) in
+        if (decMsg_aValid) then (
+          phase 2;
+          event RecvMsgA(me, them);
+          let secMsg_b = encrypt(
+            dh(clientEncPair, serverEncKeyPub),
+            nonce_3,
+            empty,
+            msg_b(me, them)
+          ) in
+          event SendMsgB(me, them);
+          out(pub, secMsg_b);
+          phase 3;
+          out(pub, sigKey(me));
+          0
+        ) else (
+          0
+        )
+      ) else (
+        (* M3: Server signing pubkey check failed *)
+        0
+      )
+    ) else (
+      (* M3: Authenticated Decryption failed *)
+      0
+    )
+	)).
+
+let server(me:principal, them:principal) =
+  event ServerInitialized(me, them);
+  let clientEncPair = generateEncPair(encKey(them, me)) in
+  let clientSigPair = generateSigPair(sigKey(them)) in
+	let serverEncPair = generateEncPair(encKey(me, them)) in
+	let serverSigPair = generateSigPair(sigKey(me)) in
+	((
+		(* M2 scenario where M1 does not specify particular server signing key.*)
+    in(pub, clientEncKeyPub:key);
+    let m1Hash = hash(key2bit(clientEncKeyPub), empty) in
+    out(pub, getPublicKey(serverEncPair));
+    let m2Hash = hash(key2bit(getPublicKey(serverEncPair)), empty) in
+		(* M3. *)
+		let signature1 = sign(sigKey(me), concat3(
+      scsig01, m1Hash, m2Hash
+    )) in
+    let m3 = concat2(key2bit(getPublicKey(serverSigPair)), signature1) in
+    let m3Enc = encrypt(
+      dh(serverEncPair, clientEncKeyPub),
+      nonce_0,
+      empty,
+      m3
+    ) in
+    out(pub, m3Enc);
+    (* M4. *)
+    in(pub, m4Enc:bitstring);
+    let (m4Valid:bool, m4Ad:bitstring, m4:bitstring) = aeadunpack(decrypt(
+      dh(serverEncPair, clientEncKeyPub),
+      nonce_1,
+      empty,
+      m4Enc
+    )) in
+    if (m4Valid) then (
+      let (clientSigKeyPubBitstring:bitstring, signature2:bitstring) = deconcat2(m4) in
+      let clientSigKeyPub = bit2key(clientSigKeyPubBitstring) in
+      if (
+        (clientSigKeyPub = clientSigKeyPub) &&
+        (verifySig(clientSigKeyPub, signature2, concat3(scsig02, m1Hash, m2Hash)))
+      ) then (
+        (* M4: everything is fine, send a secret message *)
+        event HandshakeEstablished(me, them);
+        phase 1;
+        let secMsg_a = encrypt(
+          dh(serverEncPair, clientEncKeyPub),
+          nonce_2,
+          empty,
+          msg_a(me, them)
+        ) in
+        event SendMsgA(me, them);
+        out(pub, secMsg_a);
+        phase 2;
+        in(pub, secMsg_b:bitstring);
+        let (decMsg_bValid:bool, decMsg_bAd:bitstring, decMsg_b:bitstring) = aeadunpack(decrypt(
+          dh(serverEncPair, clientEncKeyPub),
+          nonce_3,
+          empty,
+          secMsg_b
+        )) in
+        if (decMsg_bValid) then (
+          event RecvMsgB(me, them);
+          phase 3;
+          out(pub, sigKey(me))
+        )
+      ) else (
+        (* M4: Server signing pubkey check failed *)
+        event Signature2CheckFail(me, them);
+        0
+      )
+    ) else (
+      (* M4: Authenticated Decryption failed *)
+      event M4DecFail(me, them);
+      0
+    )
+	) | (
+		(* M2 scenario where M1 specifies a particular server signing key. *)
+    in(pub, (clientEncKeyPub:key, =getPublicKey(serverSigPair)));
+    let m1Hash = hash(key2bit(clientEncKeyPub), key2bit(getPublicKey(serverSigPair))) in
+    out(pub, getPublicKey(serverEncPair));
+    let m2Hash = hash(key2bit(getPublicKey(serverEncPair)), empty) in
+		(* M3. *)
+		let signature1 = sign(sigKey(me), concat3(
+      scsig01, m1Hash, m2Hash
+    )) in
+    let m3 = concat2(key2bit(getPublicKey(serverSigPair)), signature1) in
+    let m3Enc = encrypt(
+      dh(serverEncPair, clientEncKeyPub),
+      nonce_0,
+      empty,
+      m3
+    ) in
+    out(pub, m3Enc);
+    (* M4. *)
+    in(pub, m4Enc:bitstring);
+    let (m4Valid:bool, m4Ad:bitstring, m4:bitstring) = aeadunpack(decrypt(
+      dh(serverEncPair, clientEncKeyPub),
+      nonce_1,
+      empty,
+      m4Enc
+    )) in
+    if (m4Valid) then (
+      let (clientSigKeyPubBitstring:bitstring, signature2:bitstring) = deconcat2(m4) in
+      let clientSigKeyPub = bit2key(clientSigKeyPubBitstring) in
+      if (
+        (clientSigKeyPub = clientSigKeyPub) &&
+        (verifySig(clientSigKeyPub, signature2, concat3(scsig02, m1Hash, m2Hash)))
+      ) then (
+        (* M4: everything is fine, send a secret message *)
+        event HandshakeEstablished(me, them);
+        phase 1;
+        let secMsg_a = encrypt(
+          dh(serverEncPair, clientEncKeyPub),
+          nonce_2,
+          empty,
+          msg_a(me, them)
+        ) in
+        event SendMsgA(me, them);
+        out(pub, secMsg_a);
+        phase 2;
+        in(pub, secMsg_b:bitstring);
+        let (decMsg_bValid:bool, decMsg_bAd:bitstring, decMsg_b:bitstring) = aeadunpack(decrypt(
+          dh(serverEncPair, clientEncKeyPub),
+          nonce_3,
+          empty,
+          secMsg_b
+        )) in
+        if (decMsg_bValid) then (
+          event RecvMsgB(me, them);
+          phase 3;
+          out(pub, sigKey(me))
+        )
+      ) else (
+        (* M4: Server signing pubkey check failed *)
+        event Signature2CheckFail(me, them);
+        0
+      )
+    ) else (
+      (* M4: Authenticated Decryption failed *)
+      event M4DecFail(me, them);
+      0
+    )
+  )).
+
+(* ---------------------------------------------------------------- *)
+(* TOP-LEVEL PROCESS                                                *)
+(* ---------------------------------------------------------------- *)
+
+process !(
+  client(alice, bob)
+  |
+  server(bob, alice)
+  |
+  client(alice, charlie)
+  |
+  server(bob, charlie)
+  |
+  out(pub, (
+    encKey(charlie, alice),
+    encKey(charlie, bob),
+    sigKey(charlie)
+  ))
+)

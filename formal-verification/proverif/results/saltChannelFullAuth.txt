@@ -1,0 +1,218 @@
+Linear part:
+dhexp(b_38,dhexp(a_37,g)) = dhexp(a_37,dhexp(b_38,g))
+Completing equations...
+Completed equations:
+dhexp(b_38,dhexp(a_37,g)) = dhexp(a_37,dhexp(b_38,g))
+Convergent part:
+Completing equations...
+Completed equations:
+Process:
+{1}!
+(
+    {2}event ClientInitialized(alice,bob);
+    {3}let v_136: key = catch-fail(dhexp(encKey(alice,bob),g)) in
+    {4}let clientEncPair: keypair = (if not-caught-fail(v_136) then keypairpack(v_136,encKey(alice,bob)) else fail-any) in
+    {5}let v_137: key = catch-fail(sigexp(sigKey(alice))) in
+    {6}let clientSigPair: keypair = (if not-caught-fail(v_137) then keypairpack(v_137,sigKey(alice)) else fail-any) in
+    {7}let v_138: key = catch-fail(dhexp(encKey(bob,alice),g)) in
+    {8}let serverEncPair: keypair = (if not-caught-fail(v_138) then keypairpack(v_138,encKey(bob,alice)) else fail-any) in
+    {9}let v_139: key = catch-fail(sigexp(sigKey(bob))) in
+    {10}let serverSigPair: keypair = (if not-caught-fail(v_139) then keypairpack(v_139,sigKey(bob)) else fail-any) in
+    {11}out(pub, (getPublicKey(clientEncPair),getPublicKey(serverSigPair)));
+    {12}let m1Hash: bitstring = hash(getPublicKey(clientEncPair),getPublicKey(serverSigPair)) in
+    {13}in(pub, serverEncKeyPub: key);
+    {14}let m2Hash: bitstring = hash(serverEncKeyPub,empty) in
+    {15}in(pub, m3Enc: bitstring);
+    {16}let v_140: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+    {17}let (m3Valid: bool,m3Ad: bitstring,m3: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_140) && success?(is-true(success?(1-proj-2-tuple(v_140))))) then dhexp(2-proj-2-tuple(v_140),serverEncKeyPub) else fail-any),nonce_0,empty,m3Enc)) in
+    {18}if m3Valid then
+    {19}let (serverSigKeyPubBitstring: bitstring,signature1: bitstring) = deconcat2(m3) in
+    {20}let serverSigKeyPub: key = serverSigKeyPubBitstring in
+    {21}if ((serverSigKeyPub = getPublicKey(serverSigPair)) && verifySig(serverSigKeyPub,signature1,concat3(scsig01,m1Hash,m2Hash))) then
+    {22}let signature2: bitstring = sign(sigKey(alice),concat3(scsig02,m1Hash,m2Hash)) in
+    {23}let m4: bitstring = concat2(getPublicKey(clientSigPair),signature2) in
+    {24}let v_141: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+    {25}let m4Enc: bitstring = encrypt((if (not-caught-fail(v_141) && success?(is-true(success?(1-proj-2-tuple(v_141))))) then dhexp(2-proj-2-tuple(v_141),serverEncKeyPub) else fail-any),nonce_1,empty,m4) in
+    {26}out(pub, m4Enc);
+    {27}phase 1;
+    {28}in(pub, secMsg_a: bitstring);
+    {29}let v_142: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+    {30}let (decMsg_aValid: bool,decMsg_aAd: bitstring,decMsg_a: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_142) && success?(is-true(success?(1-proj-2-tuple(v_142))))) then dhexp(2-proj-2-tuple(v_142),serverEncKeyPub) else fail-any),nonce_2,empty,secMsg_a)) in
+    {31}if decMsg_aValid then
+    {32}event RecvMsgA(alice,bob);
+    {33}phase 2;
+    {34}let v_143: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+    {35}let secMsg_b: bitstring = encrypt((if (not-caught-fail(v_143) && success?(is-true(success?(1-proj-2-tuple(v_143))))) then dhexp(2-proj-2-tuple(v_143),serverEncKeyPub) else fail-any),nonce_3,empty,msg_b(alice,bob)) in
+    {36}event SendMsgB(alice,bob);
+    {37}out(pub, secMsg_b);
+    {38}phase 3;
+    {39}out(pub, sigKey(alice))
+) | (
+    {40}event ServerInitialized(bob,alice);
+    {41}let v_144: key = catch-fail(dhexp(encKey(alice,bob),g)) in
+    {42}let clientEncPair_145: keypair = (if not-caught-fail(v_144) then keypairpack(v_144,encKey(alice,bob)) else fail-any) in
+    {43}let v_146: key = catch-fail(sigexp(sigKey(alice))) in
+    {44}let clientSigPair_147: keypair = (if not-caught-fail(v_146) then keypairpack(v_146,sigKey(alice)) else fail-any) in
+    {45}let v_148: key = catch-fail(dhexp(encKey(bob,alice),g)) in
+    {46}let serverEncPair_149: keypair = (if not-caught-fail(v_148) then keypairpack(v_148,encKey(bob,alice)) else fail-any) in
+    {47}let v_150: key = catch-fail(sigexp(sigKey(bob))) in
+    {48}let serverSigPair_151: keypair = (if not-caught-fail(v_150) then keypairpack(v_150,sigKey(bob)) else fail-any) in
+    {49}in(pub, (clientEncKeyPub: key,=getPublicKey(serverSigPair_151)));
+    {50}let m1Hash_152: bitstring = hash(clientEncKeyPub,getPublicKey(serverSigPair_151)) in
+    {51}out(pub, getPublicKey(serverEncPair_149));
+    {52}let m2Hash_153: bitstring = hash(getPublicKey(serverEncPair_149),empty) in
+    {53}let signature1_154: bitstring = sign(sigKey(bob),concat3(scsig01,m1Hash_152,m2Hash_153)) in
+    {54}let m3_155: bitstring = concat2(getPublicKey(serverSigPair_151),signature1_154) in
+    {55}let v_156: bitstring = catch-fail(keypairunpack(serverEncPair_149)) in
+    {56}let m3Enc_157: bitstring = encrypt((if (not-caught-fail(v_156) && success?(is-true(success?(1-proj-2-tuple(v_156))))) then dhexp(2-proj-2-tuple(v_156),clientEncKeyPub) else fail-any),nonce_0,empty,m3_155) in
+    {57}out(pub, m3Enc_157);
+    {58}in(pub, m4Enc_158: bitstring);
+    {59}let v_159: bitstring = catch-fail(keypairunpack(serverEncPair_149)) in
+    {60}let (m4Valid: bool,m4Ad: bitstring,m4_160: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_159) && success?(is-true(success?(1-proj-2-tuple(v_159))))) then dhexp(2-proj-2-tuple(v_159),clientEncKeyPub) else fail-any),nonce_1,empty,m4Enc_158)) in
+    {61}if m4Valid then
+    (
+        {62}let (clientSigKeyPubBitstring: bitstring,signature2_161: bitstring) = deconcat2(m4_160) in
+        {63}let clientSigKeyPub: key = clientSigKeyPubBitstring in
+        {64}if ((clientSigKeyPub = getPublicKey(clientSigPair_147)) && verifySig(clientSigKeyPub,signature2_161,concat3(scsig02,m1Hash_152,m2Hash_153))) then
+        (
+            {65}event HandshakeEstablished(bob,alice);
+            {66}phase 1;
+            {67}let v_162: bitstring = catch-fail(keypairunpack(serverEncPair_149)) in
+            {68}let secMsg_a_163: bitstring = encrypt((if (not-caught-fail(v_162) && success?(is-true(success?(1-proj-2-tuple(v_162))))) then dhexp(2-proj-2-tuple(v_162),clientEncKeyPub) else fail-any),nonce_2,empty,msg_a(bob,alice)) in
+            {69}event SendMsgA(bob,alice);
+            {70}out(pub, secMsg_a_163);
+            {71}phase 2;
+            {72}in(pub, secMsg_b_164: bitstring);
+            {73}let v_165: bitstring = catch-fail(keypairunpack(serverEncPair_149)) in
+            {74}let (decMsg_bValid: bool,decMsg_bAd: bitstring,decMsg_b: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_165) && success?(is-true(success?(1-proj-2-tuple(v_165))))) then dhexp(2-proj-2-tuple(v_165),clientEncKeyPub) else fail-any),nonce_3,empty,secMsg_b_164)) in
+            {75}if decMsg_bValid then
+            {76}event RecvMsgB(bob,alice);
+            {77}phase 3;
+            {78}out(pub, sigKey(bob))
+        )
+        else
+            {79}event Signature2CheckFail(bob,alice)
+    )
+    else
+        {80}event M4DecFail(bob,alice)
+) | (
+    {81}event ClientInitialized(alice,charlie);
+    {82}let v_166: key = catch-fail(dhexp(encKey(alice,charlie),g)) in
+    {83}let clientEncPair_167: keypair = (if not-caught-fail(v_166) then keypairpack(v_166,encKey(alice,charlie)) else fail-any) in
+    {84}let v_168: key = catch-fail(sigexp(sigKey(alice))) in
+    {85}let clientSigPair_169: keypair = (if not-caught-fail(v_168) then keypairpack(v_168,sigKey(alice)) else fail-any) in
+    {86}let v_170: key = catch-fail(dhexp(encKey(charlie,alice),g)) in
+    {87}let serverEncPair_171: keypair = (if not-caught-fail(v_170) then keypairpack(v_170,encKey(charlie,alice)) else fail-any) in
+    {88}let v_172: key = catch-fail(sigexp(sigKey(charlie))) in
+    {89}let serverSigPair_173: keypair = (if not-caught-fail(v_172) then keypairpack(v_172,sigKey(charlie)) else fail-any) in
+    {90}out(pub, (getPublicKey(clientEncPair_167),getPublicKey(serverSigPair_173)));
+    {91}let m1Hash_174: bitstring = hash(getPublicKey(clientEncPair_167),getPublicKey(serverSigPair_173)) in
+    {92}in(pub, serverEncKeyPub_175: key);
+    {93}let m2Hash_176: bitstring = hash(serverEncKeyPub_175,empty) in
+    {94}in(pub, m3Enc_177: bitstring);
+    {95}let v_178: bitstring = catch-fail(keypairunpack(clientEncPair_167)) in
+    {96}let (m3Valid_179: bool,m3Ad_180: bitstring,m3_181: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_178) && success?(is-true(success?(1-proj-2-tuple(v_178))))) then dhexp(2-proj-2-tuple(v_178),serverEncKeyPub_175) else fail-any),nonce_0,empty,m3Enc_177)) in
+    {97}if m3Valid_179 then
+    {98}let (serverSigKeyPubBitstring_182: bitstring,signature1_183: bitstring) = deconcat2(m3_181) in
+    {99}let serverSigKeyPub_184: key = serverSigKeyPubBitstring_182 in
+    {100}if ((serverSigKeyPub_184 = getPublicKey(serverSigPair_173)) && verifySig(serverSigKeyPub_184,signature1_183,concat3(scsig01,m1Hash_174,m2Hash_176))) then
+    {101}let signature2_185: bitstring = sign(sigKey(alice),concat3(scsig02,m1Hash_174,m2Hash_176)) in
+    {102}let m4_186: bitstring = concat2(getPublicKey(clientSigPair_169),signature2_185) in
+    {103}let v_187: bitstring = catch-fail(keypairunpack(clientEncPair_167)) in
+    {104}let m4Enc_188: bitstring = encrypt((if (not-caught-fail(v_187) && success?(is-true(success?(1-proj-2-tuple(v_187))))) then dhexp(2-proj-2-tuple(v_187),serverEncKeyPub_175) else fail-any),nonce_1,empty,m4_186) in
+    {105}out(pub, m4Enc_188);
+    {106}phase 1;
+    {107}in(pub, secMsg_a_189: bitstring);
+    {108}let v_190: bitstring = catch-fail(keypairunpack(clientEncPair_167)) in
+    {109}let (decMsg_aValid_191: bool,decMsg_aAd_192: bitstring,decMsg_a_193: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_190) && success?(is-true(success?(1-proj-2-tuple(v_190))))) then dhexp(2-proj-2-tuple(v_190),serverEncKeyPub_175) else fail-any),nonce_2,empty,secMsg_a_189)) in
+    {110}if decMsg_aValid_191 then
+    {111}event RecvMsgA(alice,charlie);
+    {112}phase 2;
+    {113}let v_194: bitstring = catch-fail(keypairunpack(clientEncPair_167)) in
+    {114}let secMsg_b_195: bitstring = encrypt((if (not-caught-fail(v_194) && success?(is-true(success?(1-proj-2-tuple(v_194))))) then dhexp(2-proj-2-tuple(v_194),serverEncKeyPub_175) else fail-any),nonce_3,empty,msg_b(alice,charlie)) in
+    {115}event SendMsgB(alice,charlie);
+    {116}out(pub, secMsg_b_195);
+    {117}phase 3;
+    {118}out(pub, sigKey(alice))
+) | (
+    {119}event ServerInitialized(bob,charlie);
+    {120}let v_196: key = catch-fail(dhexp(encKey(charlie,bob),g)) in
+    {121}let clientEncPair_197: keypair = (if not-caught-fail(v_196) then keypairpack(v_196,encKey(charlie,bob)) else fail-any) in
+    {122}let v_198: key = catch-fail(sigexp(sigKey(charlie))) in
+    {123}let clientSigPair_199: keypair = (if not-caught-fail(v_198) then keypairpack(v_198,sigKey(charlie)) else fail-any) in
+    {124}let v_200: key = catch-fail(dhexp(encKey(bob,charlie),g)) in
+    {125}let serverEncPair_201: keypair = (if not-caught-fail(v_200) then keypairpack(v_200,encKey(bob,charlie)) else fail-any) in
+    {126}let v_202: key = catch-fail(sigexp(sigKey(bob))) in
+    {127}let serverSigPair_203: keypair = (if not-caught-fail(v_202) then keypairpack(v_202,sigKey(bob)) else fail-any) in
+    {128}in(pub, (clientEncKeyPub_204: key,=getPublicKey(serverSigPair_203)));
+    {129}let m1Hash_205: bitstring = hash(clientEncKeyPub_204,getPublicKey(serverSigPair_203)) in
+    {130}out(pub, getPublicKey(serverEncPair_201));
+    {131}let m2Hash_206: bitstring = hash(getPublicKey(serverEncPair_201),empty) in
+    {132}let signature1_207: bitstring = sign(sigKey(bob),concat3(scsig01,m1Hash_205,m2Hash_206)) in
+    {133}let m3_208: bitstring = concat2(getPublicKey(serverSigPair_203),signature1_207) in
+    {134}let v_209: bitstring = catch-fail(keypairunpack(serverEncPair_201)) in
+    {135}let m3Enc_210: bitstring = encrypt((if (not-caught-fail(v_209) && success?(is-true(success?(1-proj-2-tuple(v_209))))) then dhexp(2-proj-2-tuple(v_209),clientEncKeyPub_204) else fail-any),nonce_0,empty,m3_208) in
+    {136}out(pub, m3Enc_210);
+    {137}in(pub, m4Enc_211: bitstring);
+    {138}let v_212: bitstring = catch-fail(keypairunpack(serverEncPair_201)) in
+    {139}let (m4Valid_213: bool,m4Ad_214: bitstring,m4_215: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_212) && success?(is-true(success?(1-proj-2-tuple(v_212))))) then dhexp(2-proj-2-tuple(v_212),clientEncKeyPub_204) else fail-any),nonce_1,empty,m4Enc_211)) in
+    {140}if m4Valid_213 then
+    (
+        {141}let (clientSigKeyPubBitstring_216: bitstring,signature2_217: bitstring) = deconcat2(m4_215) in
+        {142}let clientSigKeyPub_218: key = clientSigKeyPubBitstring_216 in
+        {143}if ((clientSigKeyPub_218 = getPublicKey(clientSigPair_199)) && verifySig(clientSigKeyPub_218,signature2_217,concat3(scsig02,m1Hash_205,m2Hash_206))) then
+        (
+            {144}event HandshakeEstablished(bob,charlie);
+            {145}phase 1;
+            {146}let v_219: bitstring = catch-fail(keypairunpack(serverEncPair_201)) in
+            {147}let secMsg_a_220: bitstring = encrypt((if (not-caught-fail(v_219) && success?(is-true(success?(1-proj-2-tuple(v_219))))) then dhexp(2-proj-2-tuple(v_219),clientEncKeyPub_204) else fail-any),nonce_2,empty,msg_a(bob,charlie)) in
+            {148}event SendMsgA(bob,charlie);
+            {149}out(pub, secMsg_a_220);
+            {150}phase 2;
+            {151}in(pub, secMsg_b_221: bitstring);
+            {152}let v_222: bitstring = catch-fail(keypairunpack(serverEncPair_201)) in
+            {153}let (decMsg_bValid_223: bool,decMsg_bAd_224: bitstring,decMsg_b_225: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_222) && success?(is-true(success?(1-proj-2-tuple(v_222))))) then dhexp(2-proj-2-tuple(v_222),clientEncKeyPub_204) else fail-any),nonce_3,empty,secMsg_b_221)) in
+            {154}if decMsg_bValid_223 then
+            {155}event RecvMsgB(bob,charlie);
+            {156}phase 3;
+            {157}out(pub, sigKey(bob))
+        )
+        else
+            {158}event Signature2CheckFail(bob,charlie)
+    )
+    else
+        {159}event M4DecFail(bob,charlie)
+) | (
+    {160}out(pub, (encKey(charlie,alice),encKey(charlie,bob),sigKey(charlie)))
+)
+
+-- Query event(RecvMsgA(alice,bob)) ==> event(SendMsgA(bob,alice)); event(RecvMsgB(bob,alice)) ==> event(SendMsgB(alice,bob)); not attacker_p1(msg_a(bob,alice)); not attacker_p2(msg_b(alice,bob)); not attacker_p3(msg_a(bob,alice)); not attacker_p3(msg_b(alice,bob)); attacker(sigexp(sigKey(alice))) ==> event(ClientInitialized(alice,charlie))
+Completing...
+200 rules inserted. The rule base contains 200 rules. 218 rules in the queue.
+400 rules inserted. The rule base contains 400 rules. 93 rules in the queue.
+600 rules inserted. The rule base contains 582 rules. 114 rules in the queue.
+800 rules inserted. The rule base contains 765 rules. 183 rules in the queue.
+1000 rules inserted. The rule base contains 905 rules. 244 rules in the queue.
+1200 rules inserted. The rule base contains 1013 rules. 217 rules in the queue.
+1400 rules inserted. The rule base contains 1157 rules. 234 rules in the queue.
+1600 rules inserted. The rule base contains 1229 rules. 230 rules in the queue.
+1800 rules inserted. The rule base contains 1354 rules. 161 rules in the queue.
+2000 rules inserted. The rule base contains 1474 rules. 59 rules in the queue.
+2200 rules inserted. The rule base contains 1476 rules. 21 rules in the queue.
+Starting query event(RecvMsgA(alice,bob)) ==> event(SendMsgA(bob,alice))
+goal reachable: begin(SendMsgA(bob,alice)) && begin(ClientInitialized(alice,bob)) -> end(RecvMsgA(alice,bob))
+RESULT event(RecvMsgA(alice,bob)) ==> event(SendMsgA(bob,alice)) is true.
+Starting query event(RecvMsgB(bob,alice)) ==> event(SendMsgB(alice,bob))
+goal reachable: begin(SendMsgB(alice,bob)) && begin(SendMsgA(bob,alice)) && begin(ClientInitialized(alice,bob)) -> end(RecvMsgB(bob,alice))
+RESULT event(RecvMsgB(bob,alice)) ==> event(SendMsgB(alice,bob)) is true.
+Starting query not attacker_p1(msg_a(bob,alice))
+RESULT not attacker_p1(msg_a(bob,alice)) is true.
+Starting query not attacker_p2(msg_b(alice,bob))
+RESULT not attacker_p2(msg_b(alice,bob)) is true.
+Starting query not attacker_p3(msg_a(bob,alice))
+RESULT not attacker_p3(msg_a(bob,alice)) is true.
+Starting query not attacker_p3(msg_b(alice,bob))
+RESULT not attacker_p3(msg_b(alice,bob)) is true.
+Starting query attacker(sigexp(sigKey(alice))) ==> event(ClientInitialized(alice,charlie))
+goal reachable: begin(ClientInitialized(alice,charlie)) -> attacker(sigexp(sigKey(alice)))
+RESULT attacker(sigexp(sigKey(alice))) ==> event(ClientInitialized(alice,charlie)) is true.

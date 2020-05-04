@@ -1,0 +1,1530 @@
+Linear part:
+dhexp(b_38,dhexp(a_37,g)) = dhexp(a_37,dhexp(b_38,g))
+Completing equations...
+Completed equations:
+dhexp(b_38,dhexp(a_37,g)) = dhexp(a_37,dhexp(b_38,g))
+Convergent part:
+Completing equations...
+Completed equations:
+Process:
+{1}!
+(
+    {2}event ClientInitialized(alice,bob);
+    {3}let v_144: key = catch-fail(dhexp(encKey(alice,bob),g)) in
+    {4}let clientEncPair: keypair = (if not-caught-fail(v_144) then keypairpack(v_144,encKey(alice,bob)) else fail-any) in
+    {5}let v_145: key = catch-fail(sigexp(sigKey(alice))) in
+    {6}let clientSigPair: keypair = (if not-caught-fail(v_145) then keypairpack(v_145,sigKey(alice)) else fail-any) in
+    {7}let v_146: key = catch-fail(dhexp(encKey(bob,alice),g)) in
+    {8}let serverEncPair: keypair = (if not-caught-fail(v_146) then keypairpack(v_146,encKey(bob,alice)) else fail-any) in
+    {9}let v_147: key = catch-fail(sigexp(sigKey(bob))) in
+    {10}let serverSigPair: keypair = (if not-caught-fail(v_147) then keypairpack(v_147,sigKey(bob)) else fail-any) in
+    (
+        {11}out(pub, getPublicKey(clientEncPair));
+        {12}let m1Hash: bitstring = hash(getPublicKey(clientEncPair),empty) in
+        {13}in(pub, serverEncKeyPub: key);
+        {14}let m2Hash: bitstring = hash(serverEncKeyPub,empty) in
+        {15}in(pub, m3Enc: bitstring);
+        {16}let v_148: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+        {17}let (m3Valid: bool,m3Ad: bitstring,m3: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_148) && success?(is-true(success?(1-proj-2-tuple(v_148))))) then dhexp(2-proj-2-tuple(v_148),serverEncKeyPub) else fail-any),nonce_0,empty,m3Enc)) in
+        {18}if m3Valid then
+        {19}let (serverSigKeyPubBitstring: bitstring,signature1: bitstring) = deconcat2(m3) in
+        {20}let serverSigKeyPub: key = serverSigKeyPubBitstring in
+        {21}if ((serverSigKeyPub = serverSigKeyPub) && verifySig(serverSigKeyPub,signature1,concat3(scsig01,m1Hash,m2Hash))) then
+        {22}let signature2: bitstring = sign(sigKey(alice),concat3(scsig02,m1Hash,m2Hash)) in
+        {23}let m4: bitstring = concat2(getPublicKey(clientSigPair),signature2) in
+        {24}let v_149: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+        {25}let m4Enc: bitstring = encrypt((if (not-caught-fail(v_149) && success?(is-true(success?(1-proj-2-tuple(v_149))))) then dhexp(2-proj-2-tuple(v_149),serverEncKeyPub) else fail-any),nonce_1,empty,m4) in
+        {26}out(pub, m4Enc);
+        {27}phase 1;
+        {28}in(pub, secMsg_a: bitstring);
+        {29}let v_150: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+        {30}let (decMsg_aValid: bool,decMsg_aAd: bitstring,decMsg_a: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_150) && success?(is-true(success?(1-proj-2-tuple(v_150))))) then dhexp(2-proj-2-tuple(v_150),serverEncKeyPub) else fail-any),nonce_2,empty,secMsg_a)) in
+        {31}if decMsg_aValid then
+        {32}event RecvMsgA(alice,bob);
+        {33}phase 2;
+        {34}let v_151: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+        {35}let secMsg_b: bitstring = encrypt((if (not-caught-fail(v_151) && success?(is-true(success?(1-proj-2-tuple(v_151))))) then dhexp(2-proj-2-tuple(v_151),serverEncKeyPub) else fail-any),nonce_3,empty,msg_b(alice,bob)) in
+        {36}event SendMsgB(alice,bob);
+        {37}out(pub, secMsg_b);
+        {38}phase 3;
+        {39}out(pub, sigKey(alice))
+    ) | (
+        {40}out(pub, (getPublicKey(clientEncPair),getPublicKey(serverSigPair)));
+        {41}let m1Hash_152: bitstring = hash(getPublicKey(clientEncPair),getPublicKey(serverSigPair)) in
+        {42}in(pub, serverEncKeyPub_153: key);
+        {43}let m2Hash_154: bitstring = hash(serverEncKeyPub_153,empty) in
+        {44}in(pub, m3Enc_155: bitstring);
+        {45}let v_156: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+        {46}let (m3Valid_157: bool,m3Ad_158: bitstring,m3_159: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_156) && success?(is-true(success?(1-proj-2-tuple(v_156))))) then dhexp(2-proj-2-tuple(v_156),serverEncKeyPub_153) else fail-any),nonce_0,empty,m3Enc_155)) in
+        {47}if m3Valid_157 then
+        {48}let (serverSigKeyPubBitstring_160: bitstring,signature1_161: bitstring) = deconcat2(m3_159) in
+        {49}let serverSigKeyPub_162: key = serverSigKeyPubBitstring_160 in
+        {50}if ((serverSigKeyPub_162 = getPublicKey(serverSigPair)) && verifySig(serverSigKeyPub_162,signature1_161,concat3(scsig01,m1Hash_152,m2Hash_154))) then
+        {51}let signature2_163: bitstring = sign(sigKey(alice),concat3(scsig02,m1Hash_152,m2Hash_154)) in
+        {52}let m4_164: bitstring = concat2(getPublicKey(clientSigPair),signature2_163) in
+        {53}let v_165: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+        {54}let m4Enc_166: bitstring = encrypt((if (not-caught-fail(v_165) && success?(is-true(success?(1-proj-2-tuple(v_165))))) then dhexp(2-proj-2-tuple(v_165),serverEncKeyPub_153) else fail-any),nonce_1,empty,m4_164) in
+        {55}out(pub, m4Enc_166);
+        {56}phase 1;
+        {57}in(pub, secMsg_a_167: bitstring);
+        {58}let v_168: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+        {59}let (decMsg_aValid_169: bool,decMsg_aAd_170: bitstring,decMsg_a_171: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_168) && success?(is-true(success?(1-proj-2-tuple(v_168))))) then dhexp(2-proj-2-tuple(v_168),serverEncKeyPub_153) else fail-any),nonce_2,empty,secMsg_a_167)) in
+        {60}if decMsg_aValid_169 then
+        {61}phase 2;
+        {62}event RecvMsgA(alice,bob);
+        {63}let v_172: bitstring = catch-fail(keypairunpack(clientEncPair)) in
+        {64}let secMsg_b_173: bitstring = encrypt((if (not-caught-fail(v_172) && success?(is-true(success?(1-proj-2-tuple(v_172))))) then dhexp(2-proj-2-tuple(v_172),serverEncKeyPub_153) else fail-any),nonce_3,empty,msg_b(alice,bob)) in
+        {65}event SendMsgB(alice,bob);
+        {66}out(pub, secMsg_b_173);
+        {67}phase 3;
+        {68}out(pub, sigKey(alice))
+    )
+) | (
+    {69}event ServerInitialized(bob,alice);
+    {70}let v_174: key = catch-fail(dhexp(encKey(alice,bob),g)) in
+    {71}let clientEncPair_175: keypair = (if not-caught-fail(v_174) then keypairpack(v_174,encKey(alice,bob)) else fail-any) in
+    {72}let v_176: key = catch-fail(sigexp(sigKey(alice))) in
+    {73}let clientSigPair_177: keypair = (if not-caught-fail(v_176) then keypairpack(v_176,sigKey(alice)) else fail-any) in
+    {74}let v_178: key = catch-fail(dhexp(encKey(bob,alice),g)) in
+    {75}let serverEncPair_179: keypair = (if not-caught-fail(v_178) then keypairpack(v_178,encKey(bob,alice)) else fail-any) in
+    {76}let v_180: key = catch-fail(sigexp(sigKey(bob))) in
+    {77}let serverSigPair_181: keypair = (if not-caught-fail(v_180) then keypairpack(v_180,sigKey(bob)) else fail-any) in
+    (
+        {78}in(pub, clientEncKeyPub: key);
+        {79}let m1Hash_182: bitstring = hash(clientEncKeyPub,empty) in
+        {80}out(pub, getPublicKey(serverEncPair_179));
+        {81}let m2Hash_183: bitstring = hash(getPublicKey(serverEncPair_179),empty) in
+        {82}let signature1_184: bitstring = sign(sigKey(bob),concat3(scsig01,m1Hash_182,m2Hash_183)) in
+        {83}let m3_185: bitstring = concat2(getPublicKey(serverSigPair_181),signature1_184) in
+        {84}let v_186: bitstring = catch-fail(keypairunpack(serverEncPair_179)) in
+        {85}let m3Enc_187: bitstring = encrypt((if (not-caught-fail(v_186) && success?(is-true(success?(1-proj-2-tuple(v_186))))) then dhexp(2-proj-2-tuple(v_186),clientEncKeyPub) else fail-any),nonce_0,empty,m3_185) in
+        {86}out(pub, m3Enc_187);
+        {87}in(pub, m4Enc_188: bitstring);
+        {88}let v_189: bitstring = catch-fail(keypairunpack(serverEncPair_179)) in
+        {89}let (m4Valid: bool,m4Ad: bitstring,m4_190: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_189) && success?(is-true(success?(1-proj-2-tuple(v_189))))) then dhexp(2-proj-2-tuple(v_189),clientEncKeyPub) else fail-any),nonce_1,empty,m4Enc_188)) in
+        {90}if m4Valid then
+        (
+            {91}let (clientSigKeyPubBitstring: bitstring,signature2_191: bitstring) = deconcat2(m4_190) in
+            {92}let clientSigKeyPub: key = clientSigKeyPubBitstring in
+            {93}if ((clientSigKeyPub = clientSigKeyPub) && verifySig(clientSigKeyPub,signature2_191,concat3(scsig02,m1Hash_182,m2Hash_183))) then
+            (
+                {94}event HandshakeEstablished(bob,alice);
+                {95}phase 1;
+                {96}let v_192: bitstring = catch-fail(keypairunpack(serverEncPair_179)) in
+                {97}let secMsg_a_193: bitstring = encrypt((if (not-caught-fail(v_192) && success?(is-true(success?(1-proj-2-tuple(v_192))))) then dhexp(2-proj-2-tuple(v_192),clientEncKeyPub) else fail-any),nonce_2,empty,msg_a(bob,alice)) in
+                {98}event SendMsgA(bob,alice);
+                {99}out(pub, secMsg_a_193);
+                {100}phase 2;
+                {101}in(pub, secMsg_b_194: bitstring);
+                {102}let v_195: bitstring = catch-fail(keypairunpack(serverEncPair_179)) in
+                {103}let (decMsg_bValid: bool,decMsg_bAd: bitstring,decMsg_b: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_195) && success?(is-true(success?(1-proj-2-tuple(v_195))))) then dhexp(2-proj-2-tuple(v_195),clientEncKeyPub) else fail-any),nonce_3,empty,secMsg_b_194)) in
+                {104}if decMsg_bValid then
+                {105}event RecvMsgB(bob,alice);
+                {106}phase 3;
+                {107}out(pub, sigKey(bob))
+            )
+            else
+                {108}event Signature2CheckFail(bob,alice)
+        )
+        else
+            {109}event M4DecFail(bob,alice)
+    ) | (
+        {110}in(pub, (clientEncKeyPub_196: key,=getPublicKey(serverSigPair_181)));
+        {111}let m1Hash_197: bitstring = hash(clientEncKeyPub_196,getPublicKey(serverSigPair_181)) in
+        {112}out(pub, getPublicKey(serverEncPair_179));
+        {113}let m2Hash_198: bitstring = hash(getPublicKey(serverEncPair_179),empty) in
+        {114}let signature1_199: bitstring = sign(sigKey(bob),concat3(scsig01,m1Hash_197,m2Hash_198)) in
+        {115}let m3_200: bitstring = concat2(getPublicKey(serverSigPair_181),signature1_199) in
+        {116}let v_201: bitstring = catch-fail(keypairunpack(serverEncPair_179)) in
+        {117}let m3Enc_202: bitstring = encrypt((if (not-caught-fail(v_201) && success?(is-true(success?(1-proj-2-tuple(v_201))))) then dhexp(2-proj-2-tuple(v_201),clientEncKeyPub_196) else fail-any),nonce_0,empty,m3_200) in
+        {118}out(pub, m3Enc_202);
+        {119}in(pub, m4Enc_203: bitstring);
+        {120}let v_204: bitstring = catch-fail(keypairunpack(serverEncPair_179)) in
+        {121}let (m4Valid_205: bool,m4Ad_206: bitstring,m4_207: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_204) && success?(is-true(success?(1-proj-2-tuple(v_204))))) then dhexp(2-proj-2-tuple(v_204),clientEncKeyPub_196) else fail-any),nonce_1,empty,m4Enc_203)) in
+        {122}if m4Valid_205 then
+        (
+            {123}let (clientSigKeyPubBitstring_208: bitstring,signature2_209: bitstring) = deconcat2(m4_207) in
+            {124}let clientSigKeyPub_210: key = clientSigKeyPubBitstring_208 in
+            {125}if ((clientSigKeyPub_210 = clientSigKeyPub_210) && verifySig(clientSigKeyPub_210,signature2_209,concat3(scsig02,m1Hash_197,m2Hash_198))) then
+            (
+                {126}event HandshakeEstablished(bob,alice);
+                {127}phase 1;
+                {128}let v_211: bitstring = catch-fail(keypairunpack(serverEncPair_179)) in
+                {129}let secMsg_a_212: bitstring = encrypt((if (not-caught-fail(v_211) && success?(is-true(success?(1-proj-2-tuple(v_211))))) then dhexp(2-proj-2-tuple(v_211),clientEncKeyPub_196) else fail-any),nonce_2,empty,msg_a(bob,alice)) in
+                {130}event SendMsgA(bob,alice);
+                {131}out(pub, secMsg_a_212);
+                {132}phase 2;
+                {133}in(pub, secMsg_b_213: bitstring);
+                {134}let v_214: bitstring = catch-fail(keypairunpack(serverEncPair_179)) in
+                {135}let (decMsg_bValid_215: bool,decMsg_bAd_216: bitstring,decMsg_b_217: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_214) && success?(is-true(success?(1-proj-2-tuple(v_214))))) then dhexp(2-proj-2-tuple(v_214),clientEncKeyPub_196) else fail-any),nonce_3,empty,secMsg_b_213)) in
+                {136}if decMsg_bValid_215 then
+                {137}event RecvMsgB(bob,alice);
+                {138}phase 3;
+                {139}out(pub, sigKey(bob))
+            )
+            else
+                {140}event Signature2CheckFail(bob,alice)
+        )
+        else
+            {141}event M4DecFail(bob,alice)
+    )
+) | (
+    {142}event ClientInitialized(alice,charlie);
+    {143}let v_218: key = catch-fail(dhexp(encKey(alice,charlie),g)) in
+    {144}let clientEncPair_219: keypair = (if not-caught-fail(v_218) then keypairpack(v_218,encKey(alice,charlie)) else fail-any) in
+    {145}let v_220: key = catch-fail(sigexp(sigKey(alice))) in
+    {146}let clientSigPair_221: keypair = (if not-caught-fail(v_220) then keypairpack(v_220,sigKey(alice)) else fail-any) in
+    {147}let v_222: key = catch-fail(dhexp(encKey(charlie,alice),g)) in
+    {148}let serverEncPair_223: keypair = (if not-caught-fail(v_222) then keypairpack(v_222,encKey(charlie,alice)) else fail-any) in
+    {149}let v_224: key = catch-fail(sigexp(sigKey(charlie))) in
+    {150}let serverSigPair_225: keypair = (if not-caught-fail(v_224) then keypairpack(v_224,sigKey(charlie)) else fail-any) in
+    (
+        {151}out(pub, getPublicKey(clientEncPair_219));
+        {152}let m1Hash_226: bitstring = hash(getPublicKey(clientEncPair_219),empty) in
+        {153}in(pub, serverEncKeyPub_227: key);
+        {154}let m2Hash_228: bitstring = hash(serverEncKeyPub_227,empty) in
+        {155}in(pub, m3Enc_229: bitstring);
+        {156}let v_230: bitstring = catch-fail(keypairunpack(clientEncPair_219)) in
+        {157}let (m3Valid_231: bool,m3Ad_232: bitstring,m3_233: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_230) && success?(is-true(success?(1-proj-2-tuple(v_230))))) then dhexp(2-proj-2-tuple(v_230),serverEncKeyPub_227) else fail-any),nonce_0,empty,m3Enc_229)) in
+        {158}if m3Valid_231 then
+        {159}let (serverSigKeyPubBitstring_234: bitstring,signature1_235: bitstring) = deconcat2(m3_233) in
+        {160}let serverSigKeyPub_236: key = serverSigKeyPubBitstring_234 in
+        {161}if ((serverSigKeyPub_236 = serverSigKeyPub_236) && verifySig(serverSigKeyPub_236,signature1_235,concat3(scsig01,m1Hash_226,m2Hash_228))) then
+        {162}let signature2_237: bitstring = sign(sigKey(alice),concat3(scsig02,m1Hash_226,m2Hash_228)) in
+        {163}let m4_238: bitstring = concat2(getPublicKey(clientSigPair_221),signature2_237) in
+        {164}let v_239: bitstring = catch-fail(keypairunpack(clientEncPair_219)) in
+        {165}let m4Enc_240: bitstring = encrypt((if (not-caught-fail(v_239) && success?(is-true(success?(1-proj-2-tuple(v_239))))) then dhexp(2-proj-2-tuple(v_239),serverEncKeyPub_227) else fail-any),nonce_1,empty,m4_238) in
+        {166}out(pub, m4Enc_240);
+        {167}phase 1;
+        {168}in(pub, secMsg_a_241: bitstring);
+        {169}let v_242: bitstring = catch-fail(keypairunpack(clientEncPair_219)) in
+        {170}let (decMsg_aValid_243: bool,decMsg_aAd_244: bitstring,decMsg_a_245: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_242) && success?(is-true(success?(1-proj-2-tuple(v_242))))) then dhexp(2-proj-2-tuple(v_242),serverEncKeyPub_227) else fail-any),nonce_2,empty,secMsg_a_241)) in
+        {171}if decMsg_aValid_243 then
+        {172}event RecvMsgA(alice,charlie);
+        {173}phase 2;
+        {174}let v_246: bitstring = catch-fail(keypairunpack(clientEncPair_219)) in
+        {175}let secMsg_b_247: bitstring = encrypt((if (not-caught-fail(v_246) && success?(is-true(success?(1-proj-2-tuple(v_246))))) then dhexp(2-proj-2-tuple(v_246),serverEncKeyPub_227) else fail-any),nonce_3,empty,msg_b(alice,charlie)) in
+        {176}event SendMsgB(alice,charlie);
+        {177}out(pub, secMsg_b_247);
+        {178}phase 3;
+        {179}out(pub, sigKey(alice))
+    ) | (
+        {180}out(pub, (getPublicKey(clientEncPair_219),getPublicKey(serverSigPair_225)));
+        {181}let m1Hash_248: bitstring = hash(getPublicKey(clientEncPair_219),getPublicKey(serverSigPair_225)) in
+        {182}in(pub, serverEncKeyPub_249: key);
+        {183}let m2Hash_250: bitstring = hash(serverEncKeyPub_249,empty) in
+        {184}in(pub, m3Enc_251: bitstring);
+        {185}let v_252: bitstring = catch-fail(keypairunpack(clientEncPair_219)) in
+        {186}let (m3Valid_253: bool,m3Ad_254: bitstring,m3_255: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_252) && success?(is-true(success?(1-proj-2-tuple(v_252))))) then dhexp(2-proj-2-tuple(v_252),serverEncKeyPub_249) else fail-any),nonce_0,empty,m3Enc_251)) in
+        {187}if m3Valid_253 then
+        {188}let (serverSigKeyPubBitstring_256: bitstring,signature1_257: bitstring) = deconcat2(m3_255) in
+        {189}let serverSigKeyPub_258: key = serverSigKeyPubBitstring_256 in
+        {190}if ((serverSigKeyPub_258 = getPublicKey(serverSigPair_225)) && verifySig(serverSigKeyPub_258,signature1_257,concat3(scsig01,m1Hash_248,m2Hash_250))) then
+        {191}let signature2_259: bitstring = sign(sigKey(alice),concat3(scsig02,m1Hash_248,m2Hash_250)) in
+        {192}let m4_260: bitstring = concat2(getPublicKey(clientSigPair_221),signature2_259) in
+        {193}let v_261: bitstring = catch-fail(keypairunpack(clientEncPair_219)) in
+        {194}let m4Enc_262: bitstring = encrypt((if (not-caught-fail(v_261) && success?(is-true(success?(1-proj-2-tuple(v_261))))) then dhexp(2-proj-2-tuple(v_261),serverEncKeyPub_249) else fail-any),nonce_1,empty,m4_260) in
+        {195}out(pub, m4Enc_262);
+        {196}phase 1;
+        {197}in(pub, secMsg_a_263: bitstring);
+        {198}let v_264: bitstring = catch-fail(keypairunpack(clientEncPair_219)) in
+        {199}let (decMsg_aValid_265: bool,decMsg_aAd_266: bitstring,decMsg_a_267: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_264) && success?(is-true(success?(1-proj-2-tuple(v_264))))) then dhexp(2-proj-2-tuple(v_264),serverEncKeyPub_249) else fail-any),nonce_2,empty,secMsg_a_263)) in
+        {200}if decMsg_aValid_265 then
+        {201}phase 2;
+        {202}event RecvMsgA(alice,charlie);
+        {203}let v_268: bitstring = catch-fail(keypairunpack(clientEncPair_219)) in
+        {204}let secMsg_b_269: bitstring = encrypt((if (not-caught-fail(v_268) && success?(is-true(success?(1-proj-2-tuple(v_268))))) then dhexp(2-proj-2-tuple(v_268),serverEncKeyPub_249) else fail-any),nonce_3,empty,msg_b(alice,charlie)) in
+        {205}event SendMsgB(alice,charlie);
+        {206}out(pub, secMsg_b_269);
+        {207}phase 3;
+        {208}out(pub, sigKey(alice))
+    )
+) | (
+    {209}event ServerInitialized(bob,charlie);
+    {210}let v_270: key = catch-fail(dhexp(encKey(charlie,bob),g)) in
+    {211}let clientEncPair_271: keypair = (if not-caught-fail(v_270) then keypairpack(v_270,encKey(charlie,bob)) else fail-any) in
+    {212}let v_272: key = catch-fail(sigexp(sigKey(charlie))) in
+    {213}let clientSigPair_273: keypair = (if not-caught-fail(v_272) then keypairpack(v_272,sigKey(charlie)) else fail-any) in
+    {214}let v_274: key = catch-fail(dhexp(encKey(bob,charlie),g)) in
+    {215}let serverEncPair_275: keypair = (if not-caught-fail(v_274) then keypairpack(v_274,encKey(bob,charlie)) else fail-any) in
+    {216}let v_276: key = catch-fail(sigexp(sigKey(bob))) in
+    {217}let serverSigPair_277: keypair = (if not-caught-fail(v_276) then keypairpack(v_276,sigKey(bob)) else fail-any) in
+    (
+        {218}in(pub, clientEncKeyPub_278: key);
+        {219}let m1Hash_279: bitstring = hash(clientEncKeyPub_278,empty) in
+        {220}out(pub, getPublicKey(serverEncPair_275));
+        {221}let m2Hash_280: bitstring = hash(getPublicKey(serverEncPair_275),empty) in
+        {222}let signature1_281: bitstring = sign(sigKey(bob),concat3(scsig01,m1Hash_279,m2Hash_280)) in
+        {223}let m3_282: bitstring = concat2(getPublicKey(serverSigPair_277),signature1_281) in
+        {224}let v_283: bitstring = catch-fail(keypairunpack(serverEncPair_275)) in
+        {225}let m3Enc_284: bitstring = encrypt((if (not-caught-fail(v_283) && success?(is-true(success?(1-proj-2-tuple(v_283))))) then dhexp(2-proj-2-tuple(v_283),clientEncKeyPub_278) else fail-any),nonce_0,empty,m3_282) in
+        {226}out(pub, m3Enc_284);
+        {227}in(pub, m4Enc_285: bitstring);
+        {228}let v_286: bitstring = catch-fail(keypairunpack(serverEncPair_275)) in
+        {229}let (m4Valid_287: bool,m4Ad_288: bitstring,m4_289: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_286) && success?(is-true(success?(1-proj-2-tuple(v_286))))) then dhexp(2-proj-2-tuple(v_286),clientEncKeyPub_278) else fail-any),nonce_1,empty,m4Enc_285)) in
+        {230}if m4Valid_287 then
+        (
+            {231}let (clientSigKeyPubBitstring_290: bitstring,signature2_291: bitstring) = deconcat2(m4_289) in
+            {232}let clientSigKeyPub_292: key = clientSigKeyPubBitstring_290 in
+            {233}if ((clientSigKeyPub_292 = clientSigKeyPub_292) && verifySig(clientSigKeyPub_292,signature2_291,concat3(scsig02,m1Hash_279,m2Hash_280))) then
+            (
+                {234}event HandshakeEstablished(bob,charlie);
+                {235}phase 1;
+                {236}let v_293: bitstring = catch-fail(keypairunpack(serverEncPair_275)) in
+                {237}let secMsg_a_294: bitstring = encrypt((if (not-caught-fail(v_293) && success?(is-true(success?(1-proj-2-tuple(v_293))))) then dhexp(2-proj-2-tuple(v_293),clientEncKeyPub_278) else fail-any),nonce_2,empty,msg_a(bob,charlie)) in
+                {238}event SendMsgA(bob,charlie);
+                {239}out(pub, secMsg_a_294);
+                {240}phase 2;
+                {241}in(pub, secMsg_b_295: bitstring);
+                {242}let v_296: bitstring = catch-fail(keypairunpack(serverEncPair_275)) in
+                {243}let (decMsg_bValid_297: bool,decMsg_bAd_298: bitstring,decMsg_b_299: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_296) && success?(is-true(success?(1-proj-2-tuple(v_296))))) then dhexp(2-proj-2-tuple(v_296),clientEncKeyPub_278) else fail-any),nonce_3,empty,secMsg_b_295)) in
+                {244}if decMsg_bValid_297 then
+                {245}event RecvMsgB(bob,charlie);
+                {246}phase 3;
+                {247}out(pub, sigKey(bob))
+            )
+            else
+                {248}event Signature2CheckFail(bob,charlie)
+        )
+        else
+            {249}event M4DecFail(bob,charlie)
+    ) | (
+        {250}in(pub, (clientEncKeyPub_300: key,=getPublicKey(serverSigPair_277)));
+        {251}let m1Hash_301: bitstring = hash(clientEncKeyPub_300,getPublicKey(serverSigPair_277)) in
+        {252}out(pub, getPublicKey(serverEncPair_275));
+        {253}let m2Hash_302: bitstring = hash(getPublicKey(serverEncPair_275),empty) in
+        {254}let signature1_303: bitstring = sign(sigKey(bob),concat3(scsig01,m1Hash_301,m2Hash_302)) in
+        {255}let m3_304: bitstring = concat2(getPublicKey(serverSigPair_277),signature1_303) in
+        {256}let v_305: bitstring = catch-fail(keypairunpack(serverEncPair_275)) in
+        {257}let m3Enc_306: bitstring = encrypt((if (not-caught-fail(v_305) && success?(is-true(success?(1-proj-2-tuple(v_305))))) then dhexp(2-proj-2-tuple(v_305),clientEncKeyPub_300) else fail-any),nonce_0,empty,m3_304) in
+        {258}out(pub, m3Enc_306);
+        {259}in(pub, m4Enc_307: bitstring);
+        {260}let v_308: bitstring = catch-fail(keypairunpack(serverEncPair_275)) in
+        {261}let (m4Valid_309: bool,m4Ad_310: bitstring,m4_311: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_308) && success?(is-true(success?(1-proj-2-tuple(v_308))))) then dhexp(2-proj-2-tuple(v_308),clientEncKeyPub_300) else fail-any),nonce_1,empty,m4Enc_307)) in
+        {262}if m4Valid_309 then
+        (
+            {263}let (clientSigKeyPubBitstring_312: bitstring,signature2_313: bitstring) = deconcat2(m4_311) in
+            {264}let clientSigKeyPub_314: key = clientSigKeyPubBitstring_312 in
+            {265}if ((clientSigKeyPub_314 = clientSigKeyPub_314) && verifySig(clientSigKeyPub_314,signature2_313,concat3(scsig02,m1Hash_301,m2Hash_302))) then
+            (
+                {266}event HandshakeEstablished(bob,charlie);
+                {267}phase 1;
+                {268}let v_315: bitstring = catch-fail(keypairunpack(serverEncPair_275)) in
+                {269}let secMsg_a_316: bitstring = encrypt((if (not-caught-fail(v_315) && success?(is-true(success?(1-proj-2-tuple(v_315))))) then dhexp(2-proj-2-tuple(v_315),clientEncKeyPub_300) else fail-any),nonce_2,empty,msg_a(bob,charlie)) in
+                {270}event SendMsgA(bob,charlie);
+                {271}out(pub, secMsg_a_316);
+                {272}phase 2;
+                {273}in(pub, secMsg_b_317: bitstring);
+                {274}let v_318: bitstring = catch-fail(keypairunpack(serverEncPair_275)) in
+                {275}let (decMsg_bValid_319: bool,decMsg_bAd_320: bitstring,decMsg_b_321: bitstring) = aeadunpack(decrypt((if (not-caught-fail(v_318) && success?(is-true(success?(1-proj-2-tuple(v_318))))) then dhexp(2-proj-2-tuple(v_318),clientEncKeyPub_300) else fail-any),nonce_3,empty,secMsg_b_317)) in
+                {276}if decMsg_bValid_319 then
+                {277}event RecvMsgB(bob,charlie);
+                {278}phase 3;
+                {279}out(pub, sigKey(bob))
+            )
+            else
+                {280}event Signature2CheckFail(bob,charlie)
+        )
+        else
+            {281}event M4DecFail(bob,charlie)
+    )
+) | (
+    {282}out(pub, (encKey(charlie,alice),encKey(charlie,bob),sigKey(charlie)))
+)
+
+-- Query event(RecvMsgA(alice,bob)) ==> event(SendMsgA(bob,alice)); event(RecvMsgB(bob,alice)) ==> event(SendMsgB(alice,bob)); not attacker_p1(msg_a(bob,alice)); not attacker_p2(msg_b(alice,bob)); not attacker_p3(msg_a(bob,alice)); not attacker_p3(msg_b(alice,bob)); attacker(sigexp(sigKey(alice))) ==> event(ClientInitialized(alice,charlie))
+nounif mess(pub,clientEncKeyPub_11507)/-5000
+Completing...
+200 rules inserted. The rule base contains 200 rules. 288 rules in the queue.
+400 rules inserted. The rule base contains 400 rules. 169 rules in the queue.
+600 rules inserted. The rule base contains 581 rules. 216 rules in the queue.
+800 rules inserted. The rule base contains 735 rules. 261 rules in the queue.
+1000 rules inserted. The rule base contains 903 rules. 318 rules in the queue.
+1200 rules inserted. The rule base contains 1055 rules. 455 rules in the queue.
+1400 rules inserted. The rule base contains 1213 rules. 633 rules in the queue.
+1600 rules inserted. The rule base contains 1374 rules. 806 rules in the queue.
+1800 rules inserted. The rule base contains 1483 rules. 886 rules in the queue.
+2000 rules inserted. The rule base contains 1571 rules. 839 rules in the queue.
+2200 rules inserted. The rule base contains 1650 rules. 841 rules in the queue.
+2400 rules inserted. The rule base contains 1792 rules. 825 rules in the queue.
+2600 rules inserted. The rule base contains 1889 rules. 758 rules in the queue.
+2800 rules inserted. The rule base contains 2034 rules. 730 rules in the queue.
+3000 rules inserted. The rule base contains 2191 rules. 711 rules in the queue.
+3200 rules inserted. The rule base contains 2298 rules. 658 rules in the queue.
+3400 rules inserted. The rule base contains 2391 rules. 636 rules in the queue.
+3600 rules inserted. The rule base contains 2543 rules. 577 rules in the queue.
+3800 rules inserted. The rule base contains 2621 rules. 523 rules in the queue.
+4000 rules inserted. The rule base contains 2778 rules. 496 rules in the queue.
+4200 rules inserted. The rule base contains 2917 rules. 445 rules in the queue.
+4400 rules inserted. The rule base contains 3087 rules. 367 rules in the queue.
+4600 rules inserted. The rule base contains 3255 rules. 293 rules in the queue.
+4800 rules inserted. The rule base contains 3388 rules. 175 rules in the queue.
+5000 rules inserted. The rule base contains 3454 rules. 155 rules in the queue.
+5200 rules inserted. The rule base contains 3312 rules. 236 rules in the queue.
+5400 rules inserted. The rule base contains 2990 rules. 239 rules in the queue.
+5600 rules inserted. The rule base contains 3045 rules. 142 rules in the queue.
+Starting query event(RecvMsgA(alice,bob)) ==> event(SendMsgA(bob,alice))
+goal reachable: begin(ClientInitialized(alice,bob)) -> end(RecvMsgA(alice,bob))
+
+1. Using the function g the attacker may obtain g.
+attacker(g).
+
+2. Using the function pub the attacker may obtain pub.
+attacker(pub).
+
+3. By 2, the attacker may have the channel pub.
+By 1, the attacker may have the message g.
+So the attacker may send this message on this channel.
+mess(pub,g).
+
+4. Using the function empty the attacker may obtain empty.
+attacker(empty).
+
+5. By 1, the attacker may know g.
+By 4, the attacker may know empty.
+Using the function hash the attacker may obtain hash(g,empty).
+attacker(hash(g,empty)).
+
+6. The event ClientInitialized(alice,bob) may be executed at {2}.
+So the message dhexp(encKey(alice,bob),g) may be sent on channel pub at output {11}.
+mess(pub,dhexp(encKey(alice,bob),g)).
+
+7. By 2, the attacker may have the channel pub.
+By 6, the message dhexp(encKey(alice,bob),g) may be sent on this channel.
+So the attacker may obtain the message dhexp(encKey(alice,bob),g) by listening on this channel.
+attacker(dhexp(encKey(alice,bob),g)).
+
+8. By 7, the attacker may know dhexp(encKey(alice,bob),g).
+By 4, the attacker may know empty.
+Using the function hash the attacker may obtain hash(dhexp(encKey(alice,bob),g),empty).
+attacker(hash(dhexp(encKey(alice,bob),g),empty)).
+
+9. Using the function scsig01 the attacker may obtain scsig01.
+attacker(scsig01).
+
+10. By 9, the attacker may know scsig01.
+By 8, the attacker may know hash(dhexp(encKey(alice,bob),g),empty).
+By 5, the attacker may know hash(g,empty).
+Using the function concat3 the attacker may obtain concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)).
+attacker(concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+
+11. The attacker has some term sk_113807.
+attacker(sk_113807).
+
+12. By 11, the attacker may know sk_113807.
+By 10, the attacker may know concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)).
+Using the function sign the attacker may obtain sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+attacker(sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+
+13. By 11, the attacker may know sk_113807.
+Using the function sigexp the attacker may obtain sigexp(sk_113807).
+attacker(sigexp(sk_113807)).
+
+14. By 13, the attacker may know sigexp(sk_113807).
+By 12, the attacker may know sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+Using the function concat2 the attacker may obtain concat2(sigexp(sk_113807),sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+attacker(concat2(sigexp(sk_113807),sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+
+15. Using the function nonce_0 the attacker may obtain nonce_0.
+attacker(nonce_0).
+
+16. By 7, the attacker may know dhexp(encKey(alice,bob),g).
+By 15, the attacker may know nonce_0.
+By 4, the attacker may know empty.
+By 14, the attacker may know concat2(sigexp(sk_113807),sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_113807),sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+attacker(encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_113807),sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+17. By 2, the attacker may have the channel pub.
+By 16, the attacker may have the message encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_113807),sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+So the attacker may send this message on this channel.
+mess(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_113807),sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+18. The attacker has some term decMsg_a_113806.
+attacker(decMsg_a_113806).
+
+19. Using the function nonce_2 the attacker may obtain nonce_2.
+attacker(nonce_2).
+
+20. By 7, the attacker may know dhexp(encKey(alice,bob),g).
+By 19, the attacker may know nonce_2.
+By 4, the attacker may know empty.
+By 18, the attacker may know decMsg_a_113806.
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_113806).
+attacker(encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_113806)).
+
+21. By 20, the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_113806).
+So the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_113806) in phase 1.
+attacker_p1(encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_113806)).
+
+22. By 2, the attacker may know pub.
+So the attacker may know pub in phase 1.
+attacker_p1(pub).
+
+23. By 22, the attacker may have the channel pub in phase 1.
+By 21, the attacker may have the message encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_113806) in phase 1.
+So the attacker may send this message on this channel.
+mess_p1(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_113806)).
+
+24. The event ClientInitialized(alice,bob) may be executed at {2}.
+The message g that may be sent on channel pub by 3 may be received at input {13}.
+The message encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_113807),sign(sk_113807,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) that may be sent on channel pub by 17 may be received at input {15}.
+The message encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_113806) that may be sent on channel pub in phase 1 by 23 may be received at input {28}.
+So event RecvMsgA(alice,bob) may be executed at {32}.
+end(RecvMsgA(alice,bob)).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(pub, (~M_114248,~M_114249,~M_114250)) with ~M_114248 = encKey(charlie,alice), ~M_114249 = encKey(charlie,bob), ~M_114250 = sigKey(charlie) at {282} in copy a_113812
+
+event ServerInitialized(bob,charlie) at {209} in copy a_113812
+
+event ServerInitialized(bob,alice) at {69} in copy a_113812
+
+event ClientInitialized(alice,bob) at {2} in copy a_113812
+
+out(pub, (~M_115445,~M_115446)) with ~M_115445 = dhexp(encKey(alice,bob),g), ~M_115446 = sigexp(sigKey(bob)) at {40} in copy a_113812
+
+out(pub, ~M_115475) with ~M_115475 = dhexp(encKey(alice,bob),g) at {11} in copy a_113812
+
+out(pub, (~M_115501,~M_115502,~M_115503)) with ~M_115501 = encKey(charlie,alice), ~M_115502 = encKey(charlie,bob), ~M_115503 = sigKey(charlie) at {282} in copy a_113811
+
+event ServerInitialized(bob,charlie) at {209} in copy a_113811
+
+event ServerInitialized(bob,alice) at {69} in copy a_113811
+
+event ClientInitialized(alice,bob) at {2} in copy a_113811
+
+out(pub, (~M_116698,~M_116699)) with ~M_116698 = dhexp(encKey(alice,bob),g), ~M_116699 = sigexp(sigKey(bob)) at {40} in copy a_113811
+
+out(pub, ~M_116728) with ~M_116728 = dhexp(encKey(alice,bob),g) at {11} in copy a_113811
+
+in(pub, g) at {13} in copy a_113812
+
+in(pub, encrypt(~M_115445,nonce_0,empty,concat2(sigexp(a_113810),sign(a_113810,concat3(scsig01,hash(~M_115445,empty),hash(g,empty)))))) with encrypt(~M_115445,nonce_0,empty,concat2(sigexp(a_113810),sign(a_113810,concat3(scsig01,hash(~M_115445,empty),hash(g,empty))))) = encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(a_113810),sign(a_113810,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) at {15} in copy a_113812
+
+out(pub, ~M_116962) with ~M_116962 = encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) at {26} in copy a_113812
+
+in(pub, encrypt(~M_115445,nonce_2,empty,a_113809)) with encrypt(~M_115445,nonce_2,empty,a_113809) = encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,a_113809) at {28} in copy a_113812
+
+event RecvMsgA(alice,bob) at {32} in copy a_113812 (goal)
+
+The event RecvMsgA(alice,bob) is executed.
+A trace has been found.
+RESULT event(RecvMsgA(alice,bob)) ==> event(SendMsgA(bob,alice)) is false.
+Starting query event(RecvMsgB(bob,alice)) ==> event(SendMsgB(alice,bob))
+goal reachable: begin(SendMsgA(bob,alice)) -> end(RecvMsgB(bob,alice))
+
+1. Using the function g the attacker may obtain g.
+attacker(g).
+
+2. Using the function pub the attacker may obtain pub.
+attacker(pub).
+
+3. By 2, the attacker may have the channel pub.
+By 1, the attacker may have the message g.
+So the attacker may send this message on this channel.
+mess(pub,g).
+
+4. Using the function empty the attacker may obtain empty.
+attacker(empty).
+
+5. The message g that may be sent on channel pub by 3 may be received at input {78}.
+So the message dhexp(encKey(bob,alice),g) may be sent on channel pub at output {80}.
+mess(pub,dhexp(encKey(bob,alice),g)).
+
+6. By 2, the attacker may have the channel pub.
+By 5, the message dhexp(encKey(bob,alice),g) may be sent on this channel.
+So the attacker may obtain the message dhexp(encKey(bob,alice),g) by listening on this channel.
+attacker(dhexp(encKey(bob,alice),g)).
+
+7. By 6, the attacker may know dhexp(encKey(bob,alice),g).
+By 4, the attacker may know empty.
+Using the function hash the attacker may obtain hash(dhexp(encKey(bob,alice),g),empty).
+attacker(hash(dhexp(encKey(bob,alice),g),empty)).
+
+8. By 1, the attacker may know g.
+By 4, the attacker may know empty.
+Using the function hash the attacker may obtain hash(g,empty).
+attacker(hash(g,empty)).
+
+9. Using the function scsig02 the attacker may obtain scsig02.
+attacker(scsig02).
+
+10. By 9, the attacker may know scsig02.
+By 8, the attacker may know hash(g,empty).
+By 7, the attacker may know hash(dhexp(encKey(bob,alice),g),empty).
+Using the function concat3 the attacker may obtain concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)).
+attacker(concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))).
+
+11. The attacker has some term sk_117056.
+attacker(sk_117056).
+
+12. By 11, the attacker may know sk_117056.
+By 10, the attacker may know concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)).
+Using the function sign the attacker may obtain sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))).
+attacker(sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))).
+
+13. By 11, the attacker may know sk_117056.
+Using the function sigexp the attacker may obtain sigexp(sk_117056).
+attacker(sigexp(sk_117056)).
+
+14. By 13, the attacker may know sigexp(sk_117056).
+By 12, the attacker may know sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))).
+Using the function concat2 the attacker may obtain concat2(sigexp(sk_117056),sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))).
+attacker(concat2(sigexp(sk_117056),sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))).
+
+15. Using the function nonce_1 the attacker may obtain nonce_1.
+attacker(nonce_1).
+
+16. By 6, the attacker may know dhexp(encKey(bob,alice),g).
+By 15, the attacker may know nonce_1.
+By 4, the attacker may know empty.
+By 14, the attacker may know concat2(sigexp(sk_117056),sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))).
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_117056),sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))).
+attacker(encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_117056),sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))))).
+
+17. By 2, the attacker may have the channel pub.
+By 16, the attacker may have the message encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_117056),sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))).
+So the attacker may send this message on this channel.
+mess(pub,encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_117056),sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))))).
+
+18. The attacker has some term decMsg_b_117055.
+attacker(decMsg_b_117055).
+
+19. Using the function nonce_3 the attacker may obtain nonce_3.
+attacker(nonce_3).
+
+20. By 6, the attacker may know dhexp(encKey(bob,alice),g).
+By 19, the attacker may know nonce_3.
+By 4, the attacker may know empty.
+By 18, the attacker may know decMsg_b_117055.
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055).
+attacker(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055)).
+
+21. By 20, the attacker may know encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055).
+Using the function incrementNonce the attacker may obtain incrementNonce(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055)).
+attacker(incrementNonce(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055))).
+
+22. By 21, the attacker may know incrementNonce(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055)).
+So the attacker may know incrementNonce(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055)) in phase 1.
+attacker_p1(incrementNonce(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055))).
+
+23. By 22, the attacker may know incrementNonce(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055)) in phase 1.
+So the attacker may know incrementNonce(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055)) in phase 2.
+attacker_p2(incrementNonce(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055))).
+
+24. By 23, the attacker may know incrementNonce(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055)) in phase 2.
+Using the function decrementNonce the attacker may obtain encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055) in phase 2.
+attacker_p2(encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055)).
+
+25. By 2, the attacker may know pub.
+Using the function incrementNonce the attacker may obtain incrementNonce(pub).
+attacker(incrementNonce(pub)).
+
+26. By 25, the attacker may know incrementNonce(pub).
+So the attacker may know incrementNonce(pub) in phase 1.
+attacker_p1(incrementNonce(pub)).
+
+27. By 26, the attacker may know incrementNonce(pub) in phase 1.
+So the attacker may know incrementNonce(pub) in phase 2.
+attacker_p2(incrementNonce(pub)).
+
+28. By 27, the attacker may know incrementNonce(pub) in phase 2.
+Using the function decrementNonce the attacker may obtain pub in phase 2.
+attacker_p2(pub).
+
+29. By 28, the attacker may have the channel pub in phase 2.
+By 24, the attacker may have the message encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055) in phase 2.
+So the attacker may send this message on this channel.
+mess_p2(pub,encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055)).
+
+30. The message g that may be sent on channel pub by 3 may be received at input {78}.
+The message encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_117056),sign(sk_117056,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))) that may be sent on channel pub by 17 may be received at input {87}.
+The event SendMsgA(bob,alice) may be executed at {98}.
+The message encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,decMsg_b_117055) that may be sent on channel pub in phase 2 by 29 may be received at input {101}.
+So event RecvMsgB(bob,alice) may be executed at {105}.
+end(RecvMsgB(bob,alice)).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(pub, (~M_117505,~M_117506,~M_117507)) with ~M_117505 = encKey(charlie,alice), ~M_117506 = encKey(charlie,bob), ~M_117507 = sigKey(charlie) at {282} in copy a_117061
+
+event ServerInitialized(bob,charlie) at {209} in copy a_117061
+
+event ServerInitialized(bob,alice) at {69} in copy a_117061
+
+out(pub, (~M_118302,~M_118303,~M_118304)) with ~M_118302 = encKey(charlie,alice), ~M_118303 = encKey(charlie,bob), ~M_118304 = sigKey(charlie) at {282} in copy a_117060
+
+event ServerInitialized(bob,charlie) at {209} in copy a_117060
+
+event ServerInitialized(bob,alice) at {69} in copy a_117060
+
+in(pub, g) at {78} in copy a_117060
+
+out(pub, ~M_119144) with ~M_119144 = dhexp(encKey(bob,alice),g) at {80} in copy a_117060
+
+out(pub, ~M_119248) with ~M_119248 = encrypt(dhexp(encKey(bob,alice),g),nonce_0,empty,concat2(sigexp(sigKey(bob)),sign(sigKey(bob),concat3(scsig01,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))) at {86} in copy a_117060
+
+in(pub, g) at {78} in copy a_117061
+
+out(pub, ~M_119304) with ~M_119304 = dhexp(encKey(bob,alice),g) at {80} in copy a_117061
+
+out(pub, ~M_119408) with ~M_119408 = encrypt(dhexp(encKey(bob,alice),g),nonce_0,empty,concat2(sigexp(sigKey(bob)),sign(sigKey(bob),concat3(scsig01,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))) at {86} in copy a_117061
+
+in(pub, encrypt(~M_119144,nonce_1,empty,concat2(sigexp(a_117059),sign(a_117059,concat3(scsig02,hash(g,empty),hash(~M_119144,empty)))))) with encrypt(~M_119144,nonce_1,empty,concat2(sigexp(a_117059),sign(a_117059,concat3(scsig02,hash(g,empty),hash(~M_119144,empty))))) = encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(a_117059),sign(a_117059,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))) at {87} in copy a_117061
+
+event HandshakeEstablished(bob,alice) at {94} in copy a_117061
+
+event SendMsgA(bob,alice) at {98} in copy a_117061
+
+out(pub, ~M_119526) with ~M_119526 = encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) at {99} in copy a_117061
+
+in(pub, encrypt(~M_119144,nonce_3,empty,a_117058)) with encrypt(~M_119144,nonce_3,empty,a_117058) = encrypt(dhexp(encKey(bob,alice),g),nonce_3,empty,a_117058) at {101} in copy a_117061
+
+event RecvMsgB(bob,alice) at {105} in copy a_117061 (goal)
+
+The event RecvMsgB(bob,alice) is executed.
+A trace has been found.
+RESULT event(RecvMsgB(bob,alice)) ==> event(SendMsgB(alice,bob)) is false.
+Starting query not attacker_p1(msg_a(bob,alice))
+goal reachable: mess(pub,clientEncKeyPub_119560) && begin(SendMsgA(bob,alice)) -> attacker_p1(msg_a(bob,alice))
+
+1. Using the function pub the attacker may obtain pub in phase 1.
+attacker_p1(pub).
+
+2. Using the function g the attacker may obtain g.
+attacker(g).
+
+3. Using the function pub the attacker may obtain pub.
+attacker(pub).
+
+4. By 3, the attacker may have the channel pub.
+By 2, the attacker may have the message g.
+So the attacker may send this message on this channel.
+mess(pub,g).
+
+5. Using the function empty the attacker may obtain empty.
+attacker(empty).
+
+6. The message g that may be sent on channel pub by 4 may be received at input {78}.
+So the message dhexp(encKey(bob,alice),g) may be sent on channel pub at output {80}.
+mess(pub,dhexp(encKey(bob,alice),g)).
+
+7. By 3, the attacker may have the channel pub.
+By 6, the message dhexp(encKey(bob,alice),g) may be sent on this channel.
+So the attacker may obtain the message dhexp(encKey(bob,alice),g) by listening on this channel.
+attacker(dhexp(encKey(bob,alice),g)).
+
+8. By 7, the attacker may know dhexp(encKey(bob,alice),g).
+By 5, the attacker may know empty.
+Using the function hash the attacker may obtain hash(dhexp(encKey(bob,alice),g),empty).
+attacker(hash(dhexp(encKey(bob,alice),g),empty)).
+
+9. By 2, the attacker may know g.
+By 5, the attacker may know empty.
+Using the function hash the attacker may obtain hash(g,empty).
+attacker(hash(g,empty)).
+
+10. Using the function scsig02 the attacker may obtain scsig02.
+attacker(scsig02).
+
+11. By 10, the attacker may know scsig02.
+By 9, the attacker may know hash(g,empty).
+By 8, the attacker may know hash(dhexp(encKey(bob,alice),g),empty).
+Using the function concat3 the attacker may obtain concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)).
+attacker(concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))).
+
+12. The attacker has some term sk_119596.
+attacker(sk_119596).
+
+13. By 12, the attacker may know sk_119596.
+By 11, the attacker may know concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)).
+Using the function sign the attacker may obtain sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))).
+attacker(sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))).
+
+14. By 12, the attacker may know sk_119596.
+Using the function sigexp the attacker may obtain sigexp(sk_119596).
+attacker(sigexp(sk_119596)).
+
+15. By 14, the attacker may know sigexp(sk_119596).
+By 13, the attacker may know sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))).
+Using the function concat2 the attacker may obtain concat2(sigexp(sk_119596),sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))).
+attacker(concat2(sigexp(sk_119596),sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))).
+
+16. Using the function nonce_1 the attacker may obtain nonce_1.
+attacker(nonce_1).
+
+17. By 7, the attacker may know dhexp(encKey(bob,alice),g).
+By 16, the attacker may know nonce_1.
+By 5, the attacker may know empty.
+By 15, the attacker may know concat2(sigexp(sk_119596),sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))).
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_119596),sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))).
+attacker(encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_119596),sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))))).
+
+18. By 3, the attacker may have the channel pub.
+By 17, the attacker may have the message encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_119596),sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))).
+So the attacker may send this message on this channel.
+mess(pub,encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_119596),sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))))).
+
+19. The message g that may be sent on channel pub by 4 may be received at input {78}.
+The message encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_119596),sign(sk_119596,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))) that may be sent on channel pub by 18 may be received at input {87}.
+The event SendMsgA(bob,alice) may be executed at {98}.
+So the message encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) may be sent on channel pub in phase 1 at output {99}.
+mess_p1(pub,encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice))).
+
+20. By 1, the attacker may have the channel pub in phase 1.
+By 19, the message encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 1 may be sent on this channel.
+So the attacker may obtain the message encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 1 by listening on this channel.
+attacker_p1(encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice))).
+
+21. Using the function empty the attacker may obtain empty in phase 1.
+attacker_p1(empty).
+
+22. Using the function nonce_2 the attacker may obtain nonce_2 in phase 1.
+attacker_p1(nonce_2).
+
+23. By 7, the attacker may know dhexp(encKey(bob,alice),g).
+So the attacker may know dhexp(encKey(bob,alice),g) in phase 1.
+attacker_p1(dhexp(encKey(bob,alice),g)).
+
+24. By 23, the attacker may know dhexp(encKey(bob,alice),g) in phase 1.
+By 22, the attacker may know nonce_2 in phase 1.
+By 21, the attacker may know empty in phase 1.
+By 20, the attacker may know encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 1.
+Using the function decrypt the attacker may obtain aeadpack(true,empty,msg_a(bob,alice)) in phase 1.
+attacker_p1(aeadpack(true,empty,msg_a(bob,alice))).
+
+25. By 24, the attacker may know aeadpack(true,empty,msg_a(bob,alice)) in phase 1.
+Using the function 3-proj-aeadpack the attacker may obtain msg_a(bob,alice) in phase 1.
+attacker_p1(msg_a(bob,alice)).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(pub, (~M_120053,~M_120054,~M_120055)) with ~M_120053 = encKey(charlie,alice), ~M_120054 = encKey(charlie,bob), ~M_120055 = sigKey(charlie) at {282} in copy a_119609
+
+event ServerInitialized(bob,charlie) at {209} in copy a_119609
+
+event ServerInitialized(bob,alice) at {69} in copy a_119609
+
+out(pub, (~M_120850,~M_120851,~M_120852)) with ~M_120850 = encKey(charlie,alice), ~M_120851 = encKey(charlie,bob), ~M_120852 = sigKey(charlie) at {282} in copy a_119608
+
+event ServerInitialized(bob,charlie) at {209} in copy a_119608
+
+event ServerInitialized(bob,alice) at {69} in copy a_119608
+
+in(pub, g) at {78} in copy a_119608
+
+out(pub, ~M_121692) with ~M_121692 = dhexp(encKey(bob,alice),g) at {80} in copy a_119608
+
+out(pub, ~M_121796) with ~M_121796 = encrypt(dhexp(encKey(bob,alice),g),nonce_0,empty,concat2(sigexp(sigKey(bob)),sign(sigKey(bob),concat3(scsig01,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))) at {86} in copy a_119608
+
+in(pub, g) at {78} in copy a_119609
+
+out(pub, ~M_121852) with ~M_121852 = dhexp(encKey(bob,alice),g) at {80} in copy a_119609
+
+out(pub, ~M_121956) with ~M_121956 = encrypt(dhexp(encKey(bob,alice),g),nonce_0,empty,concat2(sigexp(sigKey(bob)),sign(sigKey(bob),concat3(scsig01,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))) at {86} in copy a_119609
+
+in(pub, encrypt(~M_121692,nonce_1,empty,concat2(sigexp(a_119607),sign(a_119607,concat3(scsig02,hash(g,empty),hash(~M_121692,empty)))))) with encrypt(~M_121692,nonce_1,empty,concat2(sigexp(a_119607),sign(a_119607,concat3(scsig02,hash(g,empty),hash(~M_121692,empty))))) = encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(a_119607),sign(a_119607,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))) at {87} in copy a_119609
+
+event HandshakeEstablished(bob,alice) at {94} in copy a_119609
+
+event SendMsgA(bob,alice) at {98} in copy a_119609
+
+out(pub, ~M_122074) with ~M_122074 = encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) at {99} in copy a_119609
+
+The attacker has the message 3-proj-aeadpack(decrypt(~M_121692,nonce_2,empty,~M_122074)) = msg_a(bob,alice) in phase 1.
+A trace has been found.
+RESULT not attacker_p1(msg_a(bob,alice)) is false.
+Starting query not attacker_p2(msg_b(alice,bob))
+goal reachable: begin(SendMsgB(alice,bob)) && begin(ClientInitialized(alice,bob)) -> attacker_p2(msg_b(alice,bob))
+
+1. Using the function pub the attacker may obtain pub in phase 2.
+attacker_p2(pub).
+
+2. Using the function g the attacker may obtain g.
+attacker(g).
+
+3. Using the function pub the attacker may obtain pub.
+attacker(pub).
+
+4. By 3, the attacker may have the channel pub.
+By 2, the attacker may have the message g.
+So the attacker may send this message on this channel.
+mess(pub,g).
+
+5. Using the function empty the attacker may obtain empty.
+attacker(empty).
+
+6. By 2, the attacker may know g.
+By 5, the attacker may know empty.
+Using the function hash the attacker may obtain hash(g,empty).
+attacker(hash(g,empty)).
+
+7. The event ClientInitialized(alice,bob) may be executed at {2}.
+So the message dhexp(encKey(alice,bob),g) may be sent on channel pub at output {11}.
+mess(pub,dhexp(encKey(alice,bob),g)).
+
+8. By 3, the attacker may have the channel pub.
+By 7, the message dhexp(encKey(alice,bob),g) may be sent on this channel.
+So the attacker may obtain the message dhexp(encKey(alice,bob),g) by listening on this channel.
+attacker(dhexp(encKey(alice,bob),g)).
+
+9. By 8, the attacker may know dhexp(encKey(alice,bob),g).
+By 5, the attacker may know empty.
+Using the function hash the attacker may obtain hash(dhexp(encKey(alice,bob),g),empty).
+attacker(hash(dhexp(encKey(alice,bob),g),empty)).
+
+10. Using the function scsig01 the attacker may obtain scsig01.
+attacker(scsig01).
+
+11. By 10, the attacker may know scsig01.
+By 9, the attacker may know hash(dhexp(encKey(alice,bob),g),empty).
+By 6, the attacker may know hash(g,empty).
+Using the function concat3 the attacker may obtain concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)).
+attacker(concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+
+12. The attacker has some term sk_122118.
+attacker(sk_122118).
+
+13. By 12, the attacker may know sk_122118.
+By 11, the attacker may know concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)).
+Using the function sign the attacker may obtain sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+attacker(sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+
+14. By 12, the attacker may know sk_122118.
+Using the function sigexp the attacker may obtain sigexp(sk_122118).
+attacker(sigexp(sk_122118)).
+
+15. By 14, the attacker may know sigexp(sk_122118).
+By 13, the attacker may know sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+Using the function concat2 the attacker may obtain concat2(sigexp(sk_122118),sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+attacker(concat2(sigexp(sk_122118),sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+
+16. Using the function nonce_0 the attacker may obtain nonce_0.
+attacker(nonce_0).
+
+17. By 8, the attacker may know dhexp(encKey(alice,bob),g).
+By 16, the attacker may know nonce_0.
+By 5, the attacker may know empty.
+By 15, the attacker may know concat2(sigexp(sk_122118),sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_122118),sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+attacker(encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_122118),sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+18. By 3, the attacker may have the channel pub.
+By 17, the attacker may have the message encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_122118),sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+So the attacker may send this message on this channel.
+mess(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_122118),sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+19. The attacker has some term decMsg_a_122117.
+attacker(decMsg_a_122117).
+
+20. Using the function nonce_2 the attacker may obtain nonce_2.
+attacker(nonce_2).
+
+21. By 8, the attacker may know dhexp(encKey(alice,bob),g).
+By 20, the attacker may know nonce_2.
+By 5, the attacker may know empty.
+By 19, the attacker may know decMsg_a_122117.
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_122117).
+attacker(encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_122117)).
+
+22. By 21, the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_122117).
+So the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_122117) in phase 1.
+attacker_p1(encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_122117)).
+
+23. By 3, the attacker may know pub.
+So the attacker may know pub in phase 1.
+attacker_p1(pub).
+
+24. By 23, the attacker may have the channel pub in phase 1.
+By 22, the attacker may have the message encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_122117) in phase 1.
+So the attacker may send this message on this channel.
+mess_p1(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_122117)).
+
+25. The event ClientInitialized(alice,bob) may be executed at {2}.
+The message g that may be sent on channel pub by 4 may be received at input {13}.
+The message encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_122118),sign(sk_122118,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) that may be sent on channel pub by 18 may be received at input {15}.
+The message encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_122117) that may be sent on channel pub in phase 1 by 24 may be received at input {28}.
+The event SendMsgB(alice,bob) may be executed at {36}.
+So the message encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) may be sent on channel pub in phase 2 at output {37}.
+mess_p2(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob))).
+
+26. By 1, the attacker may have the channel pub in phase 2.
+By 25, the message encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) in phase 2 may be sent on this channel.
+So the attacker may obtain the message encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) in phase 2 by listening on this channel.
+attacker_p2(encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob))).
+
+27. Using the function empty the attacker may obtain empty in phase 2.
+attacker_p2(empty).
+
+28. Using the function nonce_3 the attacker may obtain nonce_3 in phase 2.
+attacker_p2(nonce_3).
+
+29. By 8, the attacker may know dhexp(encKey(alice,bob),g).
+Using the function incrementNonce the attacker may obtain incrementNonce(dhexp(encKey(alice,bob),g)).
+attacker(incrementNonce(dhexp(encKey(alice,bob),g))).
+
+30. By 29, the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)).
+So the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 1.
+attacker_p1(incrementNonce(dhexp(encKey(alice,bob),g))).
+
+31. By 30, the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 1.
+So the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 2.
+attacker_p2(incrementNonce(dhexp(encKey(alice,bob),g))).
+
+32. By 31, the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 2.
+Using the function decrementNonce the attacker may obtain dhexp(encKey(alice,bob),g) in phase 2.
+attacker_p2(dhexp(encKey(alice,bob),g)).
+
+33. By 32, the attacker may know dhexp(encKey(alice,bob),g) in phase 2.
+By 28, the attacker may know nonce_3 in phase 2.
+By 27, the attacker may know empty in phase 2.
+By 26, the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) in phase 2.
+Using the function decrypt the attacker may obtain aeadpack(true,empty,msg_b(alice,bob)) in phase 2.
+attacker_p2(aeadpack(true,empty,msg_b(alice,bob))).
+
+34. By 33, the attacker may know aeadpack(true,empty,msg_b(alice,bob)) in phase 2.
+Using the function 3-proj-aeadpack the attacker may obtain msg_b(alice,bob) in phase 2.
+attacker_p2(msg_b(alice,bob)).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(pub, (~M_122582,~M_122583,~M_122584)) with ~M_122582 = encKey(charlie,alice), ~M_122583 = encKey(charlie,bob), ~M_122584 = sigKey(charlie) at {282} in copy a_122132
+
+event ServerInitialized(bob,charlie) at {209} in copy a_122132
+
+event ServerInitialized(bob,alice) at {69} in copy a_122132
+
+event ClientInitialized(alice,bob) at {2} in copy a_122132
+
+out(pub, (~M_123779,~M_123780)) with ~M_123779 = dhexp(encKey(alice,bob),g), ~M_123780 = sigexp(sigKey(bob)) at {40} in copy a_122132
+
+out(pub, ~M_123809) with ~M_123809 = dhexp(encKey(alice,bob),g) at {11} in copy a_122132
+
+out(pub, (~M_123835,~M_123836,~M_123837)) with ~M_123835 = encKey(charlie,alice), ~M_123836 = encKey(charlie,bob), ~M_123837 = sigKey(charlie) at {282} in copy a_122131
+
+event ServerInitialized(bob,charlie) at {209} in copy a_122131
+
+event ServerInitialized(bob,alice) at {69} in copy a_122131
+
+event ClientInitialized(alice,bob) at {2} in copy a_122131
+
+out(pub, (~M_125032,~M_125033)) with ~M_125032 = dhexp(encKey(alice,bob),g), ~M_125033 = sigexp(sigKey(bob)) at {40} in copy a_122131
+
+out(pub, ~M_125062) with ~M_125062 = dhexp(encKey(alice,bob),g) at {11} in copy a_122131
+
+in(pub, g) at {13} in copy a_122132
+
+in(pub, encrypt(~M_123779,nonce_0,empty,concat2(sigexp(a_122130),sign(a_122130,concat3(scsig01,hash(~M_123779,empty),hash(g,empty)))))) with encrypt(~M_123779,nonce_0,empty,concat2(sigexp(a_122130),sign(a_122130,concat3(scsig01,hash(~M_123779,empty),hash(g,empty))))) = encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(a_122130),sign(a_122130,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) at {15} in copy a_122132
+
+out(pub, ~M_125296) with ~M_125296 = encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) at {26} in copy a_122132
+
+in(pub, encrypt(~M_123779,nonce_2,empty,a_122129)) with encrypt(~M_123779,nonce_2,empty,a_122129) = encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,a_122129) at {28} in copy a_122132
+
+event RecvMsgA(alice,bob) at {32} in copy a_122132
+
+event SendMsgB(alice,bob) at {36} in copy a_122132
+
+out(pub, ~M_125361) with ~M_125361 = encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) at {37} in copy a_122132
+
+The attacker has the message 3-proj-aeadpack(decrypt(~M_123779,nonce_3,empty,~M_125361)) = msg_b(alice,bob) in phase 2.
+A trace has been found.
+RESULT not attacker_p2(msg_b(alice,bob)) is false.
+Starting query not attacker_p3(msg_a(bob,alice))
+goal reachable: mess(pub,clientEncKeyPub_125362) && begin(SendMsgA(bob,alice)) -> attacker_p3(msg_a(bob,alice))
+
+1. Using the function pub the attacker may obtain pub in phase 1.
+attacker_p1(pub).
+
+2. Using the function g the attacker may obtain g.
+attacker(g).
+
+3. Using the function pub the attacker may obtain pub.
+attacker(pub).
+
+4. By 3, the attacker may have the channel pub.
+By 2, the attacker may have the message g.
+So the attacker may send this message on this channel.
+mess(pub,g).
+
+5. Using the function empty the attacker may obtain empty.
+attacker(empty).
+
+6. The message g that may be sent on channel pub by 4 may be received at input {78}.
+So the message dhexp(encKey(bob,alice),g) may be sent on channel pub at output {80}.
+mess(pub,dhexp(encKey(bob,alice),g)).
+
+7. By 3, the attacker may have the channel pub.
+By 6, the message dhexp(encKey(bob,alice),g) may be sent on this channel.
+So the attacker may obtain the message dhexp(encKey(bob,alice),g) by listening on this channel.
+attacker(dhexp(encKey(bob,alice),g)).
+
+8. By 7, the attacker may know dhexp(encKey(bob,alice),g).
+By 5, the attacker may know empty.
+Using the function hash the attacker may obtain hash(dhexp(encKey(bob,alice),g),empty).
+attacker(hash(dhexp(encKey(bob,alice),g),empty)).
+
+9. By 2, the attacker may know g.
+By 5, the attacker may know empty.
+Using the function hash the attacker may obtain hash(g,empty).
+attacker(hash(g,empty)).
+
+10. Using the function scsig02 the attacker may obtain scsig02.
+attacker(scsig02).
+
+11. By 10, the attacker may know scsig02.
+By 9, the attacker may know hash(g,empty).
+By 8, the attacker may know hash(dhexp(encKey(bob,alice),g),empty).
+Using the function concat3 the attacker may obtain concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)).
+attacker(concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))).
+
+12. The attacker has some term sk_125408.
+attacker(sk_125408).
+
+13. By 12, the attacker may know sk_125408.
+By 11, the attacker may know concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)).
+Using the function sign the attacker may obtain sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))).
+attacker(sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))).
+
+14. By 12, the attacker may know sk_125408.
+Using the function sigexp the attacker may obtain sigexp(sk_125408).
+attacker(sigexp(sk_125408)).
+
+15. By 14, the attacker may know sigexp(sk_125408).
+By 13, the attacker may know sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))).
+Using the function concat2 the attacker may obtain concat2(sigexp(sk_125408),sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))).
+attacker(concat2(sigexp(sk_125408),sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))).
+
+16. Using the function nonce_1 the attacker may obtain nonce_1.
+attacker(nonce_1).
+
+17. By 7, the attacker may know dhexp(encKey(bob,alice),g).
+By 16, the attacker may know nonce_1.
+By 5, the attacker may know empty.
+By 15, the attacker may know concat2(sigexp(sk_125408),sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))).
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_125408),sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))).
+attacker(encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_125408),sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))))).
+
+18. By 3, the attacker may have the channel pub.
+By 17, the attacker may have the message encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_125408),sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))).
+So the attacker may send this message on this channel.
+mess(pub,encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_125408),sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty)))))).
+
+19. The message g that may be sent on channel pub by 4 may be received at input {78}.
+The message encrypt(dhexp(encKey(bob,alice),g),nonce_1,empty,concat2(sigexp(sk_125408),sign(sk_125408,concat3(scsig02,hash(g,empty),hash(dhexp(encKey(bob,alice),g),empty))))) that may be sent on channel pub by 18 may be received at input {87}.
+The event SendMsgA(bob,alice) may be executed at {98}.
+So the message encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) may be sent on channel pub in phase 1 at output {99}.
+mess_p1(pub,encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice))).
+
+20. By 1, the attacker may have the channel pub in phase 1.
+By 19, the message encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 1 may be sent on this channel.
+So the attacker may obtain the message encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 1 by listening on this channel.
+attacker_p1(encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice))).
+
+21. By 20, the attacker may know encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 1.
+So the attacker may know encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 2.
+attacker_p2(encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice))).
+
+22. By 21, the attacker may know encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 2.
+So the attacker may know encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 3.
+attacker_p3(encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice))).
+
+23. Using the function empty the attacker may obtain empty in phase 3.
+attacker_p3(empty).
+
+24. Using the function nonce_2 the attacker may obtain nonce_2 in phase 3.
+attacker_p3(nonce_2).
+
+25. By 7, the attacker may know dhexp(encKey(bob,alice),g).
+Using the function incrementNonce the attacker may obtain incrementNonce(dhexp(encKey(bob,alice),g)).
+attacker(incrementNonce(dhexp(encKey(bob,alice),g))).
+
+26. By 25, the attacker may know incrementNonce(dhexp(encKey(bob,alice),g)).
+So the attacker may know incrementNonce(dhexp(encKey(bob,alice),g)) in phase 1.
+attacker_p1(incrementNonce(dhexp(encKey(bob,alice),g))).
+
+27. By 26, the attacker may know incrementNonce(dhexp(encKey(bob,alice),g)) in phase 1.
+So the attacker may know incrementNonce(dhexp(encKey(bob,alice),g)) in phase 2.
+attacker_p2(incrementNonce(dhexp(encKey(bob,alice),g))).
+
+28. By 27, the attacker may know incrementNonce(dhexp(encKey(bob,alice),g)) in phase 2.
+So the attacker may know incrementNonce(dhexp(encKey(bob,alice),g)) in phase 3.
+attacker_p3(incrementNonce(dhexp(encKey(bob,alice),g))).
+
+29. By 28, the attacker may know incrementNonce(dhexp(encKey(bob,alice),g)) in phase 3.
+Using the function decrementNonce the attacker may obtain dhexp(encKey(bob,alice),g) in phase 3.
+attacker_p3(dhexp(encKey(bob,alice),g)).
+
+30. By 29, the attacker may know dhexp(encKey(bob,alice),g) in phase 3.
+By 24, the attacker may know nonce_2 in phase 3.
+By 23, the attacker may know empty in phase 3.
+By 22, the attacker may know encrypt(dhexp(encKey(bob,alice),g),nonce_2,empty,msg_a(bob,alice)) in phase 3.
+Using the function decrypt the attacker may obtain aeadpack(true,empty,msg_a(bob,alice)) in phase 3.
+attacker_p3(aeadpack(true,empty,msg_a(bob,alice))).
+
+31. By 30, the attacker may know aeadpack(true,empty,msg_a(bob,alice)) in phase 3.
+Using the function 3-proj-aeadpack the attacker may obtain msg_a(bob,alice) in phase 3.
+attacker_p3(msg_a(bob,alice)).
+
+
+Could not find a trace corresponding to this derivation.
+RESULT not attacker_p3(msg_a(bob,alice)) cannot be proved.
+Starting query not attacker_p3(msg_b(alice,bob))
+goal reachable: begin(SendMsgB(alice,bob)) && begin(ClientInitialized(alice,bob)) -> attacker_p3(msg_b(alice,bob))
+
+1. Using the function pub the attacker may obtain pub in phase 2.
+attacker_p2(pub).
+
+2. Using the function g the attacker may obtain g.
+attacker(g).
+
+3. Using the function pub the attacker may obtain pub.
+attacker(pub).
+
+4. By 3, the attacker may have the channel pub.
+By 2, the attacker may have the message g.
+So the attacker may send this message on this channel.
+mess(pub,g).
+
+5. Using the function empty the attacker may obtain empty.
+attacker(empty).
+
+6. By 2, the attacker may know g.
+By 5, the attacker may know empty.
+Using the function hash the attacker may obtain hash(g,empty).
+attacker(hash(g,empty)).
+
+7. The event ClientInitialized(alice,bob) may be executed at {2}.
+So the message dhexp(encKey(alice,bob),g) may be sent on channel pub at output {11}.
+mess(pub,dhexp(encKey(alice,bob),g)).
+
+8. By 3, the attacker may have the channel pub.
+By 7, the message dhexp(encKey(alice,bob),g) may be sent on this channel.
+So the attacker may obtain the message dhexp(encKey(alice,bob),g) by listening on this channel.
+attacker(dhexp(encKey(alice,bob),g)).
+
+9. By 8, the attacker may know dhexp(encKey(alice,bob),g).
+By 5, the attacker may know empty.
+Using the function hash the attacker may obtain hash(dhexp(encKey(alice,bob),g),empty).
+attacker(hash(dhexp(encKey(alice,bob),g),empty)).
+
+10. Using the function scsig01 the attacker may obtain scsig01.
+attacker(scsig01).
+
+11. By 10, the attacker may know scsig01.
+By 9, the attacker may know hash(dhexp(encKey(alice,bob),g),empty).
+By 6, the attacker may know hash(g,empty).
+Using the function concat3 the attacker may obtain concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)).
+attacker(concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+
+12. The attacker has some term sk_128239.
+attacker(sk_128239).
+
+13. By 12, the attacker may know sk_128239.
+By 11, the attacker may know concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)).
+Using the function sign the attacker may obtain sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+attacker(sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+
+14. By 12, the attacker may know sk_128239.
+Using the function sigexp the attacker may obtain sigexp(sk_128239).
+attacker(sigexp(sk_128239)).
+
+15. By 14, the attacker may know sigexp(sk_128239).
+By 13, the attacker may know sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+Using the function concat2 the attacker may obtain concat2(sigexp(sk_128239),sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+attacker(concat2(sigexp(sk_128239),sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+
+16. Using the function nonce_0 the attacker may obtain nonce_0.
+attacker(nonce_0).
+
+17. By 8, the attacker may know dhexp(encKey(alice,bob),g).
+By 16, the attacker may know nonce_0.
+By 5, the attacker may know empty.
+By 15, the attacker may know concat2(sigexp(sk_128239),sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_128239),sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+attacker(encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_128239),sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+18. By 3, the attacker may have the channel pub.
+By 17, the attacker may have the message encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_128239),sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+So the attacker may send this message on this channel.
+mess(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_128239),sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+19. The attacker has some term decMsg_a_128238.
+attacker(decMsg_a_128238).
+
+20. Using the function nonce_2 the attacker may obtain nonce_2.
+attacker(nonce_2).
+
+21. By 8, the attacker may know dhexp(encKey(alice,bob),g).
+By 20, the attacker may know nonce_2.
+By 5, the attacker may know empty.
+By 19, the attacker may know decMsg_a_128238.
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_128238).
+attacker(encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_128238)).
+
+22. By 21, the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_128238).
+So the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_128238) in phase 1.
+attacker_p1(encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_128238)).
+
+23. By 3, the attacker may know pub.
+So the attacker may know pub in phase 1.
+attacker_p1(pub).
+
+24. By 23, the attacker may have the channel pub in phase 1.
+By 22, the attacker may have the message encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_128238) in phase 1.
+So the attacker may send this message on this channel.
+mess_p1(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_128238)).
+
+25. The event ClientInitialized(alice,bob) may be executed at {2}.
+The message g that may be sent on channel pub by 4 may be received at input {13}.
+The message encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_128239),sign(sk_128239,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) that may be sent on channel pub by 18 may be received at input {15}.
+The message encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,decMsg_a_128238) that may be sent on channel pub in phase 1 by 24 may be received at input {28}.
+The event SendMsgB(alice,bob) may be executed at {36}.
+So the message encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) may be sent on channel pub in phase 2 at output {37}.
+mess_p2(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob))).
+
+26. By 1, the attacker may have the channel pub in phase 2.
+By 25, the message encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) in phase 2 may be sent on this channel.
+So the attacker may obtain the message encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) in phase 2 by listening on this channel.
+attacker_p2(encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob))).
+
+27. By 26, the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) in phase 2.
+So the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) in phase 3.
+attacker_p3(encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob))).
+
+28. Using the function empty the attacker may obtain empty in phase 3.
+attacker_p3(empty).
+
+29. Using the function nonce_3 the attacker may obtain nonce_3 in phase 3.
+attacker_p3(nonce_3).
+
+30. By 8, the attacker may know dhexp(encKey(alice,bob),g).
+Using the function incrementNonce the attacker may obtain incrementNonce(dhexp(encKey(alice,bob),g)).
+attacker(incrementNonce(dhexp(encKey(alice,bob),g))).
+
+31. By 30, the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)).
+So the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 1.
+attacker_p1(incrementNonce(dhexp(encKey(alice,bob),g))).
+
+32. By 31, the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 1.
+So the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 2.
+attacker_p2(incrementNonce(dhexp(encKey(alice,bob),g))).
+
+33. By 32, the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 2.
+So the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 3.
+attacker_p3(incrementNonce(dhexp(encKey(alice,bob),g))).
+
+34. By 33, the attacker may know incrementNonce(dhexp(encKey(alice,bob),g)) in phase 3.
+Using the function decrementNonce the attacker may obtain dhexp(encKey(alice,bob),g) in phase 3.
+attacker_p3(dhexp(encKey(alice,bob),g)).
+
+35. By 34, the attacker may know dhexp(encKey(alice,bob),g) in phase 3.
+By 29, the attacker may know nonce_3 in phase 3.
+By 28, the attacker may know empty in phase 3.
+By 27, the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) in phase 3.
+Using the function decrypt the attacker may obtain aeadpack(true,empty,msg_b(alice,bob)) in phase 3.
+attacker_p3(aeadpack(true,empty,msg_b(alice,bob))).
+
+36. By 35, the attacker may know aeadpack(true,empty,msg_b(alice,bob)) in phase 3.
+Using the function 3-proj-aeadpack the attacker may obtain msg_b(alice,bob) in phase 3.
+attacker_p3(msg_b(alice,bob)).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(pub, (~M_128704,~M_128705,~M_128706)) with ~M_128704 = encKey(charlie,alice), ~M_128705 = encKey(charlie,bob), ~M_128706 = sigKey(charlie) at {282} in copy a_128254
+
+event ServerInitialized(bob,charlie) at {209} in copy a_128254
+
+event ServerInitialized(bob,alice) at {69} in copy a_128254
+
+event ClientInitialized(alice,bob) at {2} in copy a_128254
+
+out(pub, (~M_129901,~M_129902)) with ~M_129901 = dhexp(encKey(alice,bob),g), ~M_129902 = sigexp(sigKey(bob)) at {40} in copy a_128254
+
+out(pub, ~M_129931) with ~M_129931 = dhexp(encKey(alice,bob),g) at {11} in copy a_128254
+
+out(pub, (~M_129957,~M_129958,~M_129959)) with ~M_129957 = encKey(charlie,alice), ~M_129958 = encKey(charlie,bob), ~M_129959 = sigKey(charlie) at {282} in copy a_128253
+
+event ServerInitialized(bob,charlie) at {209} in copy a_128253
+
+event ServerInitialized(bob,alice) at {69} in copy a_128253
+
+event ClientInitialized(alice,bob) at {2} in copy a_128253
+
+out(pub, (~M_131154,~M_131155)) with ~M_131154 = dhexp(encKey(alice,bob),g), ~M_131155 = sigexp(sigKey(bob)) at {40} in copy a_128253
+
+out(pub, ~M_131184) with ~M_131184 = dhexp(encKey(alice,bob),g) at {11} in copy a_128253
+
+in(pub, g) at {13} in copy a_128254
+
+in(pub, encrypt(~M_129901,nonce_0,empty,concat2(sigexp(a_128252),sign(a_128252,concat3(scsig01,hash(~M_129901,empty),hash(g,empty)))))) with encrypt(~M_129901,nonce_0,empty,concat2(sigexp(a_128252),sign(a_128252,concat3(scsig01,hash(~M_129901,empty),hash(g,empty))))) = encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(a_128252),sign(a_128252,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) at {15} in copy a_128254
+
+out(pub, ~M_131418) with ~M_131418 = encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) at {26} in copy a_128254
+
+in(pub, encrypt(~M_129901,nonce_2,empty,a_128251)) with encrypt(~M_129901,nonce_2,empty,a_128251) = encrypt(dhexp(encKey(alice,bob),g),nonce_2,empty,a_128251) at {28} in copy a_128254
+
+event RecvMsgA(alice,bob) at {32} in copy a_128254
+
+event SendMsgB(alice,bob) at {36} in copy a_128254
+
+out(pub, ~M_131483) with ~M_131483 = encrypt(dhexp(encKey(alice,bob),g),nonce_3,empty,msg_b(alice,bob)) at {37} in copy a_128254
+
+out(pub, ~M_131485) with ~M_131485 = sigKey(alice) at {39} in copy a_128254
+
+The attacker has the message 3-proj-aeadpack(decrypt(~M_129901,nonce_3,empty,~M_131483)) = msg_b(alice,bob) in phase 3.
+A trace has been found.
+RESULT not attacker_p3(msg_b(alice,bob)) is false.
+Starting query attacker(sigexp(sigKey(alice))) ==> event(ClientInitialized(alice,charlie))
+goal reachable: begin(ClientInitialized(alice,bob)) -> attacker(sigexp(sigKey(alice)))
+
+1. Using the function pub the attacker may obtain pub.
+attacker(pub).
+
+2. Using the function g the attacker may obtain g.
+attacker(g).
+
+3. By 1, the attacker may have the channel pub.
+By 2, the attacker may have the message g.
+So the attacker may send this message on this channel.
+mess(pub,g).
+
+4. Using the function empty the attacker may obtain empty.
+attacker(empty).
+
+5. By 2, the attacker may know g.
+By 4, the attacker may know empty.
+Using the function hash the attacker may obtain hash(g,empty).
+attacker(hash(g,empty)).
+
+6. The event ClientInitialized(alice,bob) may be executed at {2}.
+So the message dhexp(encKey(alice,bob),g) may be sent on channel pub at output {11}.
+mess(pub,dhexp(encKey(alice,bob),g)).
+
+7. By 1, the attacker may have the channel pub.
+By 6, the message dhexp(encKey(alice,bob),g) may be sent on this channel.
+So the attacker may obtain the message dhexp(encKey(alice,bob),g) by listening on this channel.
+attacker(dhexp(encKey(alice,bob),g)).
+
+8. By 7, the attacker may know dhexp(encKey(alice,bob),g).
+By 4, the attacker may know empty.
+Using the function hash the attacker may obtain hash(dhexp(encKey(alice,bob),g),empty).
+attacker(hash(dhexp(encKey(alice,bob),g),empty)).
+
+9. Using the function scsig01 the attacker may obtain scsig01.
+attacker(scsig01).
+
+10. By 9, the attacker may know scsig01.
+By 8, the attacker may know hash(dhexp(encKey(alice,bob),g),empty).
+By 5, the attacker may know hash(g,empty).
+Using the function concat3 the attacker may obtain concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)).
+attacker(concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+
+11. The attacker has some term sk_131516.
+attacker(sk_131516).
+
+12. By 11, the attacker may know sk_131516.
+By 10, the attacker may know concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)).
+Using the function sign the attacker may obtain sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+attacker(sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+
+13. By 11, the attacker may know sk_131516.
+Using the function sigexp the attacker may obtain sigexp(sk_131516).
+attacker(sigexp(sk_131516)).
+
+14. By 13, the attacker may know sigexp(sk_131516).
+By 12, the attacker may know sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))).
+Using the function concat2 the attacker may obtain concat2(sigexp(sk_131516),sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+attacker(concat2(sigexp(sk_131516),sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+
+15. Using the function nonce_0 the attacker may obtain nonce_0.
+attacker(nonce_0).
+
+16. By 7, the attacker may know dhexp(encKey(alice,bob),g).
+By 15, the attacker may know nonce_0.
+By 4, the attacker may know empty.
+By 14, the attacker may know concat2(sigexp(sk_131516),sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+Using the function encrypt the attacker may obtain encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_131516),sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+attacker(encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_131516),sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+17. By 1, the attacker may have the channel pub.
+By 16, the attacker may have the message encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_131516),sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+So the attacker may send this message on this channel.
+mess(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_131516),sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+18. The event ClientInitialized(alice,bob) may be executed at {2}.
+The message g that may be sent on channel pub by 3 may be received at input {13}.
+The message encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(sk_131516),sign(sk_131516,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) that may be sent on channel pub by 17 may be received at input {15}.
+So the message encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) may be sent on channel pub at output {26}.
+mess(pub,encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+19. By 1, the attacker may have the channel pub.
+By 18, the message encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) may be sent on this channel.
+So the attacker may obtain the message encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) by listening on this channel.
+attacker(encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+20. Using the function nonce_1 the attacker may obtain nonce_1.
+attacker(nonce_1).
+
+21. By 7, the attacker may know dhexp(encKey(alice,bob),g).
+By 20, the attacker may know nonce_1.
+By 4, the attacker may know empty.
+By 19, the attacker may know encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+Using the function decrypt the attacker may obtain aeadpack(true,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+attacker(aeadpack(true,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))))).
+
+22. By 21, the attacker may know aeadpack(true,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+Using the function 3-proj-aeadpack the attacker may obtain concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+attacker(concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))).
+
+23. By 22, the attacker may know concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty)))).
+Using the function 1-proj-concat2 the attacker may obtain sigexp(sigKey(alice)).
+attacker(sigexp(sigKey(alice))).
+
+
+A more detailed output of the traces is available with
+  set traceDisplay = long.
+
+out(pub, (~M_131980,~M_131981,~M_131982)) with ~M_131980 = encKey(charlie,alice), ~M_131981 = encKey(charlie,bob), ~M_131982 = sigKey(charlie) at {282} in copy a_131531
+
+event ServerInitialized(bob,charlie) at {209} in copy a_131531
+
+event ServerInitialized(bob,alice) at {69} in copy a_131531
+
+event ClientInitialized(alice,bob) at {2} in copy a_131531
+
+out(pub, (~M_133177,~M_133178)) with ~M_133177 = dhexp(encKey(alice,bob),g), ~M_133178 = sigexp(sigKey(bob)) at {40} in copy a_131531
+
+out(pub, ~M_133207) with ~M_133207 = dhexp(encKey(alice,bob),g) at {11} in copy a_131531
+
+out(pub, (~M_133233,~M_133234,~M_133235)) with ~M_133233 = encKey(charlie,alice), ~M_133234 = encKey(charlie,bob), ~M_133235 = sigKey(charlie) at {282} in copy a_131530
+
+event ServerInitialized(bob,charlie) at {209} in copy a_131530
+
+event ServerInitialized(bob,alice) at {69} in copy a_131530
+
+event ClientInitialized(alice,bob) at {2} in copy a_131530
+
+out(pub, (~M_134430,~M_134431)) with ~M_134430 = dhexp(encKey(alice,bob),g), ~M_134431 = sigexp(sigKey(bob)) at {40} in copy a_131530
+
+out(pub, ~M_134460) with ~M_134460 = dhexp(encKey(alice,bob),g) at {11} in copy a_131530
+
+in(pub, g) at {13} in copy a_131531
+
+in(pub, encrypt(~M_133177,nonce_0,empty,concat2(sigexp(a_131529),sign(a_131529,concat3(scsig01,hash(~M_133177,empty),hash(g,empty)))))) with encrypt(~M_133177,nonce_0,empty,concat2(sigexp(a_131529),sign(a_131529,concat3(scsig01,hash(~M_133177,empty),hash(g,empty))))) = encrypt(dhexp(encKey(alice,bob),g),nonce_0,empty,concat2(sigexp(a_131529),sign(a_131529,concat3(scsig01,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) at {15} in copy a_131531
+
+out(pub, ~M_134694) with ~M_134694 = encrypt(dhexp(encKey(alice,bob),g),nonce_1,empty,concat2(sigexp(sigKey(alice)),sign(sigKey(alice),concat3(scsig02,hash(dhexp(encKey(alice,bob),g),empty),hash(g,empty))))) at {26} in copy a_131531
+
+The attacker has the message 1-proj-concat2(3-proj-aeadpack(decrypt(~M_133177,nonce_1,empty,~M_134694))) = sigexp(sigKey(alice)).
+A trace has been found.
+RESULT attacker(sigexp(sigKey(alice))) ==> event(ClientInitialized(alice,charlie)) is false.
