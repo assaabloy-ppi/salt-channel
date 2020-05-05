@@ -2,17 +2,18 @@ salt-channel/releases-notes.txt
 ===============================
 
 Release history. The implementation started in 2016, but formal 
-releases starts November 2017.
+releases started November 2017.
 
 
 v2.x, 2020-xx-xx
 ================
 
-Minor fixes.
+Minor fixes. We now have no known issues.
 
 * Fixed Issue #24, improved exception handling, now protects against missing
   checks in TimeChecker implementations.
 * Fixed Issue #21, nonce overflow.
+* Fixed Issue #19, improved test tool (TcpTestServer).
 
 
 v2.5, 2017-11-17

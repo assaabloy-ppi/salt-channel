@@ -16,7 +16,7 @@ import saltchannel.v2.SaltServerSession;
  * An INSECURE test TCP server running Salt Channel and a 
  * user-specified protocol on top of that.
  * Note, this is for development purposes only. A fixed ephemeral key pair
- * to allow for deterministic sessions. This is, of course, not a secure 
+ * is used to allow for deterministic sessions. This is, of course, not a secure 
  * practice for production.
  * 
  * @author Frans Lundberg
@@ -26,7 +26,7 @@ public class TcpTestServer {
     private final int port;
     private final Thread thread;
     private volatile boolean shutdown;
-    private ServerSocket ss;
+    private volatile ServerSocket ss;
     private ServerSessionFactory sessionFactory;
     private KeyPair keyPair;
     private Listener listener = Listener.NULL;
@@ -118,7 +118,6 @@ public class TcpTestServer {
                 
                 try {
                     socket = ss.accept();
-                    socket.setTcpNoDelay(true);
                 } catch (IOException e) {
                     // This is expected when other thread calls ss.close().
                     break;
@@ -142,7 +141,8 @@ public class TcpTestServer {
         try {
             reallyHandleSocket(socket);
         } catch (ComException e) {
-            listener.println("SERVER: ComException while communicating with client, " + socket.getInetAddress() + ", " + e.getMessage());
+            listener.println("SERVER: ComException while communicating with client, " 
+                    + socket.getInetAddress() + ", " + e.getMessage());
         } finally {
             Util.close(socket);
         }
@@ -155,6 +155,7 @@ public class TcpTestServer {
         ByteChannel channel;
         
         try {
+            socket.setTcpNoDelay(true);
             clearChannel = new SocketChannel(socket);
         } catch (IOException e) {
             throw new ComException(e.getMessage());

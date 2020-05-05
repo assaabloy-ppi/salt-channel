@@ -9,15 +9,15 @@ import org.junit.Test;
 public class TcpTestServerTest {
     // 2020-04-24, test commented when working to solve other issues.
 
-    //@Test
+    @Test
     public void testStartStop() throws IOException {
-        int port = TcpTestServer.DEFAULT_PORT + 11;
+        int port = TcpTestServer.DEFAULT_PORT + 13;
         TcpTestServer s1 = TcpTestServer.createEchoServer(port);
         s1.start();
         s1.stop();
     }
     
-    //@Test
+    @Test
     public void testMultipleStartStop() throws IOException {
         int port = TcpTestServer.DEFAULT_PORT + 11;
         
