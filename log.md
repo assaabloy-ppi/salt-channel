@@ -1,3 +1,10 @@
+Log 2020-05-05
+==============
+
+Frans: Fixed some issues. We now have zero known issues and are 
+ready to make a new release.
+
+
 Log 2020-04-24
 ==============
 

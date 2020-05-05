@@ -5,10 +5,10 @@ Release history. The implementation started in 2016, but formal
 releases started November 2017.
 
 
-v2.x, 2020-xx-xx
+v2.6, 2020-05-05
 ================
 
-Minor fixes. We now have no known issues.
+Minor fixes. We now have zero known issues!
 
 * Fixed Issue #24, improved exception handling, now protects against missing
   checks in TimeChecker implementations.
