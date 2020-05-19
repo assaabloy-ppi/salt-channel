@@ -45,6 +45,12 @@ public class WsTestServer {
     public void start() {
         InetSocketAddress address = new InetSocketAddress(port);
         WebSocketServer server = new WebSocketServer(address) {
+
+	    @Override
+	    public void onStart() {
+		// Added 2020-05-19 to make it work with Java-WebSocket-1.5.1.jar.
+	    }
+	    
             @Override
             public void onClose(WebSocket socket, int code, String reason, boolean remote) {
                 synchronized (this) {
