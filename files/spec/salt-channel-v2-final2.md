@@ -895,14 +895,14 @@ Challenge02:
  
  
 Client side:
-    Challenge01 = { "SC-SIG02" || SHA512(M1) || SHA512(M2) }
-    Sig02 = sign(Challenge02, ServerSigSec)
- 
+    Challenge02 = { "SC-SIG02" || SHA512(M1) || SHA512(M2) }
+    Sig02 = sign(Challenge02, ClientSigSec)
+
 Server side:
-    Challenge01 = { "SC-SIG02" || SHA512(M1) || SHA512(M2) }
-    verify(Sig02, Challenge02, ServerSigPub)
- 
- 
+    Challenge02 = { "SC-SIG02" || SHA512(M1) || SHA512(M2) }
+    verify(Sig02, Challenge02, ClientSigPub)
+
+
 ---------------------------------------------------------
 | ASCII for "SC-SIG02"                                  |
 ---------------------------------------------------------
