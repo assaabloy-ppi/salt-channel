@@ -1,3 +1,10 @@
+Log 2021-08-24
+==============
+
+Frans: No news really. The Java-WebSocket-1.5.1.jar is the still the 
+latest release of that library. Fixed LICENSE to include "2021".
+
+
 Log 2020-05-05
 ==============
 
