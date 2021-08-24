@@ -23,8 +23,12 @@ About this document.
   in Swift and JavaScript.
 * To Felix Grape for carefully reviewing the protocol and improving
   the wording of the specification.
+* To Tofik Sonono for finding typos in the specification.
+
 
 ## History
+
+* 2021-08-24. FINAL2. Fixed typos in Section "Salt Channel handshake authentication".
 
 * 2019-01-24. FINAL2. Clarification of specification. No changes to the protocol itself.
 
