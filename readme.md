@@ -24,7 +24,8 @@ by Assured AB, thank you!
 
 Also, the protocol has been analysed with formal methods using Proverif. 
 It proves, within a realistic mathematical model, that the main security goals
-have been met. See the results in [the report](files/Proverif-SaltChannelReport1.1-2018.pdf).
+have been met. See the results in [the report](formal-verification/proverif/SaltChannelReport-2018.pdf).
+
 
 
 Versions
