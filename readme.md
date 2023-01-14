@@ -78,7 +78,7 @@ JavaScript
 ----------
 
 Implementation by Håkan Olsson. Both server and client. 
-See [https://github.com/hakanols/salt-channel-js](github.com/hakanols/salt-channel-js).
+See [github.com/hakanols/salt-channel-js](https://github.com/hakanols/salt-channel-js).
 
 Implementation by ASSA ABLOY: [github.com/assaabloy-ppi/salt-channel-js](https://github.com/assaabloy-ppi/salt-channel-js), 
 JavaScript implementation, MIT license.
